@@ -53,7 +53,6 @@ export default function RootLayout({
         <QueryProvider>
           <LenisProvider>
             <ToastProvider>
-              <LoadingScreen />
               <CustomCursor />
               <Navbar />
               <CartDrawer />
