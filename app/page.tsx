@@ -9,6 +9,7 @@ import { InteractiveLaserEngraver } from '@/components/motion/InteractiveLaserEn
 import { AnimatedTestimonials } from '@/components/motion/AnimatedTestimonials'
 import { AnimatedFAQAccordion } from '@/components/motion/AnimatedFAQAccordion'
 import { InteractiveScentQuiz } from '@/components/motion/InteractiveScentQuiz'
+import { OceanWaves } from '@/components/motion/OceanWaves'
 import { FlippingBookProductCard, type FlippingBookProductCardProps } from '@/features/products/components/FlippingBookProductCard'
 import { prisma } from '@/lib/db/prisma'
 import {
@@ -226,6 +227,9 @@ export default async function HomePage() {
         </div>
       </section>
 
+      {/* BOMBAY MUSK LUXURY ANIMATED OCEAN WAVES DIVIDER */}
+      <OceanWaves className="-mt-4 -mb-6" />
+
       {/* SECTION 2: INFINITE BRAND TICKER WITH GENEROUS MARGINS */}
       <section className="bg-bg-surface border-y border-white-500/20 py-5 my-6 sm:my-10 overflow-hidden">
         <div className="flex whitespace-nowrap gap-12 animate-marquee text-[11px] sm:text-xs font-inter uppercase tracking-[0.3em] text-white-200 font-medium">
@@ -331,6 +335,9 @@ export default async function HomePage() {
         </div>
       </section>
 
+      {/* BOMBAY MUSK LUXURY ANIMATED OCEAN WAVES DIVIDER */}
+      <OceanWaves className="my-6" />
+
       {/* BOMBAY MUSK COMPETITOR UX SECTION C: DARK ATMOSPHERIC OUD SHOWCASE MATCHING SCREENSHOT 3 */}
       <section className="bg-black py-20 px-4 sm:px-6 md:px-12 relative overflow-hidden">
         <div className="max-w-7xl mx-auto space-y-12">
@@ -384,6 +391,9 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* BOMBAY MUSK LUXURY ANIMATED OCEAN WAVES DIVIDER */}
+      <OceanWaves className="my-6" />
 
       {/* FOUR CAR PERFUME FORMATS */}
       <ScrollReveal className="px-4 sm:px-6 md:px-12 max-w-7xl mx-auto space-y-12">
@@ -442,6 +452,9 @@ export default async function HomePage() {
         </div>
       </ScrollReveal>
 
+      {/* BOMBAY MUSK LUXURY ANIMATED OCEAN WAVES DIVIDER */}
+      <OceanWaves className="my-6" />
+
       {/* LUXURY SECTION: AS SEEN IN AUTOMOTIVE & LUXURY PRESS */}
       <section className="bg-black border-y border-white-500/20 py-16 px-4 sm:px-6 md:px-12 my-12">
         <div className="max-w-7xl mx-auto space-y-10 text-center">
@@ -491,6 +504,9 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* BOMBAY MUSK LUXURY ANIMATED OCEAN WAVES DIVIDER */}
+      <OceanWaves className="my-6" />
 
       {/* LUXURY SECTION: ORDINARY AIR FRESHENER VS AUTOROMA COMPARISON */}
       <ScrollReveal className="px-4 sm:px-6 md:px-12 max-w-7xl mx-auto space-y-12">
@@ -557,10 +573,16 @@ export default async function HomePage() {
         </div>
       </ScrollReveal>
 
+      {/* BOMBAY MUSK LUXURY ANIMATED OCEAN WAVES DIVIDER BEFORE SCENT QUIZ */}
+      <OceanWaves className="my-8" />
+
       {/* SECTION: BOMBAY MUSK INSPIRED INTERACTIVE SCENT QUIZ */}
       <section id="scent-quiz" className="px-4 sm:px-6 md:px-12 max-w-7xl mx-auto scroll-mt-24">
         <InteractiveScentQuiz />
       </section>
+
+      {/* BOMBAY MUSK LUXURY ANIMATED OCEAN WAVES DIVIDER */}
+      <OceanWaves className="my-6" />
 
       {/* SECTION 9: ANIMATED 3D DRIVER REVIEWS */}
       <section className="px-4 sm:px-6 md:px-12 max-w-7xl mx-auto space-y-12">

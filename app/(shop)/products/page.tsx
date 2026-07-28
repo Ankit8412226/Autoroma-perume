@@ -1,6 +1,7 @@
 import { Suspense } from 'react'
 import Link from 'next/link'
 import { ProductFilters } from '@/features/products/components/ProductFilters'
+import { OceanWaves } from '@/components/motion/OceanWaves'
 import { FlippingBookProductCard, type FlippingBookProductCardProps } from '@/features/products/components/FlippingBookProductCard'
 import { prisma } from '@/lib/db/prisma'
 import { Sparkles, ShieldCheck, Truck, RefreshCw, Car } from 'lucide-react'
@@ -158,7 +159,7 @@ export default async function ProductsPage({ searchParams }: PageProps) {
             </p>
             <Link
               href="/products"
-              className="inline-block px-6 py-2.5 bg-gold-300 text-bg-primary font-inter text-xs uppercase tracking-widest font-semibold"
+              className="inline-block px-6 py-2.5 bg-white text-black font-inter text-xs uppercase tracking-widest font-semibold"
             >
               Reset All Filters
             </Link>
@@ -171,6 +172,8 @@ export default async function ProductsPage({ searchParams }: PageProps) {
           </div>
         )}
       </div>
+
+      <OceanWaves className="pt-12" />
     </main>
   )
 }
