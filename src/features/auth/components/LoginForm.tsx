@@ -33,7 +33,7 @@ export function LoginForm() {
         setError('Invalid email or password.')
         toast('Invalid email or password.', 'error')
       } else {
-        toast('Welcome back.', 'success')
+        toast('Welcome back to Autoroma.', 'success')
         router.push(nextUrl)
         router.refresh()
       }
@@ -45,60 +45,112 @@ export function LoginForm() {
     }
   }
 
+  const fillCredentials = (userEmail: string, pass: string) => {
+    setEmail(userEmail)
+    setPassword(pass)
+  }
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 w-full max-w-md">
-      <div className="space-y-2 text-center">
-        <span className="text-label text-gold-300 uppercase tracking-widest block">
-          Client Portal
+    <div className="space-y-6 w-full">
+      {/* Top Bombay Musk Trust Header Showcase */}
+      <div className="bg-bg-surface border border-white-500/20 p-4 rounded-sm text-center space-y-3">
+        <span className="text-[10px] font-inter uppercase tracking-[0.25em] text-white-300 font-semibold block">
+          PROUDLY MADE IN INDIA
         </span>
-        <h1 className="font-cormorant text-heading-xl text-white-100 font-light">
-          Sign In
-        </h1>
-      </div>
-
-      {error && (
-        <div className="p-3 border border-error/50 bg-error/10 text-error text-xs font-inter text-center">
-          {error}
+        <h2 className="font-sans text-xl font-bold text-white uppercase tracking-wider">
+          OVER 135K+ HAPPY DRIVERS
+        </h2>
+        <div className="flex items-center justify-center gap-4 text-[10px] font-inter uppercase tracking-widest text-white-300 pt-1 border-t border-white-500/10">
+          <span>🇮🇳 MADE IN INDIA</span>
+          <span>•</span>
+          <span>♻️ RECYCLABLE</span>
+          <span>•</span>
+          <span>🌱 ECO-FRIENDLY</span>
         </div>
-      )}
+      </div>
 
-      <Input
-        label="Email Address"
-        type="email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        required
-        placeholder="driver@domain.com"
-      />
+      <form onSubmit={handleSubmit} className="space-y-5">
+        <div className="space-y-1 text-center pt-2">
+          <h1 className="font-sans text-2xl text-white font-bold uppercase tracking-wider">
+            Sign In
+          </h1>
+          <p className="text-xs text-white-300 font-inter font-light">
+            Sign in to manage your car perfume orders & wishlist.
+          </p>
+        </div>
 
-      <Input
-        label="Password"
-        type="password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        required
-        placeholder="••••••••"
-      />
+        {error && (
+          <div className="p-3 border border-red-500/50 bg-red-500/10 text-red-400 text-xs font-inter text-center">
+            {error}
+          </div>
+        )}
 
-      <div className="flex justify-end">
-        <Link
-          href="/forgot-password"
-          className="text-xs text-gold-300 hover:text-gold-200 transition-colors uppercase tracking-wider font-inter"
+        {/* Quick Demo Login Preset Buttons */}
+        <div className="space-y-2 pt-1">
+          <span className="text-[10px] uppercase tracking-widest text-white-400 font-inter block text-center">
+            ⚡ Quick 1-Click Demo Logins:
+          </span>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => fillCredentials('user@autoroma.com', 'user123')}
+              className="py-2 px-3 bg-bg-surface border border-white-500/20 hover:border-white text-xs font-inter text-white font-medium rounded-sm transition-all text-center"
+            >
+              👤 Customer Account
+            </button>
+            <button
+              type="button"
+              onClick={() => fillCredentials('admin@autoroma.com', 'admin123')}
+              className="py-2 px-3 bg-bg-surface border border-white-500/20 hover:border-white text-xs font-inter text-white font-medium rounded-sm transition-all text-center"
+            >
+              👑 Admin Account
+            </button>
+          </div>
+        </div>
+
+        <Input
+          label="Email Address"
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+          placeholder="driver@autoroma.com"
+        />
+
+        <Input
+          label="Password"
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+          placeholder="••••••••"
+        />
+
+        <div className="flex justify-end">
+          <Link
+            href="/forgot-password"
+            className="text-xs text-white-300 hover:text-white transition-colors uppercase tracking-wider font-inter underline"
+          >
+            Forgot password?
+          </Link>
+        </div>
+
+        <button
+          type="submit"
+          disabled={loading}
+          style={{ backgroundColor: '#FFFFFF', color: '#000000' }}
+          className="w-full py-3.5 px-4 font-inter text-xs font-bold uppercase tracking-wider rounded-sm transition-all hover:bg-neutral-200 cursor-pointer border border-white"
         >
-          Forgot password?
-        </Link>
-      </div>
+          {loading ? 'AUTHENTICATING...' : 'SIGN IN TO YOUR ACCOUNT'}
+        </button>
 
-      <Button type="submit" variant="primary" className="w-full" isLoading={loading}>
-        Sign In
-      </Button>
-
-      <div className="text-center text-xs text-white-400 font-inter pt-4 border-t border-white-500/20">
-        Don&apos;t have an account?{' '}
-        <Link href="/register" className="text-gold-300 hover:underline">
-          Create Account
-        </Link>
-      </div>
-    </form>
+        <div className="text-center text-xs text-white-400 font-inter pt-4 border-t border-white-500/20">
+          Don&apos;t have an account?{' '}
+          <Link href="/register" className="text-white hover:underline font-semibold">
+            Create Account
+          </Link>
+        </div>
+      </form>
+    </div>
   )
 }

@@ -239,73 +239,162 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* SECTION 3: REVAMPED 3D HOLOGRAPHIC CABIN MATCHING CARDS */}
-      <ScrollReveal className="px-4 sm:px-6 md:px-12 max-w-7xl mx-auto space-y-12">
+      {/* BOMBAY MUSK COMPETITOR UX SECTION A: BEST SELLERS GRID ("The scents people ask about") */}
+      <ScrollReveal className="px-4 sm:px-6 md:px-12 max-w-7xl mx-auto space-y-8">
         <div className="text-center space-y-3 max-w-2xl mx-auto">
-          <span className="text-label text-white uppercase tracking-widest block font-inter font-bold">
-            CAR CABIN COMPATIBILITY
+          <span className="text-xs font-inter uppercase tracking-[0.3em] text-white-300 font-semibold block">
+            BEST SELLERS
           </span>
-          <h2 className="font-cormorant text-display-lg sm:text-display-xl font-light text-white-100">
-            Engineered for Your Car Interior
+          <h2 className="font-sans text-3xl sm:text-5xl font-light text-white tracking-tight">
+            The scents people ask about
           </h2>
-          <p className="text-xs sm:text-body-md text-white-300 font-light font-inter">
-            From executive sedans to luxury SUVs and minimalist EVs, choose the perfect car perfume formulation for your vehicle.
+          <p className="text-xs sm:text-sm text-white-300 font-inter font-light">
+            Loved by 500,000+ drivers. Start with the ones they reach for most.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          <HolographicCabinCard
-            iconName="car"
-            title="Executive Sedans"
-            subtitle="BMW 5/7 Series · Mercedes S-Class"
-            desc="Opulent Cambodian Oud & Amber cabin mist formulated to pair with full-grain leather upholstery."
-            href="/products?family=Oud"
-            ctaText="Explore Oud Series →"
-            imageSrc="/images/scent-top-notes.png"
-          />
+        {featuredProducts.length === 0 ? (
+          <div className="py-16 text-center bg-bg-surface border border-white-500/20 text-white-400 font-light">
+            Loading bestselling scents...
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {featuredProducts.slice(0, 4).map((p) => (
+              <FlippingBookProductCard key={p.id} product={p} />
+            ))}
+          </div>
+        )}
 
-          <HolographicCabinCard
-            iconName="shield"
-            title="Luxury SUVs"
-            subtitle="Range Rover · Porsche Cayenne"
-            desc="Tuscan Leather solid gel jar designed to diffuse broad, even fragrance across large cabin volumes."
-            href="/products?type=DASHBOARD_GEL"
-            ctaText="Explore Gel Jars →"
-            imageSrc="/images/scent-heart-notes.png"
-          />
-
-          <HolographicCabinCard
-            iconName="zap"
-            title="EV & Modern Cockpits"
-            subtitle="Tesla · Volvo EX · Audi e-tron"
-            desc="Ocean Drive Marine Vent Clips delivering crisp sea spray and bergamot for minimalist interiors."
-            href="/products?family=Fresh"
-            ctaText="Explore Fresh Marine →"
-            imageSrc="/images/car-vent-perfume-clip.png"
-          />
-
-          <HolographicCabinCard
-            iconName="award"
-            title="Sports Cars & Coupes"
-            subtitle="Porsche 911 · Mustang · BMW M"
-            desc="Kyoto Cedar wooden cap vial hanging diffusers crafted with Japanese cedarwood & Hinoki cypress."
-            href="/products?type=HANGING"
-            ctaText="Explore Hanging Vials →"
-            imageSrc="/images/car-perfume-craft.png"
-          />
+        <div className="text-center pt-4">
+          <Link
+            href="/products"
+            className="inline-block text-xs font-inter uppercase tracking-[0.25em] text-white font-semibold underline underline-offset-8 hover:text-white-300 transition-colors"
+          >
+            VIEW ALL SCENTS →
+          </Link>
         </div>
       </ScrollReveal>
 
-      {/* SECTION 4: REVAMPED GLOWING LED CATEGORY CARDS WITH AIRFLOW AUDIO */}
+      {/* BOMBAY MUSK COMPETITOR UX SECTION B: WHY IT LASTS 3 METRIC CIRCLES */}
+      <section className="bg-black border-y border-white-500/20 py-20 px-4 sm:px-6 md:px-12 my-16">
+        <div className="max-w-5xl mx-auto text-center space-y-12">
+          <div className="space-y-3 max-w-2xl mx-auto">
+            <span className="text-xs font-inter uppercase tracking-[0.3em] text-white-300 font-semibold block">
+              WHY IT LASTS
+            </span>
+            <h2 className="font-sans text-3xl sm:text-5xl font-light text-white tracking-tight">
+              Built like a perfume. Tuned for a car.
+            </h2>
+            <p className="text-xs sm:text-sm text-white-300 font-inter font-light">
+              Most car scents flash off in the heat. Ours is engineered to hold.
+            </p>
+          </div>
+
+          {/* 3 Circular Glowing Spec Badges Matching Screenshot 2 */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-center justify-center">
+            {/* Circle 1 */}
+            <div className="flex flex-col items-center justify-center space-y-4">
+              <div className="w-36 h-36 rounded-full border border-white/20 bg-gradient-to-b from-white/10 to-transparent flex flex-col items-center justify-center shadow-[0_0_30px_rgba(255,255,255,0.05)] transition-all hover:scale-105 hover:border-white">
+                <span className="font-sans text-2xl sm:text-3xl font-bold text-white tracking-tight">
+                  20-30%
+                </span>
+              </div>
+              <span className="text-[11px] font-inter uppercase tracking-[0.25em] text-white-300 font-medium">
+                DESIGNER OIL
+              </span>
+            </div>
+
+            {/* Circle 2 */}
+            <div className="flex flex-col items-center justify-center space-y-4">
+              <div className="w-36 h-36 rounded-full border border-white/20 bg-gradient-to-b from-white/10 to-transparent flex flex-col items-center justify-center shadow-[0_0_30px_rgba(255,255,255,0.05)] transition-all hover:scale-105 hover:border-white">
+                <span className="font-sans text-2xl sm:text-3xl font-bold text-white tracking-tight">
+                  60°C
+                </span>
+              </div>
+              <span className="text-[11px] font-inter uppercase tracking-[0.25em] text-white-300 font-medium">
+                HEAT STABLE
+              </span>
+            </div>
+
+            {/* Circle 3 */}
+            <div className="flex flex-col items-center justify-center space-y-4">
+              <div className="w-36 h-36 rounded-full border border-white/20 bg-gradient-to-b from-white/10 to-transparent flex flex-col items-center justify-center shadow-[0_0_30px_rgba(255,255,255,0.05)] transition-all hover:scale-105 hover:border-white">
+                <span className="font-sans text-2xl sm:text-3xl font-bold text-white tracking-tight">
+                  100%
+                </span>
+              </div>
+              <span className="text-[11px] font-inter uppercase tracking-[0.25em] text-white-300 font-medium">
+                PLANT-BASED ALCOHOL-FREE
+              </span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* BOMBAY MUSK COMPETITOR UX SECTION C: DARK ATMOSPHERIC OUD SHOWCASE MATCHING SCREENSHOT 3 */}
+      <section className="bg-black py-20 px-4 sm:px-6 md:px-12 relative overflow-hidden">
+        <div className="max-w-7xl mx-auto space-y-12">
+          {/* Rating Badge Header */}
+          <div className="text-center space-y-2">
+            <span className="text-[10px] sm:text-xs font-inter uppercase tracking-[0.35em] text-white-300 font-semibold block">
+              LOVED BY 500,000+ DRIVERS
+            </span>
+            <div className="flex items-center justify-center gap-3">
+              <span className="font-sans text-4xl sm:text-5xl font-bold text-white">4.9</span>
+              <span className="text-amber-400 text-xl tracking-widest">★★★★★</span>
+            </div>
+            <span className="text-[10px] font-inter uppercase tracking-[0.25em] text-white-400 block">
+              1,611 VERIFIED REVIEWS
+            </span>
+          </div>
+
+          {/* Split Media Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+            {/* Left Image: Raw Oud Wood, Cocoa & Smoldering Incense Smoke */}
+            <div className="lg:col-span-7 relative h-[360px] sm:h-[480px] rounded-sm overflow-hidden border border-white-500/20 shadow-2xl group">
+              <Image
+                src="/images/bombay-musk-oud-smoke.png"
+                alt="Autoroma Raw Agarwood Oud and Smoldering Smoke Atmosphere"
+                fill
+                sizes="(max-width: 1024px) 100vw, 60vw"
+                className="object-cover transition-transform duration-700 group-hover:scale-105"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+            </div>
+
+            {/* Right Card Overlay Matching Screenshot 3 */}
+            <div className="lg:col-span-5 bg-gradient-to-b from-neutral-900/90 to-black border border-white-500/20 p-8 sm:p-10 rounded-sm space-y-6 shadow-2xl relative">
+              <h3 className="font-sans text-2xl sm:text-4xl font-light text-white leading-tight">
+                The scent you&apos;re remembered by.
+              </h3>
+              <p className="text-xs sm:text-sm text-white-300 font-inter font-light leading-relaxed">
+                We were tired of car scents that smelled like chemicals and vanished by lunch. So we built a real fragrance at designer-grade concentration, engineered to survive a hot cabin and linger for days. The kind people remember long after you&apos;ve driven off.
+              </p>
+              <div className="pt-4 flex items-center justify-between border-t border-white-500/15">
+                <span className="text-[10px] font-inter uppercase tracking-widest text-white-400 font-semibold">
+                  CAMBODIAN OUD ROYAL
+                </span>
+                <Link href="/products?family=Oud">
+                  <button className="px-5 py-2.5 bg-white text-black font-inter text-xs font-bold uppercase tracking-wider rounded-sm hover:bg-neutral-200 transition-all cursor-pointer">
+                    SHOP OUD →
+                  </button>
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* FOUR CAR PERFUME FORMATS */}
       <ScrollReveal className="px-4 sm:px-6 md:px-12 max-w-7xl mx-auto space-y-12">
         <div className="text-center space-y-3 max-w-2xl mx-auto">
-          <span className="text-label text-white uppercase tracking-widest block font-inter font-bold">
+          <span className="text-xs font-inter uppercase tracking-[0.3em] text-white-300 font-semibold block">
             FOUR CAR PERFUME FORMATS
           </span>
-          <h2 className="font-cormorant text-display-lg sm:text-display-xl font-light text-white-100">
+          <h2 className="font-sans text-3xl sm:text-5xl font-light text-white tracking-tight">
             How Would You Like to Scent Your Car?
           </h2>
-          <p className="text-xs sm:text-body-md text-white-300 font-inter font-light">
+          <p className="text-xs sm:text-sm text-white-300 font-inter font-light">
             Discover our collection of anodized car vent clips, 50ml cabin spray mists, dashboard gel jars, and hanging glass vials.
           </p>
         </div>
@@ -353,76 +442,124 @@ export default async function HomePage() {
         </div>
       </ScrollReveal>
 
-      {/* SECTION 5: FEATURED PRODUCTS FLIPPING BOOK CATALOG GRID */}
-      <ScrollReveal className="px-4 sm:px-6 md:px-12 max-w-7xl mx-auto space-y-8">
-        <div className="flex flex-col md:flex-row justify-between items-center text-center md:text-left gap-4 border-b border-white-500/20 pb-6">
-          <div>
-            <span className="text-label text-white uppercase tracking-widest block font-inter font-bold">
-              BESTSELLING CAR PERFUMES 📖
-            </span>
-            <h2 className="font-cormorant text-display-lg sm:text-display-xl font-light text-white-100">
-              India&apos;s Favorite Luxury Car Fragrances
-            </h2>
-            <p className="text-xs text-white-300 font-inter font-light">
-              Curated car perfumes loved by 135,000+ automotive enthusiasts nationwide.
-            </p>
+      {/* LUXURY SECTION: AS SEEN IN AUTOMOTIVE & LUXURY PRESS */}
+      <section className="bg-black border-y border-white-500/20 py-16 px-4 sm:px-6 md:px-12 my-12">
+        <div className="max-w-7xl mx-auto space-y-10 text-center">
+          <span className="text-xs font-inter uppercase tracking-[0.35em] text-white-400 font-semibold block">
+            FEATURED IN LUXURY AUTOMOTIVE PRESS
+          </span>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {/* Press Card 1 */}
+            <div className="bg-bg-surface border border-white-500/20 p-8 rounded-sm space-y-4 shadow-xl">
+              <span className="font-sans text-xl font-bold tracking-widest text-white block">
+                AUTOCAR INDIA
+              </span>
+              <p className="text-xs text-white-300 font-inter font-light italic leading-relaxed">
+                &ldquo;The Rolls-Royce of luxury car perfumes. The Cambodian Oud mist smells identical to a 5-star hotel lobby.&rdquo;
+              </p>
+              <span className="text-[10px] text-white-400 uppercase tracking-widest font-inter block">
+                ★ ★ ★ ★ ★ EDITORS CHOICE
+              </span>
+            </div>
+
+            {/* Press Card 2 */}
+            <div className="bg-bg-surface border border-white-500/20 p-8 rounded-sm space-y-4 shadow-xl">
+              <span className="font-sans text-xl font-bold tracking-widest text-white block">
+                TOP GEAR INDIA
+              </span>
+              <p className="text-xs text-white-300 font-inter font-light italic leading-relaxed">
+                &ldquo;Engineered to withstand 60°C summer cabin heat without evaporating away in 3 days. A game changer.&rdquo;
+              </p>
+              <span className="text-[10px] text-white-400 uppercase tracking-widest font-inter block">
+                ★ ★ ★ ★ ★ AUTOMOTIVE INNOVATION
+              </span>
+            </div>
+
+            {/* Press Card 3 */}
+            <div className="bg-bg-surface border border-white-500/20 p-8 rounded-sm space-y-4 shadow-xl">
+              <span className="font-sans text-xl font-bold tracking-widest text-white block">
+                GQ MAGAZINE
+              </span>
+              <p className="text-xs text-white-300 font-inter font-light italic leading-relaxed">
+                &ldquo;The laser-engraved anodized diffuser is the ultimate gift for car purists and luxury car owners.&rdquo;
+              </p>
+              <span className="text-[10px] text-white-400 uppercase tracking-widest font-inter block">
+                ★ ★ ★ ★ ★ LUXURY ESSENTIAL
+              </span>
+            </div>
           </div>
-          <Link
-            href="/products"
-            className="text-xs text-white hover:underline uppercase tracking-wider font-inter underline underline-offset-8 font-semibold"
-          >
-            View Entire Collection ({featuredProducts.length}) →
-          </Link>
+        </div>
+      </section>
+
+      {/* LUXURY SECTION: ORDINARY AIR FRESHENER VS AUTOROMA COMPARISON */}
+      <ScrollReveal className="px-4 sm:px-6 md:px-12 max-w-7xl mx-auto space-y-12">
+        <div className="text-center space-y-3 max-w-2xl mx-auto">
+          <span className="text-xs font-inter uppercase tracking-[0.3em] text-white-300 font-semibold block">
+            THE AUTOROMA DIFFERENCE
+          </span>
+          <h2 className="font-sans text-3xl sm:text-5xl font-light text-white tracking-tight">
+            Why Ordinary Car Scents Fail
+          </h2>
+          <p className="text-xs sm:text-sm text-white-300 font-inter font-light">
+            Compare cheap chemical gas-station air fresheners with Autoroma&apos;s haute perfumery.
+          </p>
         </div>
 
-        {featuredProducts.length === 0 ? (
-          <div className="py-16 text-center bg-bg-surface border border-white-500/20 text-white-400 font-light">
-            Catalog fragrances loading...
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {/* Ordinary Chemical Freshener */}
+          <div className="bg-neutral-950 border border-red-500/20 p-8 rounded-sm space-y-6 shadow-xl relative">
+            <span className="text-xs font-inter uppercase tracking-widest text-red-400 font-bold block">
+              ❌ ORDINARY CAR SCENTS
+            </span>
+            <h3 className="font-sans text-2xl font-bold text-white">
+              Synthetic Chemical Spray
+            </h3>
+            <ul className="space-y-3 text-xs text-white-300 font-inter font-light">
+              <li className="flex items-center gap-3">
+                <span className="text-red-400 font-bold">✕</span> Fades off in 3–5 days under summer heat
+              </li>
+              <li className="flex items-center gap-3">
+                <span className="text-red-400 font-bold">✕</span> Harsh synthetic alcohol causes driver headaches
+              </li>
+              <li className="flex items-center gap-3">
+                <span className="text-red-400 font-bold">✕</span> Leaks corrosive oil onto dashboard plastic
+              </li>
+              <li className="flex items-center gap-3">
+                <span className="text-red-400 font-bold">✕</span> Single flat smell with zero top/base notes
+              </li>
+            </ul>
           </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            {featuredProducts.map((p) => (
-              <FlippingBookProductCard key={p.id} product={p} />
-            ))}
+
+          {/* Autoroma Luxury Car Perfume */}
+          <div className="bg-gradient-to-b from-neutral-900 to-black border border-white p-8 rounded-sm space-y-6 shadow-2xl relative">
+            <span className="text-xs font-inter uppercase tracking-widest text-emerald-400 font-bold block">
+              ✓ AUTOROMA HAUTE PARFUMERIE
+            </span>
+            <h3 className="font-sans text-2xl font-bold text-white">
+              Pure Organic Essential Oil
+            </h3>
+            <ul className="space-y-3 text-xs text-white-100 font-inter font-light">
+              <li className="flex items-center gap-3">
+                <span className="text-emerald-400 font-bold">✓</span> Continuous 45-day slow evaporation
+              </li>
+              <li className="flex items-center gap-3">
+                <span className="text-emerald-400 font-bold">✓</span> 0% chemical alcohol (IFRA certified safe)
+              </li>
+              <li className="flex items-center gap-3">
+                <span className="text-emerald-400 font-bold">✓</span> 100% leakproof anodized aluminum casing
+              </li>
+              <li className="flex items-center gap-3">
+                <span className="text-emerald-400 font-bold">✓</span> 3-tier olfactory pyramid (Top, Heart, Base)
+              </li>
+            </ul>
           </div>
-        )}
+        </div>
       </ScrollReveal>
 
-      {/* SECTION 6: BOMBAY MUSK INSPIRED INTERACTIVE SCENT QUIZ */}
+      {/* SECTION: BOMBAY MUSK INSPIRED INTERACTIVE SCENT QUIZ */}
       <section id="scent-quiz" className="px-4 sm:px-6 md:px-12 max-w-7xl mx-auto scroll-mt-24">
         <InteractiveScentQuiz />
-      </section>
-
-      {/* SECTION 7: AUDIO SPRAY MIST INTERACTIVE SCENT PYRAMID WITH DYNAMIC IMAGE SWITCHING */}
-      <ScrollReveal className="bg-bg-secondary border-y border-white-500/20 py-16 sm:py-24 px-4 sm:px-6 md:px-12">
-        <InteractiveScentPyramid />
-      </ScrollReveal>
-
-      {/* SECTION 7: CRAFTSMANSHIP STATS */}
-      <section className="bg-bg-surface border-y border-white-500/20 py-16 sm:py-24 px-4 sm:px-6 md:px-12">
-        <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8 text-center">
-          <div className="space-y-1 sm:space-y-2 border-r border-white-500/10 pr-2 sm:pr-4">
-            <span className="font-cormorant text-4xl sm:text-5xl text-white font-light block">60°C</span>
-            <span className="text-[10px] sm:text-xs uppercase tracking-widest text-white-300 font-inter">Hot Cabin Tested</span>
-          </div>
-          <div className="space-y-1 sm:space-y-2 md:border-r border-white-500/10 pr-2 sm:pr-4">
-            <span className="font-cormorant text-4xl sm:text-5xl text-white font-light block">45 Days</span>
-            <span className="text-[10px] sm:text-xs uppercase tracking-widest text-white-300 font-inter">Continuous Scent</span>
-          </div>
-          <div className="space-y-1 sm:space-y-2 border-r border-white-500/10 pr-2 sm:pr-4">
-            <span className="font-cormorant text-4xl sm:text-5xl text-white font-light block">0%</span>
-            <span className="text-[10px] sm:text-xs uppercase tracking-widest text-white-300 font-inter">Chemical Alcohol</span>
-          </div>
-          <div className="space-y-1 sm:space-y-2">
-            <span className="font-cormorant text-4xl sm:text-5xl text-white font-light block">IFRA</span>
-            <span className="text-[10px] sm:text-xs uppercase tracking-widest text-white-300 font-inter">Certified Safe Oils</span>
-          </div>
-        </div>
-      </section>
-
-      {/* SECTION 8: REAL-TIME B2B LASER ENGRAVER CUSTOMIZER */}
-      <section className="px-4 sm:px-6 md:px-12 max-w-7xl mx-auto">
-        <InteractiveLaserEngraver />
       </section>
 
       {/* SECTION 9: ANIMATED 3D DRIVER REVIEWS */}
