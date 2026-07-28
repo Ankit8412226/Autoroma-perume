@@ -163,39 +163,39 @@ export default async function HomePage() {
         </div>
 
         {/* Hero Left Content Overlay - Centered on Mobile, Left-Aligned on Desktop */}
-        <div className="max-w-7xl mx-auto w-full px-5 sm:px-8 lg:px-12 relative z-10 flex-1 flex flex-col justify-center items-center sm:items-start text-center sm:text-left pt-24 sm:pt-28 lg:pt-32 pb-14 sm:pb-16 space-y-6 sm:space-y-7">
+        <div className="max-w-7xl mx-auto w-full px-5 sm:px-8 lg:px-12 relative z-10 flex-1 flex flex-col justify-center items-center sm:items-start text-center sm:text-left pt-24 sm:pt-28 lg:pt-32 pb-14 sm:pb-16 space-y-4 sm:space-y-6">
           {/* Eyebrow Label */}
-          <span className="text-white/80 text-[10px] sm:text-xs md:text-sm uppercase tracking-[0.25em] sm:tracking-[0.35em] font-inter font-semibold drop-shadow-md">
-            AUTOROMA PARFUM D&apos;AUTOMOBILE · LUXURY CAR PERFUMES
+          <span className="text-white/80 text-[10px] sm:text-xs md:text-sm uppercase tracking-[0.25em] sm:tracking-[0.3em] font-inter font-semibold drop-shadow-md">
+            LUXURY CAR PERFUME
           </span>
 
-          {/* Main Headline */}
-          <h1 className="text-white font-sans text-4xl sm:text-6xl lg:text-[5.25rem] font-semibold leading-[1.06] sm:leading-[1.04] tracking-tight max-w-2xl drop-shadow-lg">
-            Elevate Every Drive With Luxury Car Fragrance.
+          {/* Main Headline - Compact 2-Line Editorial Headline */}
+          <h1 className="text-white font-sans text-2xl sm:text-4xl lg:text-5xl font-semibold leading-tight sm:leading-tight tracking-tight max-w-xl drop-shadow-lg">
+            The scent you&apos;re remembered by.
           </h1>
 
           {/* Subtitle Paragraph */}
-          <p className="text-white/90 text-xs sm:text-sm md:text-base font-inter font-light max-w-lg leading-relaxed drop-shadow">
-            Crafted with IFRA-certified pure essential oils and 60°C heat-resistant anodized aluminum diffusers. 0% headache alcohol. 100% leakproof.
+          <p className="text-white/90 text-xs sm:text-sm md:text-base font-inter font-light max-w-md leading-relaxed drop-shadow">
+            Designer-grade fragrance, engineered for hot vehicle cabins (60°C). Pure organic oils, zero chemical alcohol.
           </p>
 
           {/* Action Buttons Row - Stacks cleanly on Mobile with Full Width, Inline on Desktop */}
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3.5 sm:gap-4 pt-3 sm:pt-4 w-full sm:w-auto relative z-20">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3.5 sm:gap-4 pt-2 sm:pt-3 w-full sm:w-auto relative z-20">
             <Link href="/products" className="w-full sm:w-auto">
               <button
                 style={{ backgroundColor: '#FFFFFF', color: '#000000' }}
-                className="w-full sm:w-auto font-inter text-xs sm:text-sm font-bold uppercase tracking-wider px-8 py-4 rounded-sm shadow-2xl transition-all cursor-pointer border border-white hover:opacity-90 text-center"
+                className="w-full sm:w-auto font-inter text-xs sm:text-sm font-bold uppercase tracking-wider px-8 py-3.5 sm:py-4 rounded-sm shadow-2xl transition-all cursor-pointer border border-white hover:opacity-90 text-center"
               >
-                EXPLORE CAR PERFUMES
+                SHOP THE COLLECTION
               </button>
             </Link>
 
             <a href="#scent-quiz" className="w-full sm:w-auto">
               <button
                 style={{ backgroundColor: 'rgba(0, 0, 0, 0.75)', color: '#FFFFFF', borderColor: 'rgba(255, 255, 255, 0.8)' }}
-                className="w-full sm:w-auto backdrop-blur-md border hover:bg-white/20 font-inter text-xs sm:text-sm font-bold uppercase tracking-wider px-8 py-4 rounded-sm transition-all cursor-pointer text-center"
+                className="w-full sm:w-auto backdrop-blur-md border hover:bg-white/20 font-inter text-xs sm:text-sm font-bold uppercase tracking-wider px-8 py-3.5 sm:py-4 rounded-sm transition-all cursor-pointer text-center"
               >
-                FIND YOUR SCENT QUIZ
+                TAKE THE SCENT QUIZ
               </button>
             </a>
           </div>
