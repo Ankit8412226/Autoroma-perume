@@ -9,10 +9,10 @@ export function Footer() {
         {/* Brand Column */}
         <div className="space-y-4 md:col-span-1">
           <div className="flex flex-col">
-            <span className="font-cormorant text-2xl tracking-[0.2em] text-white-100 uppercase font-light">
+            <span className="font-sans text-2xl tracking-[0.2em] text-white uppercase font-bold">
               Autoroma
             </span>
-            <span className="text-[8px] font-inter uppercase tracking-[0.35em] text-gold-300">
+            <span className="text-[8px] font-inter uppercase tracking-[0.35em] text-white-300">
               Parfum d&apos;Automobile
             </span>
           </div>
@@ -24,27 +24,27 @@ export function Footer() {
 
         {/* Quick Links */}
         <div className="space-y-3">
-          <span className="text-label text-gold-300 uppercase tracking-widest block mb-4">
+          <span className="text-label text-white uppercase tracking-widest block mb-4 font-bold">
             Collection
           </span>
           <ul className="space-y-2 text-sm text-white-300 font-light">
             <li>
-              <Link href="/products?type=VENT_CLIP" className="hover:text-gold-300 transition-colors">
+              <Link href="/products?type=VENT_CLIP" className="hover:text-white transition-colors">
                 Vent Clip Fresheners
               </Link>
             </li>
             <li>
-              <Link href="/products?type=SPRAY" className="hover:text-gold-300 transition-colors">
+              <Link href="/products?type=SPRAY" className="hover:text-white transition-colors">
                 Interior Spray Perfumes
               </Link>
             </li>
             <li>
-              <Link href="/products?type=DASHBOARD_GEL" className="hover:text-gold-300 transition-colors">
+              <Link href="/products?type=DASHBOARD_GEL" className="hover:text-white transition-colors">
                 Dashboard Gel Jars
               </Link>
             </li>
             <li>
-              <Link href="/products?type=HANGING" className="hover:text-gold-300 transition-colors">
+              <Link href="/products?type=HANGING" className="hover:text-white transition-colors">
                 Hanging Diffusers
               </Link>
             </li>
@@ -53,27 +53,27 @@ export function Footer() {
 
         {/* Client Services & B2B */}
         <div className="space-y-3">
-          <span className="text-label text-gold-300 uppercase tracking-widest block mb-4">
+          <span className="text-label text-white uppercase tracking-widest block mb-4 font-bold">
             Services & Corporate
           </span>
           <ul className="space-y-2 text-sm text-white-300 font-light">
             <li>
-              <Link href="/b2b" className="hover:text-gold-300 transition-colors">
+              <Link href="/b2b" className="hover:text-white transition-colors">
                 B2B Bulk & Showroom Supply
               </Link>
             </li>
             <li>
-              <Link href="/account/orders" className="hover:text-gold-300 transition-colors">
+              <Link href="/account/orders" className="hover:text-white transition-colors">
                 Track Order
               </Link>
             </li>
             <li>
-              <Link href="/about" className="hover:text-gold-300 transition-colors">
+              <Link href="/about" className="hover:text-white transition-colors">
                 Craftsmanship & Oil Safety
               </Link>
             </li>
             <li>
-              <Link href="/contact" className="hover:text-gold-300 transition-colors">
+              <Link href="/contact" className="hover:text-white transition-colors">
                 Contact Concierge
               </Link>
             </li>
@@ -82,7 +82,7 @@ export function Footer() {
 
         {/* Newsletter */}
         <div className="space-y-4">
-          <span className="text-label text-gold-300 uppercase tracking-widest block mb-4">
+          <span className="text-label text-white uppercase tracking-widest block mb-4 font-bold">
             Join The Club
           </span>
           <p className="text-xs text-white-400 leading-relaxed font-light">
@@ -92,11 +92,11 @@ export function Footer() {
             <input
               type="email"
               placeholder="Enter your email"
-              className="input-base text-xs py-2 px-3 bg-bg-surface flex-1 border-r-0"
+              className="input-base text-xs py-2 px-3 bg-bg-surface flex-1 border-r-0 border-white-500/20 text-white placeholder:text-white-400 focus:outline-none"
             />
             <button
               type="submit"
-              className="bg-gold-300 text-bg-primary text-xs uppercase tracking-wider px-4 hover:bg-gold-200 transition-colors font-medium"
+              className="bg-white text-black text-xs uppercase tracking-wider px-4 hover:bg-neutral-200 transition-colors font-bold"
             >
               Join
             </button>
@@ -108,9 +108,9 @@ export function Footer() {
       <div className="max-w-7xl mx-auto pt-8 border-t border-white-500/10 flex flex-col md:flex-row items-center justify-between text-xs text-white-400 font-light gap-4">
         <span>© {new Date().getFullYear()} Autoroma Automotive Fragrances. All rights reserved.</span>
         <div className="flex gap-6">
-          <Link href="/privacy" className="hover:text-white-200">Privacy Policy</Link>
-          <Link href="/terms" className="hover:text-white-200">Terms of Service</Link>
-          <Link href="/shipping" className="hover:text-white-200">Shipping Policy</Link>
+          <Link href="/privacy" className="hover:text-white">Privacy Policy</Link>
+          <Link href="/terms" className="hover:text-white">Terms of Service</Link>
+          <Link href="/shipping" className="hover:text-white">Shipping Policy</Link>
         </div>
       </div>
     </footer>

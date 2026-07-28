@@ -165,18 +165,18 @@ export default async function HomePage() {
         {/* Hero Left Content Overlay - Centered on Mobile, Left-Aligned on Desktop */}
         <div className="max-w-7xl mx-auto w-full px-5 sm:px-8 lg:px-12 relative z-10 flex-1 flex flex-col justify-center items-center sm:items-start text-center sm:text-left pt-24 sm:pt-28 lg:pt-32 pb-14 sm:pb-16 space-y-6 sm:space-y-7">
           {/* Eyebrow Label */}
-          <span className="text-white/80 text-[11px] sm:text-xs md:text-sm uppercase tracking-[0.25em] sm:tracking-[0.3em] font-inter font-semibold drop-shadow-md">
-            LUXURY CAR PERFUME
+          <span className="text-white/80 text-[10px] sm:text-xs md:text-sm uppercase tracking-[0.25em] sm:tracking-[0.35em] font-inter font-semibold drop-shadow-md">
+            AUTOROMA PARFUM D&apos;AUTOMOBILE · LUXURY CAR PERFUMES
           </span>
 
           {/* Main Headline */}
           <h1 className="text-white font-sans text-4xl sm:text-6xl lg:text-[5.25rem] font-semibold leading-[1.06] sm:leading-[1.04] tracking-tight max-w-2xl drop-shadow-lg">
-            The scent you&apos;re remembered by.
+            Elevate Every Drive With Luxury Car Fragrance.
           </h1>
 
           {/* Subtitle Paragraph */}
           <p className="text-white/90 text-xs sm:text-sm md:text-base font-inter font-light max-w-lg leading-relaxed drop-shadow">
-            Designer-grade fragrance, engineered to last for weeks inside a hot cabin. Not a chemical air freshener.
+            Crafted with IFRA-certified pure essential oils and 60°C heat-resistant anodized aluminum diffusers. 0% headache alcohol. 100% leakproof.
           </p>
 
           {/* Action Buttons Row - Stacks cleanly on Mobile with Full Width, Inline on Desktop */}
@@ -186,7 +186,7 @@ export default async function HomePage() {
                 style={{ backgroundColor: '#FFFFFF', color: '#000000' }}
                 className="w-full sm:w-auto font-inter text-xs sm:text-sm font-bold uppercase tracking-wider px-8 py-4 rounded-sm shadow-2xl transition-all cursor-pointer border border-white hover:opacity-90 text-center"
               >
-                SHOP THE COLLECTION
+                EXPLORE CAR PERFUMES
               </button>
             </Link>
 
@@ -195,7 +195,7 @@ export default async function HomePage() {
                 style={{ backgroundColor: 'rgba(0, 0, 0, 0.75)', color: '#FFFFFF', borderColor: 'rgba(255, 255, 255, 0.8)' }}
                 className="w-full sm:w-auto backdrop-blur-md border hover:bg-white/20 font-inter text-xs sm:text-sm font-bold uppercase tracking-wider px-8 py-4 rounded-sm transition-all cursor-pointer text-center"
               >
-                TAKE THE SCENT QUIZ
+                FIND YOUR SCENT QUIZ
               </button>
             </a>
           </div>
@@ -242,14 +242,14 @@ export default async function HomePage() {
       {/* SECTION 3: REVAMPED 3D HOLOGRAPHIC CABIN MATCHING CARDS */}
       <ScrollReveal className="px-4 sm:px-6 md:px-12 max-w-7xl mx-auto space-y-12">
         <div className="text-center space-y-3 max-w-2xl mx-auto">
-          <span className="text-label text-gold-300 uppercase tracking-widest block font-inter">
-            Interactive Cabin Architecture
+          <span className="text-label text-white uppercase tracking-widest block font-inter font-bold">
+            CAR CABIN COMPATIBILITY
           </span>
           <h2 className="font-cormorant text-display-lg sm:text-display-xl font-light text-white-100">
-            Tailored for Fine Vehicle Interiors
+            Engineered for Your Car Interior
           </h2>
           <p className="text-xs sm:text-body-md text-white-300 font-light font-inter">
-            Hover over any holographic card below to trigger 3D magnetic tilt & gold glare sweep.
+            From executive sedans to luxury SUVs and minimalist EVs, choose the perfect car perfume formulation for your vehicle.
           </p>
         </div>
 
@@ -299,14 +299,14 @@ export default async function HomePage() {
       {/* SECTION 4: REVAMPED GLOWING LED CATEGORY CARDS WITH AIRFLOW AUDIO */}
       <ScrollReveal className="px-4 sm:px-6 md:px-12 max-w-7xl mx-auto space-y-12">
         <div className="text-center space-y-3 max-w-2xl mx-auto">
-          <span className="text-label text-gold-300 uppercase tracking-widest block font-inter">
-            Atelier Formulations
+          <span className="text-label text-white uppercase tracking-widest block font-inter font-bold">
+            FOUR CAR PERFUME FORMATS
           </span>
           <h2 className="font-cormorant text-display-lg sm:text-display-xl font-light text-white-100">
-            Four Ways to Scent Your Drive
+            How Would You Like to Scent Your Car?
           </h2>
           <p className="text-xs sm:text-body-md text-white-300 font-inter font-light">
-            Click any category card to trigger audio AC airflow sound effect & gold ambient pulse.
+            Discover our collection of anodized car vent clips, 50ml cabin spray mists, dashboard gel jars, and hanging glass vials.
           </p>
         </div>
 
@@ -357,19 +357,19 @@ export default async function HomePage() {
       <ScrollReveal className="px-4 sm:px-6 md:px-12 max-w-7xl mx-auto space-y-8">
         <div className="flex flex-col md:flex-row justify-between items-center text-center md:text-left gap-4 border-b border-white-500/20 pb-6">
           <div>
-            <span className="text-label text-gold-300 uppercase tracking-widest block font-inter">
-              Interactive Atelier Edition Books 📖
+            <span className="text-label text-white uppercase tracking-widest block font-inter font-bold">
+              BESTSELLING CAR PERFUMES 📖
             </span>
             <h2 className="font-cormorant text-display-lg sm:text-display-xl font-light text-white-100">
-              Bestselling Automotive Fragrances
+              India&apos;s Favorite Luxury Car Fragrances
             </h2>
             <p className="text-xs text-white-300 font-inter font-light">
-              Click any card to flip 3D open the fragrance formulation book with audio sound effect.
+              Curated car perfumes loved by 135,000+ automotive enthusiasts nationwide.
             </p>
           </div>
           <Link
             href="/products"
-            className="text-xs text-gold-300 hover:text-gold-200 uppercase tracking-wider font-inter underline underline-offset-8 font-medium"
+            className="text-xs text-white hover:underline uppercase tracking-wider font-inter underline underline-offset-8 font-semibold"
           >
             View Entire Collection ({featuredProducts.length}) →
           </Link>
@@ -402,20 +402,20 @@ export default async function HomePage() {
       <section className="bg-bg-surface border-y border-white-500/20 py-16 sm:py-24 px-4 sm:px-6 md:px-12">
         <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8 text-center">
           <div className="space-y-1 sm:space-y-2 border-r border-white-500/10 pr-2 sm:pr-4">
-            <span className="font-cormorant text-4xl sm:text-5xl text-gold-200 font-light block">60°C</span>
-            <span className="text-[10px] sm:text-xs uppercase tracking-widest text-white-300 font-inter">Heat Tested</span>
+            <span className="font-cormorant text-4xl sm:text-5xl text-white font-light block">60°C</span>
+            <span className="text-[10px] sm:text-xs uppercase tracking-widest text-white-300 font-inter">Hot Cabin Tested</span>
           </div>
           <div className="space-y-1 sm:space-y-2 md:border-r border-white-500/10 pr-2 sm:pr-4">
-            <span className="font-cormorant text-4xl sm:text-5xl text-gold-200 font-light block">45 Days</span>
+            <span className="font-cormorant text-4xl sm:text-5xl text-white font-light block">45 Days</span>
             <span className="text-[10px] sm:text-xs uppercase tracking-widest text-white-300 font-inter">Continuous Scent</span>
           </div>
           <div className="space-y-1 sm:space-y-2 border-r border-white-500/10 pr-2 sm:pr-4">
-            <span className="font-cormorant text-4xl sm:text-5xl text-gold-200 font-light block">0%</span>
-            <span className="text-[10px] sm:text-xs uppercase tracking-widest text-white-300 font-inter">Headache Alcohol</span>
+            <span className="font-cormorant text-4xl sm:text-5xl text-white font-light block">0%</span>
+            <span className="text-[10px] sm:text-xs uppercase tracking-widest text-white-300 font-inter">Chemical Alcohol</span>
           </div>
           <div className="space-y-1 sm:space-y-2">
-            <span className="font-cormorant text-4xl sm:text-5xl text-gold-200 font-light block">IFRA</span>
-            <span className="text-[10px] sm:text-xs uppercase tracking-widest text-white-300 font-inter">Certified Standards</span>
+            <span className="font-cormorant text-4xl sm:text-5xl text-white font-light block">IFRA</span>
+            <span className="text-[10px] sm:text-xs uppercase tracking-widest text-white-300 font-inter">Certified Safe Oils</span>
           </div>
         </div>
       </section>
