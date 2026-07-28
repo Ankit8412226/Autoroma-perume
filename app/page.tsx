@@ -40,9 +40,105 @@ export default async function HomePage() {
         stock: true,
         topNotes: true,
         heartNotes: true,
-        baseNotes: true,
       },
     })
+
+    if (featuredProducts.length < 4) {
+      const fallbackBestsellers: FlippingBookProductCardProps['product'][] = [
+        {
+          id: 'prod-oud-royal',
+          name: 'Cambodian Oud Royal Spray Mist',
+          slug: 'cambodian-oud-royal',
+          price: 1699,
+          compareAtPrice: 2199,
+          images: ['/images/scent-top-notes.png', '/images/hero-woman-perfume-perfect.png'],
+          productType: 'SPRAY',
+          scentFamily: 'Oriental Oud',
+          averageRating: 4.9,
+          reviewCount: 142,
+          isNew: true,
+          stock: 50,
+          topNotes: ['Cambodian Oud', 'Bergamot'],
+          heartNotes: ['Smoked Amber', 'Cardamom'],
+          baseNotes: ['Musk', 'White Cedar'],
+        },
+        {
+          id: 'prod-tuscan-leather',
+          name: 'Tuscan Leather Solid Gel Jar',
+          slug: 'tuscan-leather-gel',
+          price: 1499,
+          compareAtPrice: 1899,
+          images: ['/images/scent-heart-notes.png', '/images/hero-woman-perfume-perfect.png'],
+          productType: 'DASHBOARD_GEL',
+          scentFamily: 'Leather Woody',
+          averageRating: 4.8,
+          reviewCount: 98,
+          isNew: false,
+          stock: 35,
+          topNotes: ['Tuscan Leather', 'Saffron'],
+          heartNotes: ['Smoked Cedar', 'Thyme'],
+          baseNotes: ['Amber', 'Wild Leather'],
+        },
+        {
+          id: 'prod-ocean-drive',
+          name: 'Ocean Drive Marine Vent Clip',
+          slug: 'ocean-drive-vent-clip',
+          price: 1299,
+          compareAtPrice: 1599,
+          images: ['/images/car-vent-perfume-clip.png', '/images/hero-woman-perfume-perfect.png'],
+          productType: 'VENT_CLIP',
+          scentFamily: 'Fresh Aquatic',
+          averageRating: 4.9,
+          reviewCount: 176,
+          isNew: true,
+          stock: 80,
+          topNotes: ['Calabrian Bergamot', 'Sea Spray'],
+          heartNotes: ['Oceanic Notes', 'Sage'],
+          baseNotes: ['Smoked Cedarwood', 'Oakmoss'],
+        },
+        {
+          id: 'prod-kyoto-cedar',
+          name: 'Kyoto Cedar Wooden Hanging Vial',
+          slug: 'kyoto-cedar-vial',
+          price: 999,
+          compareAtPrice: 1299,
+          images: ['/images/car-perfume-craft.png', '/images/hero-woman-perfume-perfect.png'],
+          productType: 'HANGING',
+          scentFamily: 'Woody Earthy',
+          averageRating: 4.7,
+          reviewCount: 84,
+          isNew: false,
+          stock: 45,
+          topNotes: ['Japanese Cedarwood', 'Hinoki'],
+          heartNotes: ['Kyoto Cypress', 'Vetiver'],
+          baseNotes: ['Ambergris', 'Sandalwood'],
+        },
+      ]
+      featuredProducts = fallbackBestsellers
+    }
+
+    const getProductImage = (type?: string, name?: string) => {
+      const t = (type || '').toUpperCase()
+      const n = (name || '').toLowerCase()
+      if (t.includes('VENT') || n.includes('vent') || n.includes('clip') || n.includes('ocean')) {
+        return '/images/car-vent-perfume-clip.png'
+      }
+      if (t.includes('SPRAY') || n.includes('spray') || n.includes('mist') || n.includes('oud') || n.includes('royal')) {
+        return '/images/scent-top-notes.png'
+      }
+      if (t.includes('GEL') || n.includes('gel') || n.includes('tuscan') || n.includes('leather')) {
+        return '/images/scent-heart-notes.png'
+      }
+      if (t.includes('HANGING') || n.includes('hanging') || n.includes('vial') || n.includes('kyoto') || n.includes('cedar')) {
+        return '/images/car-perfume-craft.png'
+      }
+      return '/images/scent-top-notes.png'
+    }
+
+    featuredProducts = featuredProducts.map((p) => ({
+      ...p,
+      images: [getProductImage(p.productType, p.name), '/images/hero-woman-perfume-perfect.png'],
+    }))
   } catch {
     featuredProducts = []
   }
@@ -50,7 +146,7 @@ export default async function HomePage() {
   return (
     <main className="space-y-20 sm:space-y-24 pb-24 overflow-hidden bg-bg-primary text-white-100">
       {/* SECTION 1: BOMBAY MUSK EXACT MATCH HERO SECTION */}
-      <section className="relative min-h-[92vh] flex flex-col justify-between overflow-hidden border-b border-white-500/20">
+      <section className="relative min-h-[90vh] sm:min-h-[88vh] lg:min-h-[92vh] flex flex-col justify-between overflow-hidden border-b border-white-500/20">
         {/* Full-Bleed Background Image: Woman right-aligned inside luxury SUV trunk holding gold perfume box near chest */}
         <div className="absolute inset-0 z-0">
           <Image
@@ -59,45 +155,45 @@ export default async function HomePage() {
             fill
             priority
             sizes="100vw"
-            className="object-cover object-[right_center] sm:object-[right_top] brightness-105"
+            className="object-cover object-[80%_center] sm:object-[right_center] lg:object-[right_top] brightness-105"
           />
-          {/* Subtle Dark Vignette Gradients for Left-side Text Readability */}
-          <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/40 to-transparent z-[1]" />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent z-[1]" />
+          {/* Responsive Vignette Gradients for Mobile & Desktop Readability */}
+          <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/60 sm:via-black/35 to-transparent z-[1]" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-transparent z-[1]" />
         </div>
 
-        {/* Hero Left Content Overlay */}
-        <div className="max-w-7xl mx-auto w-full px-6 sm:px-12 md:px-16 lg:px-20 relative z-10 my-auto pt-28 pb-16 flex flex-col items-start text-left space-y-6">
+        {/* Hero Left Content Overlay - Centered on Mobile, Left-Aligned on Desktop */}
+        <div className="max-w-7xl mx-auto w-full px-5 sm:px-8 lg:px-12 relative z-10 flex-1 flex flex-col justify-center items-center sm:items-start text-center sm:text-left pt-24 sm:pt-28 lg:pt-32 pb-14 sm:pb-16 space-y-6 sm:space-y-7">
           {/* Eyebrow Label */}
-          <span className="text-white/80 text-xs sm:text-sm uppercase tracking-[0.3em] font-inter font-semibold drop-shadow-md">
+          <span className="text-white/80 text-[11px] sm:text-xs md:text-sm uppercase tracking-[0.25em] sm:tracking-[0.3em] font-inter font-semibold drop-shadow-md">
             LUXURY CAR PERFUME
           </span>
 
           {/* Main Headline */}
-          <h1 className="text-white font-sans text-5xl sm:text-7xl lg:text-[5.5rem] font-semibold leading-[1.05] tracking-tight max-w-2xl drop-shadow-lg">
+          <h1 className="text-white font-sans text-4xl sm:text-6xl lg:text-[5.25rem] font-semibold leading-[1.06] sm:leading-[1.04] tracking-tight max-w-2xl drop-shadow-lg">
             The scent you&apos;re remembered by.
           </h1>
 
           {/* Subtitle Paragraph */}
-          <p className="text-white/90 text-sm sm:text-base font-inter font-light max-w-lg leading-relaxed drop-shadow">
+          <p className="text-white/90 text-xs sm:text-sm md:text-base font-inter font-light max-w-lg leading-relaxed drop-shadow">
             Designer-grade fragrance, engineered to last for weeks inside a hot cabin. Not a chemical air freshener.
           </p>
 
-          {/* Action Buttons Row */}
-          <div className="flex flex-wrap items-center gap-4 pt-4 relative z-20">
-            <Link href="/products">
+          {/* Action Buttons Row - Stacks cleanly on Mobile with Full Width, Inline on Desktop */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3.5 sm:gap-4 pt-3 sm:pt-4 w-full sm:w-auto relative z-20">
+            <Link href="/products" className="w-full sm:w-auto">
               <button
                 style={{ backgroundColor: '#FFFFFF', color: '#000000' }}
-                className="font-inter text-xs sm:text-sm font-bold uppercase tracking-wider px-8 py-4 rounded-sm shadow-2xl transition-all cursor-pointer border border-white hover:opacity-90"
+                className="w-full sm:w-auto font-inter text-xs sm:text-sm font-bold uppercase tracking-wider px-8 py-4 rounded-sm shadow-2xl transition-all cursor-pointer border border-white hover:opacity-90 text-center"
               >
                 SHOP THE COLLECTION
               </button>
             </Link>
 
-            <a href="#scent-quiz">
+            <a href="#scent-quiz" className="w-full sm:w-auto">
               <button
                 style={{ backgroundColor: 'rgba(0, 0, 0, 0.75)', color: '#FFFFFF', borderColor: 'rgba(255, 255, 255, 0.8)' }}
-                className="backdrop-blur-md border hover:bg-white/20 font-inter text-xs sm:text-sm font-bold uppercase tracking-wider px-8 py-4 rounded-sm transition-all cursor-pointer"
+                className="w-full sm:w-auto backdrop-blur-md border hover:bg-white/20 font-inter text-xs sm:text-sm font-bold uppercase tracking-wider px-8 py-4 rounded-sm transition-all cursor-pointer text-center"
               >
                 TAKE THE SCENT QUIZ
               </button>
@@ -105,34 +201,34 @@ export default async function HomePage() {
           </div>
         </div>
 
-        {/* Bottom Feature Bar (3 Black Columns matching screenshot) */}
-        <div className="relative z-10 w-full bg-black border-t border-white/15 grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-white/15 text-center text-xs font-inter uppercase tracking-widest text-white/90 py-5">
-          <div className="py-2.5 px-4 flex flex-col items-center justify-center space-y-1">
-            <span className="font-semibold tracking-[0.2em] text-white flex items-center gap-2">
+        {/* Bottom Feature Ribbon Bar (3 Black Columns with Generous Padding & Gapping) */}
+        <div className="relative z-10 w-full bg-black border-t border-white/15 grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-white/15 text-center text-[11px] sm:text-xs font-inter uppercase tracking-widest text-white/90 py-4 sm:py-6">
+          <div className="py-4 sm:py-3 px-6 flex flex-col items-center justify-center space-y-1">
+            <span className="font-semibold tracking-[0.2em] text-white flex items-center gap-2 text-xs sm:text-sm">
               🚚 24-HR DISPATCH
             </span>
-            <span className="text-[10px] text-white/60 tracking-wider">FAST SHIPPING</span>
+            <span className="text-[10px] text-white/60 tracking-wider">FAST SHIPPING ACROSS INDIA</span>
           </div>
 
-          <div className="py-2.5 px-4 flex flex-col items-center justify-center space-y-1">
-            <span className="font-semibold tracking-[0.2em] text-white flex items-center gap-2">
+          <div className="py-4 sm:py-3 px-6 flex flex-col items-center justify-center space-y-1">
+            <span className="font-semibold tracking-[0.2em] text-white flex items-center gap-2 text-xs sm:text-sm">
               🛡️ TRUSTED 135,000+
             </span>
-            <span className="text-[10px] text-white/60 tracking-wider">ENTHUSIASTS</span>
+            <span className="text-[10px] text-white/60 tracking-wider">AUTOMOTIVE ENTHUSIASTS</span>
           </div>
 
-          <div className="py-2.5 px-4 flex flex-col items-center justify-center space-y-1">
-            <span className="font-semibold tracking-[0.2em] text-white flex items-center gap-2">
+          <div className="py-4 sm:py-3 px-6 flex flex-col items-center justify-center space-y-1">
+            <span className="font-semibold tracking-[0.2em] text-white flex items-center gap-2 text-xs sm:text-sm">
               ✨ 500,000+ SCENTED
             </span>
-            <span className="text-[10px] text-white/60 tracking-wider">CARS</span>
+            <span className="text-[10px] text-white/60 tracking-wider">CAR CABINS NATIONWIDE</span>
           </div>
         </div>
       </section>
 
-      {/* SECTION 2: INFINITE GOLD BRAND TICKER */}
-      <section className="bg-bg-surface border-y border-gold-300/20 py-4 overflow-hidden">
-        <div className="flex whitespace-nowrap gap-12 animate-marquee text-[11px] sm:text-xs font-inter uppercase tracking-[0.3em] text-gold-300 font-medium">
+      {/* SECTION 2: INFINITE BRAND TICKER WITH GENEROUS MARGINS */}
+      <section className="bg-bg-surface border-y border-white-500/20 py-5 my-6 sm:my-10 overflow-hidden">
+        <div className="flex whitespace-nowrap gap-12 animate-marquee text-[11px] sm:text-xs font-inter uppercase tracking-[0.3em] text-white-200 font-medium">
           <span>• AUTOROMA PARFUM D&apos;AUTOMOBILE</span>
           <span>• HEAT TESTED FORMULATIONS (60°C)</span>
           <span>• ANODIZED MATTE ALUMINUM CASING</span>
@@ -165,6 +261,7 @@ export default async function HomePage() {
             desc="Opulent Cambodian Oud & Amber cabin mist formulated to pair with full-grain leather upholstery."
             href="/products?family=Oud"
             ctaText="Explore Oud Series →"
+            imageSrc="/images/scent-top-notes.png"
           />
 
           <HolographicCabinCard
@@ -174,6 +271,7 @@ export default async function HomePage() {
             desc="Tuscan Leather solid gel jar designed to diffuse broad, even fragrance across large cabin volumes."
             href="/products?type=DASHBOARD_GEL"
             ctaText="Explore Gel Jars →"
+            imageSrc="/images/scent-heart-notes.png"
           />
 
           <HolographicCabinCard
@@ -183,6 +281,7 @@ export default async function HomePage() {
             desc="Ocean Drive Marine Vent Clips delivering crisp sea spray and bergamot for minimalist interiors."
             href="/products?family=Fresh"
             ctaText="Explore Fresh Marine →"
+            imageSrc="/images/car-vent-perfume-clip.png"
           />
 
           <HolographicCabinCard
@@ -192,6 +291,7 @@ export default async function HomePage() {
             desc="Kyoto Cedar wooden cap vial hanging diffusers crafted with Japanese cedarwood & Hinoki cypress."
             href="/products?type=HANGING"
             ctaText="Explore Hanging Vials →"
+            imageSrc="/images/car-perfume-craft.png"
           />
         </div>
       </ScrollReveal>
@@ -218,6 +318,7 @@ export default async function HomePage() {
             desc="Anodized matte aluminum clips that attach to AC louvers. Diffuses as climate control runs."
             href="/products?type=VENT_CLIP"
             ctaText="Explore Vent Clips →"
+            imageSrc="/images/car-vent-perfume-clip.png"
           />
 
           <GlowingCategoryCard
@@ -227,6 +328,7 @@ export default async function HomePage() {
             desc="50ml fine mist atomizer. Spritz on floor mats and fabric headliners for immediate luxury scenting."
             href="/products?type=SPRAY"
             ctaText="Explore Sprays →"
+            imageSrc="/images/scent-top-notes.png"
           />
 
           <GlowingCategoryCard
@@ -236,6 +338,7 @@ export default async function HomePage() {
             desc="Heat-stable organic gel jar for cup holders or dashboard pads. Continuous 60-day evaporation."
             href="/products?type=DASHBOARD_GEL"
             ctaText="Explore Gel Jars →"
+            imageSrc="/images/scent-heart-notes.png"
           />
 
           <GlowingCategoryCard
@@ -245,6 +348,7 @@ export default async function HomePage() {
             desc="Hand-cut glass vial with porous beechwood cap. Suspends from rearview mirror for subtle diffusion."
             href="/products?type=HANGING"
             ctaText="Explore Hanging →"
+            imageSrc="/images/car-perfume-craft.png"
           />
         </div>
       </ScrollReveal>

@@ -7,7 +7,7 @@ import { loginSchema } from '@/features/auth/schemas/login.schema'
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(prisma),
-  session: { strategy: 'database' },
+  session: { strategy: 'jwt' },
   providers: [
     Credentials({
       async authorize(credentials) {
@@ -44,10 +44,17 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     }),
   ],
   callbacks: {
-    async session({ session, user }) {
-      if (session.user) {
-        session.user.id = user.id
-        session.user.role = (user as unknown as { role: 'CUSTOMER' | 'ADMIN' | 'SUPER_ADMIN' }).role
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id
+        token.role = (user as unknown as { role: string }).role
+      }
+      return token
+    },
+    async session({ session, token }) {
+      if (token && session.user) {
+        session.user.id = token.id as string
+        session.user.role = token.role as 'CUSTOMER' | 'ADMIN' | 'SUPER_ADMIN'
       }
       return session
     },

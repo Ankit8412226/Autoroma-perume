@@ -73,10 +73,29 @@ export function FlippingBookProductCard({ product }: FlippingBookProductCardProp
   const formattedPrice = formatCurrency(product.price)
   const formattedComparePrice = product.compareAtPrice ? formatCurrency(product.compareAtPrice) : null
 
+  const getLuxuryFallbackImage = (type?: string, name?: string) => {
+    const t = (type || '').toUpperCase()
+    const n = (name || '').toLowerCase()
+    if (t.includes('VENT') || n.includes('vent') || n.includes('clip') || n.includes('ocean')) {
+      return '/images/car-vent-perfume-clip.png'
+    }
+    if (t.includes('SPRAY') || n.includes('spray') || n.includes('mist') || n.includes('oud') || n.includes('royal')) {
+      return '/images/scent-top-notes.png'
+    }
+    if (t.includes('GEL') || n.includes('gel') || n.includes('tuscan') || n.includes('leather')) {
+      return '/images/scent-heart-notes.png'
+    }
+    if (t.includes('HANGING') || n.includes('hanging') || n.includes('vial') || n.includes('kyoto') || n.includes('cedar')) {
+      return '/images/car-perfume-craft.png'
+    }
+    return '/images/scent-top-notes.png'
+  }
+
   const rawImage = product.images && product.images.length > 0 ? product.images[0] : ''
-  const mainImage = rawImage && !rawImage.includes('v1700000000') && rawImage.startsWith('http')
-    ? rawImage
-    : 'https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?w=800&auto=format&fit=crop&q=80'
+  const mainImage =
+    rawImage && !rawImage.includes('unsplash.com') && !rawImage.includes('v1700000000')
+      ? rawImage
+      : getLuxuryFallbackImage(product.productType, product.name)
 
   const toggleBook = (e: React.MouseEvent) => {
     e.stopPropagation()

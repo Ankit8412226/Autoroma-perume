@@ -45,32 +45,32 @@ export function Navbar() {
         <header
           ref={navRef}
           className={cn(
-            'w-full transition-all duration-500 px-4 sm:px-6 md:px-12 border-b border-white-500/15',
+            'w-full transition-all duration-500 px-2.5 sm:px-6 md:px-12 border-b border-white-500/15',
             isScrolled
-              ? 'bg-black/95 backdrop-blur-xl py-3.5 shadow-2xl'
-              : 'bg-black/80 backdrop-blur-md py-4'
+              ? 'bg-black/95 backdrop-blur-xl py-3 shadow-2xl'
+              : 'bg-black/85 backdrop-blur-md py-3.5'
           )}
         >
-          <div className="max-w-7xl mx-auto flex items-center justify-between gap-4 md:gap-8">
+          <div className="max-w-7xl mx-auto flex items-center justify-between gap-1.5 sm:gap-4 md:gap-8">
             {/* 1. LEFT: Mobile Menu Hamburger & Brand Logo */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
               <button
                 onClick={() => setMobileMenuOpen(true)}
-                className="lg:hidden p-2 text-white-100 hover:text-white bg-bg-surface border border-white-500/20 rounded-sm"
+                className="lg:hidden p-1.5 text-white-100 hover:text-white bg-bg-surface border border-white-500/20 rounded-sm"
                 aria-label="Open Navigation Slider"
               >
-                <Menu className="h-5 w-5 text-white-100" />
+                <Menu className="h-4.5 w-4.5 text-white-100" />
               </button>
 
-              <Link href="/" className="flex items-center gap-2 group select-none shrink-0">
-                <div className="h-7 w-7 rounded-full bg-white/10 border border-white/30 flex items-center justify-center group-hover:border-white transition-all">
-                  <span className="font-cormorant text-xs font-semibold text-white">AU</span>
+              <Link href="/" className="flex items-center gap-1.5 sm:gap-2 group select-none shrink-0">
+                <div className="h-6 w-6 sm:h-7 sm:w-7 rounded-full bg-white/10 border border-white/30 flex items-center justify-center group-hover:border-white transition-all shrink-0">
+                  <span className="font-cormorant text-[10px] sm:text-xs font-semibold text-white">AU</span>
                 </div>
-                <div className="flex flex-col">
-                  <span className="font-sans text-lg sm:text-xl tracking-[0.2em] text-white font-bold uppercase leading-none">
+                <div className="flex flex-col shrink-0">
+                  <span className="font-sans text-sm sm:text-xl tracking-[0.18em] sm:tracking-[0.2em] text-white font-bold uppercase leading-none">
                     Autoroma
                   </span>
-                  <span className="text-[7px] font-inter uppercase tracking-[0.25em] text-white-300 font-medium pt-0.5">
+                  <span className="text-[6px] sm:text-[7px] font-inter uppercase tracking-[0.2em] sm:tracking-[0.25em] text-white-300 font-medium pt-0.5">
                     Parfum d&apos;Automobile
                   </span>
                 </div>
@@ -101,10 +101,10 @@ export function Navbar() {
             </nav>
 
             {/* 3. RIGHT: Action Utilities */}
-            <div className="flex items-center gap-3 sm:gap-4 text-white-200 shrink-0">
+            <div className="flex items-center gap-1.5 sm:gap-4 text-white-200 shrink-0">
               <Link
                 href="/wishlist"
-                className="relative hover:text-white transition-colors p-2 bg-bg-surface/80 border border-white-500/20 hover:border-white flex items-center justify-center rounded-sm"
+                className="p-1.5 sm:p-2 hover:text-white transition-colors bg-bg-surface/80 border border-white-500/20 hover:border-white flex items-center justify-center rounded-sm shrink-0 relative"
                 aria-label="Wishlist"
               >
                 <Heart className="h-4 w-4 stroke-[1.5] text-white" />
@@ -117,7 +117,7 @@ export function Navbar() {
 
               <Link
                 href="/login"
-                className="p-2 hover:text-white transition-colors bg-bg-surface/80 border border-white-500/20 hover:border-white flex items-center justify-center rounded-sm"
+                className="hidden sm:flex p-1.5 sm:p-2 hover:text-white transition-colors bg-bg-surface/80 border border-white-500/20 hover:border-white items-center justify-center rounded-sm shrink-0"
                 aria-label="Account"
               >
                 <User className="h-4 w-4 stroke-[1.5] text-white" />
@@ -126,10 +126,10 @@ export function Navbar() {
               <button
                 onClick={openDrawer}
                 style={{ backgroundColor: '#FFFFFF', color: '#000000' }}
-                className="flex items-center gap-2 px-4 py-2 hover:bg-neutral-200 border border-white text-[11px] font-inter uppercase tracking-wider font-bold rounded-sm transition-all shadow-lg cursor-pointer"
+                className="flex items-center gap-1 sm:gap-2 px-2.5 py-1.5 sm:px-4 sm:py-2 hover:bg-neutral-200 border border-white text-[10px] sm:text-[11px] font-inter uppercase tracking-wider font-bold rounded-sm transition-all shadow-lg cursor-pointer whitespace-nowrap shrink-0"
               >
-                <ShoppingBag className="h-3.5 w-3.5" style={{ color: '#000000' }} />
-                <span style={{ color: '#000000' }} className="font-bold">BAG ({cartItemCount})</span>
+                <ShoppingBag className="h-3.5 w-3.5 shrink-0 text-black" style={{ color: '#000000' }} />
+                <span style={{ color: '#000000' }} className="font-bold whitespace-nowrap">BAG ({cartItemCount})</span>
               </button>
             </div>
           </div>

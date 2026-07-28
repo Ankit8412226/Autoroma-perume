@@ -2,6 +2,7 @@
 
 import * as React from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { Wind, Sparkles, ShieldCheck, Award } from 'lucide-react'
 
 interface GlowingCategoryCardProps {
@@ -11,6 +12,7 @@ interface GlowingCategoryCardProps {
   desc: string
   href: string
   ctaText: string
+  imageSrc?: string
 }
 
 // Audio Airflow Sound Synthesizer
@@ -55,6 +57,7 @@ export function GlowingCategoryCard({
   desc,
   href,
   ctaText,
+  imageSrc,
 }: GlowingCategoryCardProps) {
   const handleClick = () => {
     playACAirflowSound()
@@ -77,14 +80,26 @@ export function GlowingCategoryCard({
     <Link
       href={href}
       onClick={handleClick}
-      className="group relative bg-bg-surface border border-white-500/20 hover:border-white p-8 space-y-6 transition-all duration-500 shadow-xl overflow-hidden hover:shadow-[0_0_35px_rgba(255,255,255,0.15)] block select-none"
+      className="group relative bg-bg-surface border border-white-500/20 hover:border-white p-6 space-y-5 transition-all duration-500 shadow-xl overflow-hidden hover:shadow-[0_0_35px_rgba(255,255,255,0.15)] block select-none rounded-sm"
     >
       {/* Animated Glowing Ambient Pulse */}
       <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-2xl group-hover:bg-white/15 group-hover:scale-125 transition-all duration-500 pointer-events-none" />
 
-      <div className="h-14 w-14 rounded-full bg-white/10 border border-white/30 flex items-center justify-center text-white group-hover:scale-110 group-hover:bg-white group-hover:text-black transition-all duration-300 font-bold">
-        {renderIcon()}
-      </div>
+      {imageSrc ? (
+        <div className="relative aspect-square w-full bg-black/60 border border-white-500/15 overflow-hidden rounded-xs">
+          <Image
+            src={imageSrc}
+            alt={title}
+            fill
+            sizes="300px"
+            className="object-cover group-hover:scale-108 transition-transform duration-500"
+          />
+        </div>
+      ) : (
+        <div className="h-14 w-14 rounded-full bg-white/10 border border-white/30 flex items-center justify-center text-white group-hover:scale-110 group-hover:bg-white group-hover:text-black transition-all duration-300 font-bold">
+          {renderIcon()}
+        </div>
+      )}
 
       <div className="space-y-2 relative z-10">
         <span className="text-[10px] uppercase tracking-widest text-white-300 font-inter font-bold block">

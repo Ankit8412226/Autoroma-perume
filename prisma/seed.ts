@@ -18,13 +18,13 @@ async function main() {
   await prisma.user.deleteMany()
 
   // 2. Create Users
-  const adminPassword = await hash('AdminPass123!', 12)
-  const customerPassword = await hash('CustomerPass123!', 12)
+  const adminPassword = await hash('admin123', 10)
+  const customerPassword = await hash('user123', 10)
 
   const admin = await prisma.user.create({
     data: {
-      name: 'Admin Concierge',
-      email: 'admin@maisonnoir.in',
+      name: 'Autoroma Admin',
+      email: 'admin@autoroma.com',
       passwordHash: adminPassword,
       role: UserRole.SUPER_ADMIN,
       isActive: true,
@@ -33,15 +33,15 @@ async function main() {
 
   const customer = await prisma.user.create({
     data: {
-      name: 'Priya Mehta',
-      email: 'priya@example.com',
+      name: 'Ankit Kumar',
+      email: 'user@autoroma.com',
       passwordHash: customerPassword,
       role: UserRole.CUSTOMER,
       isActive: true,
     },
   })
 
-  console.log(`✅ Created Admin (${admin.email}) and Customer (${customer.email})`)
+  console.log(`✅ Created Admin (${admin.email} / admin123) and Customer (${customer.email} / user123)`)
 
   // 3. Create Collections
   const orientalCol = await prisma.collection.create({
@@ -89,8 +89,8 @@ async function main() {
       stock: 45,
       lowStockThreshold: 10,
       images: [
-        'https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?w=800&auto=format&fit=crop&q=80',
-        'https://images.unsplash.com/photo-1615397349754-cfa2066a298e?w=800&auto=format&fit=crop&q=80',
+        '/images/car-vent-perfume-clip.png',
+        '/images/hero-woman-perfume-perfect.png',
       ],
       scentFamily: 'Fresh Aquatic',
       intensity: 'Strong',
@@ -126,7 +126,8 @@ async function main() {
       stock: 28,
       lowStockThreshold: 5,
       images: [
-        'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=800&auto=format&fit=crop&q=80',
+        '/images/scent-top-notes.png',
+        '/images/hero-woman-perfume-perfect.png',
       ],
       scentFamily: 'Oriental Woody',
       intensity: 'Very Strong',
@@ -161,7 +162,8 @@ async function main() {
       stock: 60,
       lowStockThreshold: 10,
       images: [
-        'https://images.unsplash.com/photo-1615397349754-cfa2066a298e?w=800&auto=format&fit=crop&q=80',
+        '/images/scent-heart-notes.png',
+        '/images/hero-woman-perfume-perfect.png',
       ],
       scentFamily: 'Leather Woody',
       intensity: 'Moderate',
@@ -196,7 +198,8 @@ async function main() {
       stock: 80,
       lowStockThreshold: 15,
       images: [
-        'https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?w=800&auto=format&fit=crop&q=80',
+        '/images/car-perfume-craft.png',
+        '/images/hero-woman-perfume-perfect.png',
       ],
       scentFamily: 'Woody Earthy',
       intensity: 'Moderate',

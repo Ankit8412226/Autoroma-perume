@@ -4,6 +4,8 @@ import * as React from 'react'
 import Link from 'next/link'
 import { Car, ShieldCheck, Zap, Award } from 'lucide-react'
 
+import Image from 'next/image'
+
 interface HolographicCabinCardProps {
   iconName: 'car' | 'shield' | 'zap' | 'award'
   title: string
@@ -11,6 +13,7 @@ interface HolographicCabinCardProps {
   desc: string
   href: string
   ctaText: string
+  imageSrc?: string
 }
 
 export function HolographicCabinCard({
@@ -20,6 +23,7 @@ export function HolographicCabinCard({
   desc,
   href,
   ctaText,
+  imageSrc,
 }: HolographicCabinCardProps) {
   const cardRef = React.useRef<HTMLDivElement>(null)
   const [transform, setTransform] = React.useState('perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)')
@@ -70,11 +74,11 @@ export function HolographicCabinCard({
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
       style={{ transform }}
-      className="relative bg-bg-surface border border-white-500/20 hover:border-white p-8 space-y-4 transition-transform duration-200 ease-out flex flex-col justify-between select-none shadow-2xl overflow-hidden group cursor-pointer"
+      className="relative bg-bg-surface border border-white-500/20 hover:border-white p-6 space-y-4 transition-transform duration-200 ease-out flex flex-col justify-between select-none shadow-2xl overflow-hidden group cursor-pointer rounded-sm"
     >
       {/* Holographic White Foil Glare Sweep */}
       <div
-        className="absolute inset-0 pointer-events-none transition-opacity duration-300"
+        className="absolute inset-0 pointer-events-none transition-opacity duration-300 z-10"
         style={{
           background: `radial-gradient(circle at ${glarePosition.x}% ${glarePosition.y}%, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.05) 40%, transparent 80%)`,
           opacity: glarePosition.opacity,
@@ -82,9 +86,21 @@ export function HolographicCabinCard({
       />
 
       <div className="space-y-4 relative z-10">
-        <div className="h-12 w-12 rounded-full bg-white/10 border border-white/30 flex items-center justify-center text-white group-hover:scale-110 group-hover:border-white transition-all">
-          {renderIcon()}
-        </div>
+        {imageSrc ? (
+          <div className="relative aspect-[16/10] w-full bg-black/60 border border-white-500/15 overflow-hidden rounded-xs">
+            <Image
+              src={imageSrc}
+              alt={title}
+              fill
+              sizes="300px"
+              className="object-cover group-hover:scale-105 transition-transform duration-500"
+            />
+          </div>
+        ) : (
+          <div className="h-12 w-12 rounded-full bg-white/10 border border-white/30 flex items-center justify-center text-white group-hover:scale-110 group-hover:border-white transition-all">
+            {renderIcon()}
+          </div>
+        )}
 
         <div className="space-y-1">
           <h3 className="font-cormorant text-2xl text-white-100 font-light group-hover:text-white transition-colors">
@@ -102,7 +118,7 @@ export function HolographicCabinCard({
 
       <Link
         href={href}
-        className="text-xs text-white font-inter font-medium tracking-wider uppercase group-hover:underline pt-4 block border-t border-white-500/15 relative z-10"
+        className="text-xs text-white font-inter font-medium tracking-wider uppercase group-hover:underline pt-3 block border-t border-white-500/15 relative z-10"
       >
         {ctaText}
       </Link>
