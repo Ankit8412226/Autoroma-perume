@@ -1,15 +1,14 @@
+import Image from 'next/image'
 import Link from 'next/link'
 import { Button } from '@/components/ui'
-import { RevealText } from '@/components/motion/RevealText'
-import { MagneticButton } from '@/components/motion/MagneticButton'
 import { ScrollReveal } from '@/components/motion/ScrollReveal'
-import { HeroSceneWrapper } from '@/components/three/HeroSceneWrapper'
 import { HolographicCabinCard } from '@/components/motion/HolographicCabinCard'
 import { GlowingCategoryCard } from '@/components/motion/GlowingCategoryCard'
 import { InteractiveScentPyramid } from '@/components/motion/InteractiveScentPyramid'
 import { InteractiveLaserEngraver } from '@/components/motion/InteractiveLaserEngraver'
 import { AnimatedTestimonials } from '@/components/motion/AnimatedTestimonials'
 import { AnimatedFAQAccordion } from '@/components/motion/AnimatedFAQAccordion'
+import { InteractiveScentQuiz } from '@/components/motion/InteractiveScentQuiz'
 import { FlippingBookProductCard, type FlippingBookProductCardProps } from '@/features/products/components/FlippingBookProductCard'
 import { prisma } from '@/lib/db/prisma'
 import {
@@ -50,72 +49,83 @@ export default async function HomePage() {
 
   return (
     <main className="space-y-20 sm:space-y-24 pb-24 overflow-hidden bg-bg-primary text-white-100">
-      {/* SECTION 1: HERO SECTION WITH 3D BOTTLE & SUPERCAR CANVAS (IMAGE TOP ON MOBILE) */}
-      <section className="relative min-h-[92vh] flex items-center justify-center px-4 sm:px-6 md:px-12 pt-12 sm:pt-16 pb-20 bg-gradient-to-b from-bg-primary via-bg-secondary/80 to-bg-primary border-b border-white-500/15">
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[320px] sm:w-[650px] h-[320px] sm:h-[650px] bg-gold-300/10 rounded-full blur-[140px] pointer-events-none" />
+      {/* SECTION 1: BOMBAY MUSK EXACT MATCH HERO SECTION */}
+      <section className="relative min-h-[92vh] flex flex-col justify-between overflow-hidden border-b border-white-500/20">
+        {/* Full-Bleed Background Image: Woman right-aligned inside luxury SUV trunk holding gold perfume box near chest */}
+        <div className="absolute inset-0 z-0">
+          <Image
+            src="/images/hero-woman-perfume-perfect.png"
+            alt="Autoroma Luxury Car Perfume Model holding Gold Perfume Box"
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover object-[right_center] sm:object-[right_top] brightness-105"
+          />
+          {/* Subtle Dark Vignette Gradients for Left-side Text Readability */}
+          <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/40 to-transparent z-[1]" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent z-[1]" />
+        </div>
 
-        <div className="max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center relative z-10">
-          {/* On Mobile: 3D Bottle Canvas rendered FIRST on top */}
-          <div className="order-1 lg:order-2 lg:col-span-5 h-[340px] sm:h-[480px] lg:h-[580px] w-full relative">
-            <HeroSceneWrapper />
+        {/* Hero Left Content Overlay */}
+        <div className="max-w-7xl mx-auto w-full px-6 sm:px-12 md:px-16 lg:px-20 relative z-10 my-auto pt-28 pb-16 flex flex-col items-start text-left space-y-6">
+          {/* Eyebrow Label */}
+          <span className="text-white/80 text-xs sm:text-sm uppercase tracking-[0.3em] font-inter font-semibold drop-shadow-md">
+            LUXURY CAR PERFUME
+          </span>
+
+          {/* Main Headline */}
+          <h1 className="text-white font-sans text-5xl sm:text-7xl lg:text-[5.5rem] font-semibold leading-[1.05] tracking-tight max-w-2xl drop-shadow-lg">
+            The scent you&apos;re remembered by.
+          </h1>
+
+          {/* Subtitle Paragraph */}
+          <p className="text-white/90 text-sm sm:text-base font-inter font-light max-w-lg leading-relaxed drop-shadow">
+            Designer-grade fragrance, engineered to last for weeks inside a hot cabin. Not a chemical air freshener.
+          </p>
+
+          {/* Action Buttons Row */}
+          <div className="flex flex-wrap items-center gap-4 pt-4 relative z-20">
+            <Link href="/products">
+              <button
+                style={{ backgroundColor: '#FFFFFF', color: '#000000' }}
+                className="font-inter text-xs sm:text-sm font-bold uppercase tracking-wider px-8 py-4 rounded-sm shadow-2xl transition-all cursor-pointer border border-white hover:opacity-90"
+              >
+                SHOP THE COLLECTION
+              </button>
+            </Link>
+
+            <a href="#scent-quiz">
+              <button
+                style={{ backgroundColor: 'rgba(0, 0, 0, 0.75)', color: '#FFFFFF', borderColor: 'rgba(255, 255, 255, 0.8)' }}
+                className="backdrop-blur-md border hover:bg-white/20 font-inter text-xs sm:text-sm font-bold uppercase tracking-wider px-8 py-4 rounded-sm transition-all cursor-pointer"
+              >
+                TAKE THE SCENT QUIZ
+              </button>
+            </a>
+          </div>
+        </div>
+
+        {/* Bottom Feature Bar (3 Black Columns matching screenshot) */}
+        <div className="relative z-10 w-full bg-black border-t border-white/15 grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-white/15 text-center text-xs font-inter uppercase tracking-widest text-white/90 py-5">
+          <div className="py-2.5 px-4 flex flex-col items-center justify-center space-y-1">
+            <span className="font-semibold tracking-[0.2em] text-white flex items-center gap-2">
+              🚚 24-HR DISPATCH
+            </span>
+            <span className="text-[10px] text-white/60 tracking-wider">FAST SHIPPING</span>
           </div>
 
-          {/* Hero Content below image on mobile, centered alignment */}
-          <div className="order-2 lg:order-1 lg:col-span-7 space-y-6 sm:space-y-8 text-center lg:text-left flex flex-col items-center lg:items-start">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-gold-300/10 border border-gold-300/30 text-gold-300 text-[10px] sm:text-[11px] uppercase tracking-widest font-inter">
-              <Car className="h-3.5 w-3.5 text-gold-300" />
-              <span>Automotive Fragrance House · France & India</span>
-            </div>
+          <div className="py-2.5 px-4 flex flex-col items-center justify-center space-y-1">
+            <span className="font-semibold tracking-[0.2em] text-white flex items-center gap-2">
+              🛡️ TRUSTED 135,000+
+            </span>
+            <span className="text-[10px] text-white/60 tracking-wider">ENTHUSIASTS</span>
+          </div>
 
-            <div className="space-y-4">
-              <RevealText
-                as="h1"
-                className="font-cormorant text-3xl sm:text-6xl lg:text-7xl text-white-100 font-light leading-[1.08] tracking-tight"
-              >
-                Engineered for the Road.{' '}
-                <span className="bg-gradient-to-r from-gold-100 via-gold-300 to-gold-500 bg-clip-text text-transparent italic font-normal block sm:inline">
-                  Crafted for the Cabin.
-                </span>
-              </RevealText>
-
-              <RevealText
-                as="p"
-                delay={0.2}
-                className="text-body-md sm:text-body-lg text-white-200 font-light max-w-xl mx-auto lg:mx-0 leading-relaxed font-inter"
-              >
-                Elevate your daily drive with heat-resistant, pure fragrance oil vent clips, interior mists, and dashboard gels designed specifically for luxury vehicle cabins across India.
-              </RevealText>
-            </div>
-
-            <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3 text-xs font-inter text-white-300 pt-2">
-              <span className="flex items-center gap-1.5 bg-bg-surface px-3 py-1.5 border border-white-500/10 text-[11px]">
-                <CheckCircle2 className="h-3.5 w-3.5 text-gold-300" /> 100% Pure Oils
-              </span>
-              <span className="flex items-center gap-1.5 bg-bg-surface px-3 py-1.5 border border-white-500/10 text-[11px]">
-                <CheckCircle2 className="h-4 w-4 text-gold-300" /> 60°C Heat Tested
-              </span>
-              <span className="flex items-center gap-1.5 bg-bg-surface px-3 py-1.5 border border-white-500/10 text-[11px]">
-                <CheckCircle2 className="h-4 w-4 text-gold-300" /> 0% Alcohol
-              </span>
-            </div>
-
-            <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 sm:gap-6 pt-4 w-full sm:w-auto">
-              <MagneticButton>
-                <Link href="/products" className="w-full sm:w-auto">
-                  <Button variant="primary" size="xl" className="shadow-2xl font-inter tracking-wider uppercase text-xs px-8 py-4 w-full sm:w-auto justify-center">
-                    <span>Explore Collection</span>
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Button>
-                </Link>
-              </MagneticButton>
-
-              <Link
-                href="/b2b"
-                className="text-xs font-inter text-gold-300 hover:text-gold-200 uppercase tracking-widest underline underline-offset-8 font-medium transition-colors"
-              >
-                B2B & Fleet Wholesale →
-              </Link>
-            </div>
+          <div className="py-2.5 px-4 flex flex-col items-center justify-center space-y-1">
+            <span className="font-semibold tracking-[0.2em] text-white flex items-center gap-2">
+              ✨ 500,000+ SCENTED
+            </span>
+            <span className="text-[10px] text-white/60 tracking-wider">CARS</span>
           </div>
         </div>
       </section>
@@ -274,7 +284,12 @@ export default async function HomePage() {
         )}
       </ScrollReveal>
 
-      {/* SECTION 6: AUDIO SPRAY MIST INTERACTIVE SCENT PYRAMID WITH DYNAMIC IMAGE SWITCHING */}
+      {/* SECTION 6: BOMBAY MUSK INSPIRED INTERACTIVE SCENT QUIZ */}
+      <section id="scent-quiz" className="px-4 sm:px-6 md:px-12 max-w-7xl mx-auto scroll-mt-24">
+        <InteractiveScentQuiz />
+      </section>
+
+      {/* SECTION 7: AUDIO SPRAY MIST INTERACTIVE SCENT PYRAMID WITH DYNAMIC IMAGE SWITCHING */}
       <ScrollReveal className="bg-bg-secondary border-y border-white-500/20 py-16 sm:py-24 px-4 sm:px-6 md:px-12">
         <InteractiveScentPyramid />
       </ScrollReveal>
@@ -355,10 +370,16 @@ export default async function HomePage() {
           <input
             type="email"
             placeholder="Enter your email address"
-            className="flex-1 bg-bg-surface border border-white-500/20 px-4 py-3 text-xs text-white-100 placeholder:text-white-400 focus:border-gold-300 outline-none text-center sm:text-left"
+            className="flex-1 bg-bg-surface border border-white-500/20 px-4 py-3 text-xs text-white-100 placeholder:text-white-400 focus:border-white outline-none text-center sm:text-left rounded-sm"
             required
           />
-          <Button type="submit" variant="primary" size="md" className="shrink-0 font-inter text-xs uppercase tracking-wider w-full sm:w-auto justify-center">
+          <Button
+            type="submit"
+            variant="primary"
+            size="md"
+            style={{ backgroundColor: '#FFFFFF', color: '#000000' }}
+            className="shrink-0 font-inter text-xs uppercase tracking-wider w-full sm:w-auto justify-center font-bold rounded-sm hover:bg-neutral-200"
+          >
             Subscribe
           </Button>
         </form>

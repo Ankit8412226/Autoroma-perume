@@ -77,20 +77,20 @@ export function GlowingCategoryCard({
     <Link
       href={href}
       onClick={handleClick}
-      className="group relative bg-bg-surface border border-white-500/20 hover:border-gold-300 p-8 space-y-6 transition-all duration-500 shadow-xl overflow-hidden hover:shadow-[0_0_35px_rgba(201,169,110,0.25)] block select-none"
+      className="group relative bg-bg-surface border border-white-500/20 hover:border-white p-8 space-y-6 transition-all duration-500 shadow-xl overflow-hidden hover:shadow-[0_0_35px_rgba(255,255,255,0.15)] block select-none"
     >
       {/* Animated Glowing Ambient Pulse */}
-      <div className="absolute top-0 right-0 w-32 h-32 bg-gold-300/10 rounded-full blur-2xl group-hover:bg-gold-300/25 group-hover:scale-125 transition-all duration-500 pointer-events-none" />
+      <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-2xl group-hover:bg-white/15 group-hover:scale-125 transition-all duration-500 pointer-events-none" />
 
-      <div className="h-14 w-14 rounded-full bg-gold-300/10 border border-gold-300/30 flex items-center justify-center text-gold-300 group-hover:scale-110 group-hover:bg-gold-300 group-hover:text-bg-primary transition-all duration-300">
+      <div className="h-14 w-14 rounded-full bg-white/10 border border-white/30 flex items-center justify-center text-white group-hover:scale-110 group-hover:bg-white group-hover:text-black transition-all duration-300 font-bold">
         {renderIcon()}
       </div>
 
       <div className="space-y-2 relative z-10">
-        <span className="text-[10px] uppercase tracking-widest text-gold-300 font-inter font-bold block">
+        <span className="text-[10px] uppercase tracking-widest text-white-300 font-inter font-bold block">
           {badge}
         </span>
-        <h3 className="font-cormorant text-2xl text-white-100 font-light group-hover:text-gold-200 transition-colors">
+        <h3 className="font-cormorant text-2xl text-white-100 font-light group-hover:text-white transition-colors">
           {title}
         </h3>
         <p className="text-xs text-white-400 font-light leading-relaxed font-inter">
@@ -98,7 +98,7 @@ export function GlowingCategoryCard({
         </p>
       </div>
 
-      <span className="text-xs font-inter text-gold-300 group-hover:underline block font-medium tracking-wider uppercase pt-2 border-t border-white-500/15">
+      <span className="text-xs font-inter text-white group-hover:underline block font-medium tracking-wider uppercase pt-2 border-t border-white-500/15">
         {ctaText}
       </span>
     </Link>

@@ -39,127 +39,97 @@ export function Navbar() {
 
   return (
     <>
-      {/* Sticky Header Wrapper holding both Ticker & Floating Glass Navbar */}
+      {/* Sticky Header Wrapper */}
       <div className="sticky top-0 z-50 w-full transition-all duration-300">
-        {/* Top Luxury Announcement Ticker */}
-        <div className="bg-gradient-to-r from-bg-primary via-bg-surface to-bg-primary border-b border-gold-300/20 px-2 py-1.5 text-center text-[9px] sm:text-[10px] font-inter uppercase tracking-[0.15em] sm:tracking-[0.25em] text-gold-300 flex items-center justify-center gap-2 sm:gap-3 relative overflow-hidden">
-          <Sparkles className="h-3 w-3 animate-pulse text-gold-300 shrink-0" />
-          <span className="truncate sm:whitespace-normal">Complimentary Express Shipping Across India On Orders Above ₹499</span>
-          <span className="hidden md:inline text-white-400">|</span>
-          <span className="hidden md:inline text-white-200">Heat-Tested (60°C) Automotive Fragrances</span>
-          <Sparkles className="h-3 w-3 animate-pulse text-gold-300 shrink-0" />
-        </div>
-
         {/* Main Floating Glass Navbar */}
         <header
           ref={navRef}
           className={cn(
-            'w-full transition-all duration-500 px-4 sm:px-6 md:px-12 border-b',
+            'w-full transition-all duration-500 px-4 sm:px-6 md:px-12 border-b border-white-500/15',
             isScrolled
-              ? 'bg-bg-primary/95 backdrop-blur-xl border-gold-300/30 py-3.5 shadow-[0_15px_40px_rgba(0,0,0,0.9)]'
-              : 'bg-bg-primary/80 backdrop-blur-md border-gold-300/15 py-4'
+              ? 'bg-black/95 backdrop-blur-xl py-3.5 shadow-2xl'
+              : 'bg-black/80 backdrop-blur-md py-4'
           )}
         >
           <div className="max-w-7xl mx-auto flex items-center justify-between gap-4 md:gap-8">
-            {/* 1. LEFT: Mobile Menu Hamburger & Brand Emblem */}
+            {/* 1. LEFT: Mobile Menu Hamburger & Brand Logo */}
             <div className="flex items-center gap-3">
               <button
                 onClick={() => setMobileMenuOpen(true)}
-                className="lg:hidden p-2 text-white-100 hover:text-gold-300 bg-bg-surface border border-gold-300/40 rounded-sm"
+                className="lg:hidden p-2 text-white-100 hover:text-white bg-bg-surface border border-white-500/20 rounded-sm"
                 aria-label="Open Navigation Slider"
               >
-                <Menu className="h-5 w-5 text-gold-300" />
+                <Menu className="h-5 w-5 text-white-100" />
               </button>
 
-              <Link href="/" className="flex items-center gap-2.5 group select-none shrink-0">
-                <div className="h-8 w-8 rounded-full bg-gold-300/10 border border-gold-300/40 flex items-center justify-center group-hover:border-gold-300 group-hover:shadow-[0_0_15px_rgba(201,169,110,0.4)] transition-all">
-                  <span className="font-cormorant text-xs font-semibold text-gold-300">AU</span>
+              <Link href="/" className="flex items-center gap-2 group select-none shrink-0">
+                <div className="h-7 w-7 rounded-full bg-white/10 border border-white/30 flex items-center justify-center group-hover:border-white transition-all">
+                  <span className="font-cormorant text-xs font-semibold text-white">AU</span>
                 </div>
                 <div className="flex flex-col">
-                  <span className="font-cormorant text-lg sm:text-2xl tracking-[0.18em] text-white-100 uppercase font-light group-hover:text-gold-200 transition-colors leading-none">
+                  <span className="font-sans text-lg sm:text-xl tracking-[0.2em] text-white font-bold uppercase leading-none">
                     Autoroma
                   </span>
-                  <span className="text-[7px] sm:text-[7.5px] font-inter uppercase tracking-[0.3em] text-gold-300/90 font-medium pt-0.5">
+                  <span className="text-[7px] font-inter uppercase tracking-[0.25em] text-white-300 font-medium pt-0.5">
                     Parfum d&apos;Automobile
                   </span>
                 </div>
               </Link>
             </div>
 
-            {/* 2. CENTER: Navigation Links (Desktop) */}
-            <nav className="hidden lg:flex items-center gap-7 text-xs font-inter uppercase tracking-widest text-white-200">
-              <Link href="/products" className="group relative py-1 flex items-center gap-1.5 hover:text-gold-200 transition-colors">
-                <span className="h-1.5 w-1.5 bg-gold-300 rounded-full scale-0 group-hover:scale-100 transition-transform duration-300" />
-                <span>Catalog</span>
-                <span className="absolute bottom-0 left-0 w-0 h-[1px] bg-gradient-to-r from-gold-300 to-gold-500 transition-all duration-300 group-hover:w-full" />
+            {/* 2. CENTER: Navigation Links (Bombay Musk Style) */}
+            <nav className="hidden lg:flex items-center gap-8 text-xs font-inter uppercase tracking-widest text-white-200">
+              <Link href="/products" className="hover:text-white transition-colors py-1 border-b border-transparent hover:border-white">
+                Organic Car Perfumes
               </Link>
 
-              <Link href="/products?type=VENT_CLIP" className="group relative py-1 flex items-center gap-1.5 hover:text-gold-200 transition-colors">
-                <span className="h-1.5 w-1.5 bg-gold-300 rounded-full scale-0 group-hover:scale-100 transition-transform duration-300" />
-                <span>Vent Clips</span>
-                <span className="absolute bottom-0 left-0 w-0 h-[1px] bg-gradient-to-r from-gold-300 to-gold-500 transition-all duration-300 group-hover:w-full" />
+              <Link href="/products?type=DISCOVERY" className="hover:text-white transition-colors py-1 border-b border-transparent hover:border-white">
+                Discovery Set
               </Link>
 
-              <Link href="/collections" className="group relative py-1 flex items-center gap-1.5 hover:text-gold-200 transition-colors">
-                <span className="h-1.5 w-1.5 bg-gold-300 rounded-full scale-0 group-hover:scale-100 transition-transform duration-300" />
-                <span>Editions</span>
-                <span className="absolute bottom-0 left-0 w-0 h-[1px] bg-gradient-to-r from-gold-300 to-gold-500 transition-all duration-300 group-hover:w-full" />
+              <Link href="/collections" className="hover:text-white transition-colors py-1 border-b border-transparent hover:border-white">
+                Combos
               </Link>
 
-              <Link href="/b2b" className="group relative py-1 flex items-center gap-2 text-gold-300 font-medium">
-                <Car className="h-3.5 w-3.5 animate-pulse text-gold-300" />
-                <span>B2B / Fleet</span>
-                <span className="absolute bottom-0 left-0 w-0 h-[1px] bg-gold-300 transition-all duration-300 group-hover:w-full" />
+              <Link href="/products" className="hover:text-white transition-colors py-1 border-b border-transparent hover:border-white">
+                Shop
               </Link>
 
-              <Link href="/about" className="group relative py-1 flex items-center gap-1.5 hover:text-gold-200 transition-colors">
-                <span className="h-1.5 w-1.5 bg-gold-300 rounded-full scale-0 group-hover:scale-100 transition-transform duration-300" />
-                <span>About Atelier</span>
-                <span className="absolute bottom-0 left-0 w-0 h-[1px] bg-gradient-to-r from-gold-300 to-gold-500 transition-all duration-300 group-hover:w-full" />
-              </Link>
-
-              <Link href="/contact" className="group relative py-1 flex items-center gap-1.5 hover:text-gold-200 transition-colors">
-                <span className="h-1.5 w-1.5 bg-gold-300 rounded-full scale-0 group-hover:scale-100 transition-transform duration-300" />
-                <span>Contact</span>
-                <span className="absolute bottom-0 left-0 w-0 h-[1px] bg-gradient-to-r from-gold-300 to-gold-500 transition-all duration-300 group-hover:w-full" />
+              <Link href="/about" className="hover:text-white transition-colors py-1 border-b border-transparent hover:border-white">
+                Our Story
               </Link>
             </nav>
 
             {/* 3. RIGHT: Action Utilities */}
-            <div className="flex items-center gap-2.5 sm:gap-4 text-white-200 shrink-0">
-              {/* Wishlist Link with Badge */}
+            <div className="flex items-center gap-3 sm:gap-4 text-white-200 shrink-0">
               <Link
                 href="/wishlist"
-                className="relative hover:text-gold-300 transition-colors p-2 bg-bg-surface/60 border border-white-500/10 hover:border-gold-300/40 flex items-center justify-center group"
+                className="relative hover:text-white transition-colors p-2 bg-bg-surface/80 border border-white-500/20 hover:border-white flex items-center justify-center rounded-sm"
                 aria-label="Wishlist"
               >
-                <Heart className="h-4 w-4 stroke-[1.5] group-hover:scale-110 transition-transform text-gold-300" />
+                <Heart className="h-4 w-4 stroke-[1.5] text-white" />
                 {wishlistCount > 0 && (
-                  <span className="absolute -top-1.5 -right-1.5 h-4 w-4 bg-gold-300 text-bg-primary text-[9px] font-semibold font-inter rounded-full flex items-center justify-center">
+                  <span className="absolute -top-1.5 -right-1.5 h-4 w-4 bg-white text-black text-[9px] font-bold font-inter rounded-full flex items-center justify-center">
                     {wishlistCount}
                   </span>
                 )}
               </Link>
 
-              {/* Account Link */}
               <Link
-                href="/account"
-                className="hover:text-gold-300 transition-colors p-2 bg-bg-surface/60 border border-white-500/10 hover:border-gold-300/40 hidden sm:flex items-center justify-center group"
-                aria-label="User Account"
+                href="/login"
+                className="p-2 hover:text-white transition-colors bg-bg-surface/80 border border-white-500/20 hover:border-white flex items-center justify-center rounded-sm"
+                aria-label="Account"
               >
-                <User className="h-4 w-4 stroke-[1.5] group-hover:scale-110 transition-transform" />
+                <User className="h-4 w-4 stroke-[1.5] text-white" />
               </Link>
 
-              {/* Shopping Cart Drawer Trigger */}
               <button
-                onClick={() => openDrawer()}
-                className="relative hover:text-gold-300 transition-all duration-300 px-3 py-2 sm:px-3.5 sm:py-2 bg-gradient-to-r from-bg-surface to-bg-secondary border border-gold-300/40 flex items-center gap-2 cursor-pointer group hover:border-gold-300 hover:shadow-[0_0_20px_rgba(201,169,110,0.3)] active:scale-95"
-                aria-label="Shopping Cart"
+                onClick={openDrawer}
+                style={{ backgroundColor: '#FFFFFF', color: '#000000' }}
+                className="flex items-center gap-2 px-4 py-2 hover:bg-neutral-200 border border-white text-[11px] font-inter uppercase tracking-wider font-bold rounded-sm transition-all shadow-lg cursor-pointer"
               >
-                <ShoppingBag className="h-4 w-4 text-gold-300 group-hover:scale-110 transition-transform" />
-                <span className="text-[10px] sm:text-[11px] font-inter tracking-wider uppercase text-white-100 font-semibold tabular-nums">
-                  BAG ({cartItemCount})
-                </span>
+                <ShoppingBag className="h-3.5 w-3.5" style={{ color: '#000000' }} />
+                <span style={{ color: '#000000' }} className="font-bold">BAG ({cartItemCount})</span>
               </button>
             </div>
           </div>

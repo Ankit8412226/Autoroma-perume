@@ -112,59 +112,86 @@ export function FlippingBookProductCard({ product }: FlippingBookProductCardProp
         {/* ========================================================== */}
         <article
           onClick={toggleBook}
-          className="absolute inset-0 w-full h-full bg-bg-surface border border-gold-300/40 hover:border-gold-300 p-6 flex flex-col justify-between cursor-pointer select-none [backface-visibility:hidden] shadow-2xl group overflow-hidden"
+          className="absolute inset-0 w-full h-full bg-bg-surface border border-white-500/20 hover:border-white p-5 flex flex-col justify-between cursor-pointer select-none [backface-visibility:hidden] shadow-2xl group overflow-hidden rounded-sm"
         >
-          {/* Decorative Book Spine Gold Foil Line */}
-          <div className="absolute top-0 bottom-0 left-0 w-3 bg-gradient-to-r from-gold-500 via-gold-300 to-gold-400 border-r border-gold-300/60" />
+          {/* Decorative Book Spine Foil Line */}
+          <div className="absolute top-0 bottom-0 left-0 w-2.5 bg-gradient-to-r from-neutral-600 via-neutral-400 to-neutral-200 border-r border-white/30 z-20" />
 
-          <div className="pl-4 space-y-4">
-            {/* Top Bar Badges */}
+          <div className="pl-3 space-y-3 relative z-10">
+            {/* Top Bar: Discount Badge & Wishlist Heart */}
             <div className="flex justify-between items-center">
               <div className="flex items-center gap-1.5">
-                {product.isNew && <Badge variant="gold">NEW EDITION</Badge>}
-                <span className="text-[9px] font-inter uppercase tracking-widest text-gold-300">
-                  {product.productType.replace('_', ' ')}
-                </span>
+                {product.compareAtPrice && product.compareAtPrice > product.price ? (
+                  <span className="bg-white text-black font-inter text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-xs shadow-md">
+                    {Math.round(((product.compareAtPrice - product.price) / product.compareAtPrice) * 100)}% OFF
+                  </span>
+                ) : product.isNew ? (
+                  <span className="bg-white text-black font-inter text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-xs shadow-md">
+                    NEW
+                  </span>
+                ) : (
+                  <span className="bg-white/10 text-white border border-white/20 text-[9px] font-inter uppercase tracking-wider px-2 py-0.5">
+                    {product.productType.replace('_', ' ')}
+                  </span>
+                )}
               </div>
-              <div onClick={(e) => e.stopPropagation()}>
+
+              <div onClick={(e) => e.stopPropagation()} className="relative z-20">
                 <WishlistButton productId={product.id} />
               </div>
             </div>
 
-            {/* Book Image */}
-            <div className="relative aspect-[4/3] w-full bg-bg-secondary border border-white-500/10 overflow-hidden">
+            {/* Product High-Res Image with Glow Spotlight */}
+            <div className="relative aspect-[4/3] w-full bg-bg-secondary border border-white-500/10 overflow-hidden group shadow-md rounded-xs">
               <Image
                 src={mainImage}
                 alt={product.name}
                 fill
                 sizes="(max-width: 640px) 100vw, 25vw"
-                className="object-cover group-hover:scale-105 transition-transform duration-500"
+                className="object-cover group-hover:scale-108 transition-transform duration-700 ease-out"
               />
+              <div className="absolute inset-0 bg-gradient-to-t from-bg-primary/80 via-transparent to-transparent opacity-60" />
             </div>
 
-            {/* Book Title & Scent Family */}
+            {/* Title & Fragrance Scent Family */}
             <div className="space-y-1">
-              <span className="text-[10px] text-gold-300 uppercase tracking-widest block font-inter">
+              <span className="text-[9px] text-white-300 uppercase tracking-widest block font-inter font-semibold">
                 {product.scentFamily}
               </span>
-              <h3 className="font-cormorant text-2xl text-white-100 font-light group-hover:text-gold-200 transition-colors line-clamp-1">
+              <h3 className="font-cormorant text-2xl text-white-100 font-light group-hover:text-white transition-colors line-clamp-1">
                 {product.name}
               </h3>
             </div>
           </div>
 
-          {/* Bottom Flip Trigger */}
-          <div className="pl-4 pt-4 border-t border-white-500/15 flex items-center justify-between">
-            <div className="flex items-baseline gap-2">
-              <span className="text-sm text-gold-200 font-medium font-inter">{formattedPrice}</span>
-              {formattedComparePrice && (
-                <span className="text-xs text-white-400 line-through font-inter">{formattedComparePrice}</span>
-              )}
+          {/* Bottom Bar: Price & Quick Add Button */}
+          <div className="pl-3 pt-3 border-t border-white-500/15 flex items-center justify-between relative z-10">
+            <div className="flex flex-col">
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-base text-white font-semibold font-inter">{formattedPrice}</span>
+                {formattedComparePrice && (
+                  <span className="text-xs text-white-400 line-through font-inter">{formattedComparePrice}</span>
+                )}
+              </div>
+              <span className="text-[9px] text-white-400 font-inter">Free Express Delivery</span>
             </div>
 
-            <div className="flex items-center gap-1.5 text-xs text-gold-300 font-inter font-medium group-hover:underline">
-              <BookOpen className="h-4 w-4 text-gold-300 animate-pulse" />
-              <span>Open Atelier Book 📖</span>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleAddToCart}
+                className="h-8 w-8 rounded-full bg-white text-black flex items-center justify-center shadow-lg hover:scale-110 active:scale-95 transition-all cursor-pointer font-bold"
+                title="Add to Cart"
+              >
+                <ShoppingBag className="h-4 w-4 text-black" />
+              </button>
+
+              <button
+                onClick={toggleBook}
+                className="p-1.5 text-white hover:text-neutral-200 border border-white/30 hover:border-white rounded-xs"
+                title="Open Atelier Book"
+              >
+                <BookOpen className="h-3.5 w-3.5" />
+              </button>
             </div>
           </div>
         </article>

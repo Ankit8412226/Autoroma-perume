@@ -70,27 +70,27 @@ export function HolographicCabinCard({
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
       style={{ transform }}
-      className="relative bg-bg-surface border border-gold-300/40 p-8 space-y-4 transition-transform duration-200 ease-out flex flex-col justify-between select-none shadow-2xl overflow-hidden group cursor-pointer"
+      className="relative bg-bg-surface border border-white-500/20 hover:border-white p-8 space-y-4 transition-transform duration-200 ease-out flex flex-col justify-between select-none shadow-2xl overflow-hidden group cursor-pointer"
     >
-      {/* Holographic Gold Foil Glare Sweep */}
+      {/* Holographic White Foil Glare Sweep */}
       <div
         className="absolute inset-0 pointer-events-none transition-opacity duration-300"
         style={{
-          background: `radial-gradient(circle at ${glarePosition.x}% ${glarePosition.y}%, rgba(247,237,216,0.3) 0%, rgba(201,169,110,0.1) 40%, transparent 80%)`,
+          background: `radial-gradient(circle at ${glarePosition.x}% ${glarePosition.y}%, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.05) 40%, transparent 80%)`,
           opacity: glarePosition.opacity,
         }}
       />
 
       <div className="space-y-4 relative z-10">
-        <div className="h-12 w-12 rounded-full bg-gradient-to-tr from-gold-400/20 to-gold-200/10 border border-gold-300/40 flex items-center justify-center text-gold-300 group-hover:scale-110 group-hover:border-gold-300 transition-all">
+        <div className="h-12 w-12 rounded-full bg-white/10 border border-white/30 flex items-center justify-center text-white group-hover:scale-110 group-hover:border-white transition-all">
           {renderIcon()}
         </div>
 
         <div className="space-y-1">
-          <h3 className="font-cormorant text-2xl text-white-100 font-light group-hover:text-gold-200 transition-colors">
+          <h3 className="font-cormorant text-2xl text-white-100 font-light group-hover:text-white transition-colors">
             {title}
           </h3>
-          <span className="text-[10px] text-gold-300 uppercase tracking-widest block font-inter font-semibold">
+          <span className="text-[10px] text-white-300 uppercase tracking-widest block font-inter font-semibold">
             {subtitle}
           </span>
         </div>
@@ -102,7 +102,7 @@ export function HolographicCabinCard({
 
       <Link
         href={href}
-        className="text-xs text-gold-300 font-inter font-medium tracking-wider uppercase group-hover:underline pt-4 block border-t border-white-500/15 relative z-10"
+        className="text-xs text-white font-inter font-medium tracking-wider uppercase group-hover:underline pt-4 block border-t border-white-500/15 relative z-10"
       >
         {ctaText}
       </Link>

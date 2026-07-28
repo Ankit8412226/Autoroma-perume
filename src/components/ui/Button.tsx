@@ -25,13 +25,13 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 
     const variantStyles = {
       primary:
-        'bg-gradient-to-r from-gold-400 via-gold-300 to-gold-400 text-bg-primary font-semibold hover:brightness-110 shadow-[0_0_20px_rgba(201,169,110,0.25)] hover:shadow-[0_0_35px_rgba(201,169,110,0.5)] border border-gold-200/50 before:absolute before:inset-0 before:-translate-x-full hover:before:translate-x-full before:bg-gradient-to-r before:from-transparent before:via-white/40 before:to-transparent before:transition-transform before:duration-700',
+        'bg-white text-black font-semibold hover:bg-neutral-200 shadow-[0_0_20px_rgba(255,255,255,0.2)] border border-white before:absolute before:inset-0 before:-translate-x-full hover:before:translate-x-full before:bg-gradient-to-r before:from-transparent before:via-black/20 before:to-transparent before:transition-transform before:duration-700',
       secondary:
-        'bg-bg-surface text-white-100 border border-gold-300/40 hover:border-gold-300 hover:text-gold-200 hover:bg-gold-300/10 hover:shadow-[0_0_20px_rgba(201,169,110,0.15)] before:absolute before:inset-0 before:-translate-x-full hover:before:translate-x-full before:bg-gradient-to-r before:from-transparent before:via-gold-300/20 before:to-transparent before:transition-transform before:duration-700',
-      tertiary: 'bg-transparent text-gold-300 hover:text-white-100 hover:bg-white-500/10',
-      ghost: 'bg-transparent text-white-200 hover:text-gold-300 hover:bg-white-500/5',
+        'bg-bg-surface text-white-100 border border-white/30 hover:border-white hover:text-white hover:bg-white/10 hover:shadow-[0_0_20px_rgba(255,255,255,0.15)] before:absolute before:inset-0 before:-translate-x-full hover:before:translate-x-full before:bg-gradient-to-r before:from-transparent before:via-white/10 before:to-transparent before:transition-transform before:duration-700',
+      tertiary: 'bg-transparent text-white-100 hover:text-white-200 hover:bg-white-500/10',
+      ghost: 'bg-transparent text-white-200 hover:text-white-100 hover:bg-white-500/5',
       destructive: 'bg-red-900/80 text-white-100 hover:bg-red-800 border border-red-500/30',
-      icon: 'p-2 bg-bg-surface border border-white-500/20 hover:border-gold-300 text-white-200 hover:text-gold-300 rounded-none',
+      icon: 'p-2 bg-bg-surface border border-white-500/20 hover:border-white text-white-200 hover:text-white rounded-none',
     }
 
     const sizeStyles = {
@@ -42,9 +42,17 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       icon: 'h-10 w-10 p-0',
     }
 
+    const defaultStyles =
+      variant === 'primary'
+        ? { backgroundColor: '#FFFFFF', color: '#000000', ...props.style }
+        : variant === 'secondary'
+        ? { backgroundColor: '#121212', color: '#FFFFFF', borderColor: 'rgba(255, 255, 255, 0.4)', ...props.style }
+        : props.style
+
     return (
       <button
         ref={ref}
+        style={defaultStyles}
         className={cn(baseStyles, variantStyles[variant], sizeStyles[size], className)}
         disabled={disabled || isLoading}
         {...props}
