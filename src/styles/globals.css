@@ -1,0 +1,100 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Backgrounds */
+  --color-bg-primary:    #080808;   /* Main page background */
+  --color-bg-secondary:  #111111;   /* Sections, alternating bg */
+  --color-bg-surface:    #1A1A1A;   /* Cards, panels */
+  --color-bg-elevated:   #222222;   /* Dropdowns, tooltips */
+  --color-bg-overlay:    rgba(8, 8, 8, 0.85); /* Modals, drawers */
+
+  /* Gold — Primary Brand Color */
+  --color-gold-100:      #F7EDD8;
+  --color-gold-200:      #E8C98A;
+  --color-gold-300:      #C9A96E;   /* Primary gold — CTAs, accents */
+  --color-gold-400:      #A8834A;
+  --color-gold-500:      #7A5C2E;
+
+  /* Neutrals */
+  --color-white-100:     #F5F0E8;   /* Primary text */
+  --color-white-200:     #D4CEC4;   /* Secondary text */
+  --color-white-300:     #A09890;   /* Placeholder, disabled */
+  --color-white-400:     #6B6560;   /* Muted, captions */
+  --color-white-500:     #3D3A36;   /* Borders, dividers */
+
+  /* Accents */
+  --color-amber:         #8B5E3C;
+  --color-rose:          #9B6B6B;
+  --color-sage:          #5C7A63;
+
+  /* Semantic */
+  --color-success:       #4A7C59;
+  --color-error:         #A0522D;
+  --color-warning:       #C49A3C;
+  --color-info:          #4A6FA5;
+}
+
+/* Global Reset & Base Styling */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  background-color: var(--color-bg-primary);
+  color: var(--color-white-100);
+  font-family: var(--font-inter), sans-serif;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #080808;
+}
+::-webkit-scrollbar-thumb {
+  background: #222222;
+  border-radius: 0px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #C9A96E;
+}
+
+/* Utilities */
+.glass {
+  background: rgba(26, 26, 26, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(201, 169, 110, 0.15);
+}
+
+.input-base {
+  background: transparent;
+  border: 1px solid var(--color-white-500);
+  color: var(--color-white-100);
+  padding: 0.75rem 1rem;
+  font-family: var(--font-inter), sans-serif;
+  font-size: 0.9375rem;
+  transition: border-color 150ms ease;
+  outline: none;
+  border-radius: 0;
+}
+
+.input-base::placeholder {
+  color: var(--color-white-400);
+}
+
+.input-base:focus {
+  border-color: var(--color-gold-300);
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
