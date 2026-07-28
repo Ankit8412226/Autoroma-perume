@@ -574,7 +574,7 @@ export default async function HomePage() {
       </ScrollReveal>
 
       {/* BOMBAY MUSK LUXURY ANIMATED OCEAN WAVES DIVIDER BEFORE SCENT QUIZ */}
-      <OceanWaves className="my-8" />
+      <OceanWaves mode="interactive" className="my-8" />
 
       {/* SECTION: BOMBAY MUSK INSPIRED INTERACTIVE SCENT QUIZ */}
       <section id="scent-quiz" className="px-4 sm:px-6 md:px-12 max-w-7xl mx-auto scroll-mt-24">

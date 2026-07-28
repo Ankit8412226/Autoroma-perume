@@ -4,6 +4,7 @@ import * as React from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Wind, Sparkles, ShieldCheck, Award } from 'lucide-react'
+import { OceanWaves } from '@/components/motion/OceanWaves'
 
 interface GlowingCategoryCardProps {
   iconName: 'wind' | 'sparkles' | 'shield' | 'award'
@@ -84,6 +85,11 @@ export function GlowingCategoryCard({
     >
       {/* Animated Glowing Ambient Pulse */}
       <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-2xl group-hover:bg-white/15 group-hover:scale-125 transition-all duration-500 pointer-events-none" />
+
+
+      <div className="absolute bottom-0 left-0 right-0 h-16 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none z-0 overflow-hidden">
+        <OceanWaves height={50} className="-mb-2" />
+      </div>
 
       {imageSrc ? (
         <div className="relative aspect-square w-full bg-black/60 border border-white-500/15 overflow-hidden rounded-xs">
