@@ -25,19 +25,19 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://autoroma.in'),
+  metadataBase: new URL('https://auraveloce.in'),
   title: {
-    default: 'Autoroma — Premium Car Fragrance & Air Fresheners India',
-    template: '%s | Autoroma',
+    default: 'AURA VÉLOCE — Premium Automotive Fragrance & Luxury Diffusers India',
+    template: '%s | AURA VÉLOCE',
   },
   description:
-    'Discover Autoroma — India\'s premier luxury car fragrance brand. Shop vent clip fresheners, dashboard gels, hanging fresheners, interior sprays and reed diffusers. Free shipping above ₹499.',
+    'Discover Aura Véloce — India\'s premier luxury automotive fragrance atelier. Shop anodized vent clips, heat-stable dashboard gels, artisanal hanging diffusers, and cabin mists. Free shipping above ₹499.',
   keywords: [
-    'car perfume India',
-    'buy car air freshener India',
+    'Aura Veloce car perfume India',
+    'buy luxury car air freshener India',
     'car vent clip perfume',
     'car cabin freshener India',
-    'premium car fragrance India',
+    'premium automotive fragrance India',
     'best car perfume online India',
   ],
 }

@@ -33,7 +33,7 @@ export function LoginForm() {
         setError('Invalid email or password.')
         toast('Invalid email or password.', 'error')
       } else {
-        toast('Welcome back to Autoroma.', 'success')
+        toast('Welcome back to Aura Véloce.', 'success')
         router.push(nextUrl)
         router.refresh()
       }
@@ -93,14 +93,14 @@ export function LoginForm() {
           <div className="grid grid-cols-2 gap-2">
             <button
               type="button"
-              onClick={() => fillCredentials('user@autoroma.com', 'user123')}
+              onClick={() => fillCredentials('user@auraveloce.com', 'user123')}
               className="py-2 px-3 bg-bg-surface border border-white-500/20 hover:border-white text-xs font-inter text-white font-medium rounded-sm transition-all text-center"
             >
               👤 Customer Account
             </button>
             <button
               type="button"
-              onClick={() => fillCredentials('admin@autoroma.com', 'admin123')}
+              onClick={() => fillCredentials('admin@auraveloce.com', 'admin123')}
               className="py-2 px-3 bg-bg-surface border border-white-500/20 hover:border-white text-xs font-inter text-white font-medium rounded-sm transition-all text-center"
             >
               👑 Admin Account
@@ -114,7 +114,7 @@ export function LoginForm() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
-          placeholder="driver@autoroma.com"
+          placeholder="driver@auraveloce.com"
         />
 
         <Input

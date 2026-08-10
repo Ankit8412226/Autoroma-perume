@@ -10,6 +10,7 @@ import { AnimatedTestimonials } from '@/components/motion/AnimatedTestimonials'
 import { AnimatedFAQAccordion } from '@/components/motion/AnimatedFAQAccordion'
 import { InteractiveScentQuiz } from '@/components/motion/InteractiveScentQuiz'
 import { OceanWaves } from '@/components/motion/OceanWaves'
+import { RomanticPerfumeHeroVideo } from '@/components/motion/RomanticPerfumeHeroVideo'
 import { FlippingBookProductCard, type FlippingBookProductCardProps } from '@/features/products/components/FlippingBookProductCard'
 import { prisma } from '@/lib/db/prisma'
 import {
@@ -148,20 +149,8 @@ export default async function HomePage() {
     <main className="space-y-20 sm:space-y-24 pb-24 overflow-hidden bg-bg-primary text-white-100">
       {/* SECTION 1: BOMBAY MUSK EXACT MATCH HERO SECTION */}
       <section className="relative min-h-[90vh] sm:min-h-[88vh] lg:min-h-[92vh] flex flex-col justify-between overflow-hidden border-b border-white-500/20">
-        {/* Full-Bleed Background Image: Woman right-aligned inside luxury SUV trunk holding gold perfume box near chest */}
-        <div className="absolute inset-0 z-0">
-          <Image
-            src="/images/hero-woman-perfume-perfect.png"
-            alt="Autoroma Luxury Car Perfume Model holding Gold Perfume Box"
-            fill
-            priority
-            sizes="100vw"
-            className="object-cover object-[80%_center] sm:object-[right_center] lg:object-[right_top] brightness-105"
-          />
-          {/* Responsive Vignette Gradients for Mobile & Desktop Readability */}
-          <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/60 sm:via-black/35 to-transparent z-[1]" />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-transparent z-[1]" />
-        </div>
+        {/* Romantic Perfume Video & Voiceover Sound Background Layer */}
+        <RomanticPerfumeHeroVideo />
 
         {/* Hero Left Content Overlay - Centered on Mobile, Left-Aligned on Desktop */}
         <div className="max-w-7xl mx-auto w-full px-5 sm:px-8 lg:px-12 relative z-10 flex-1 flex flex-col justify-center items-center sm:items-start text-center sm:text-left pt-24 sm:pt-28 lg:pt-32 pb-14 sm:pb-16 space-y-4 sm:space-y-6">
@@ -233,13 +222,13 @@ export default async function HomePage() {
       {/* SECTION 2: INFINITE BRAND TICKER WITH GENEROUS MARGINS */}
       <section className="bg-bg-surface border-y border-white-500/20 py-5 my-6 sm:my-10 overflow-hidden">
         <div className="flex whitespace-nowrap gap-12 animate-marquee text-[11px] sm:text-xs font-inter uppercase tracking-[0.3em] text-white-200 font-medium">
-          <span>• AUTOROMA PARFUM D&apos;AUTOMOBILE</span>
+          <span>• AURA VÉLOCE PARFUM D&apos;AUTOMOBILE</span>
           <span>• HEAT TESTED FORMULATIONS (60°C)</span>
           <span>• ANODIZED MATTE ALUMINUM CASING</span>
           <span>• IFRA CERTIFIED NATURAL OILS</span>
           <span>• FREE SHIPPING ABOVE ₹499 ACROSS INDIA</span>
           <span>• B2B & DEALERSHIP FLEET SUPPLY</span>
-          <span>• AUTOROMA PARFUM D&apos;AUTOMOBILE</span>
+          <span>• AURA VÉLOCE PARFUM D&apos;AUTOMOBILE</span>
         </div>
       </section>
 
@@ -361,7 +350,7 @@ export default async function HomePage() {
             <div className="lg:col-span-7 relative h-[360px] sm:h-[480px] rounded-sm overflow-hidden border border-white-500/20 shadow-2xl group">
               <Image
                 src="/images/bombay-musk-oud-smoke.png"
-                alt="Autoroma Raw Agarwood Oud and Smoldering Smoke Atmosphere"
+                alt="Aura Véloce Raw Agarwood Oud Atmosphere"
                 fill
                 sizes="(max-width: 1024px) 100vw, 60vw"
                 className="object-cover transition-transform duration-700 group-hover:scale-105"
@@ -370,7 +359,7 @@ export default async function HomePage() {
             </div>
 
             {/* Right Card Overlay Matching Screenshot 3 */}
-            <div className="lg:col-span-5 bg-gradient-to-b from-neutral-900/90 to-black border border-white-500/20 p-8 sm:p-10 rounded-sm space-y-6 shadow-2xl relative">
+            <div className="lg:col-span-5 bg-gradient-to-b from-neutral-900/90 to-black border border-white-500/20 hover:border-gold-300 p-8 sm:p-10 rounded-sm space-y-6 shadow-2xl hover:-translate-y-2 hover:shadow-[0_20px_40px_rgba(201,169,110,0.2)] transition-all duration-500 relative group">
               <h3 className="font-sans text-2xl sm:text-4xl font-light text-white leading-tight">
                 The scent you&apos;re remembered by.
               </h3>
@@ -464,40 +453,40 @@ export default async function HomePage() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {/* Press Card 1 */}
-            <div className="bg-bg-surface border border-white-500/20 p-8 rounded-sm space-y-4 shadow-xl">
-              <span className="font-sans text-xl font-bold tracking-widest text-white block">
+            <div className="bg-bg-surface border border-white-500/20 hover:border-gold-300 p-8 rounded-sm space-y-4 shadow-xl hover:-translate-y-2 hover:shadow-[0_20px_40px_rgba(201,169,110,0.2)] transition-all duration-500 group cursor-pointer">
+              <span className="font-sans text-xl font-bold tracking-widest text-white group-hover:text-gold-200 transition-colors block">
                 AUTOCAR INDIA
               </span>
               <p className="text-xs text-white-300 font-inter font-light italic leading-relaxed">
                 &ldquo;The Rolls-Royce of luxury car perfumes. The Cambodian Oud mist smells identical to a 5-star hotel lobby.&rdquo;
               </p>
-              <span className="text-[10px] text-white-400 uppercase tracking-widest font-inter block">
+              <span className="text-[10px] text-gold-300 uppercase tracking-widest font-inter block font-medium">
                 ★ ★ ★ ★ ★ EDITORS CHOICE
               </span>
             </div>
 
             {/* Press Card 2 */}
-            <div className="bg-bg-surface border border-white-500/20 p-8 rounded-sm space-y-4 shadow-xl">
-              <span className="font-sans text-xl font-bold tracking-widest text-white block">
+            <div className="bg-bg-surface border border-white-500/20 hover:border-gold-300 p-8 rounded-sm space-y-4 shadow-xl hover:-translate-y-2 hover:shadow-[0_20px_40px_rgba(201,169,110,0.2)] transition-all duration-500 group cursor-pointer">
+              <span className="font-sans text-xl font-bold tracking-widest text-white group-hover:text-gold-200 transition-colors block">
                 TOP GEAR INDIA
               </span>
               <p className="text-xs text-white-300 font-inter font-light italic leading-relaxed">
                 &ldquo;Engineered to withstand 60°C summer cabin heat without evaporating away in 3 days. A game changer.&rdquo;
               </p>
-              <span className="text-[10px] text-white-400 uppercase tracking-widest font-inter block">
+              <span className="text-[10px] text-gold-300 uppercase tracking-widest font-inter block font-medium">
                 ★ ★ ★ ★ ★ AUTOMOTIVE INNOVATION
               </span>
             </div>
 
             {/* Press Card 3 */}
-            <div className="bg-bg-surface border border-white-500/20 p-8 rounded-sm space-y-4 shadow-xl">
-              <span className="font-sans text-xl font-bold tracking-widest text-white block">
+            <div className="bg-bg-surface border border-white-500/20 hover:border-gold-300 p-8 rounded-sm space-y-4 shadow-xl hover:-translate-y-2 hover:shadow-[0_20px_40px_rgba(201,169,110,0.2)] transition-all duration-500 group cursor-pointer">
+              <span className="font-sans text-xl font-bold tracking-widest text-white group-hover:text-gold-200 transition-colors block">
                 GQ MAGAZINE
               </span>
               <p className="text-xs text-white-300 font-inter font-light italic leading-relaxed">
                 &ldquo;The laser-engraved anodized diffuser is the ultimate gift for car purists and luxury car owners.&rdquo;
               </p>
-              <span className="text-[10px] text-white-400 uppercase tracking-widest font-inter block">
+              <span className="text-[10px] text-gold-300 uppercase tracking-widest font-inter block font-medium">
                 ★ ★ ★ ★ ★ LUXURY ESSENTIAL
               </span>
             </div>
@@ -508,27 +497,27 @@ export default async function HomePage() {
       {/* BOMBAY MUSK LUXURY ANIMATED OCEAN WAVES DIVIDER */}
       <OceanWaves className="my-6" />
 
-      {/* LUXURY SECTION: ORDINARY AIR FRESHENER VS AUTOROMA COMPARISON */}
+      {/* LUXURY SECTION: ORDINARY AIR FRESHENER VS AURA VÉLOCE COMPARISON */}
       <ScrollReveal className="px-4 sm:px-6 md:px-12 max-w-7xl mx-auto space-y-12">
         <div className="text-center space-y-3 max-w-2xl mx-auto">
           <span className="text-xs font-inter uppercase tracking-[0.3em] text-white-300 font-semibold block">
-            THE AUTOROMA DIFFERENCE
+            THE AURA VÉLOCE DIFFERENCE
           </span>
           <h2 className="font-sans text-3xl sm:text-5xl font-light text-white tracking-tight">
             Why Ordinary Car Scents Fail
           </h2>
           <p className="text-xs sm:text-sm text-white-300 font-inter font-light">
-            Compare cheap chemical gas-station air fresheners with Autoroma&apos;s haute perfumery.
+            Compare cheap chemical gas-station air fresheners with Aura Véloce&apos;s haute perfumery.
           </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Ordinary Chemical Freshener */}
-          <div className="bg-neutral-950 border border-red-500/20 p-8 rounded-sm space-y-6 shadow-xl relative">
+          <div className="bg-neutral-950 border border-red-500/30 hover:border-red-500/60 p-8 rounded-sm space-y-6 shadow-xl hover:-translate-y-2 hover:shadow-[0_20px_40px_rgba(239,68,68,0.15)] transition-all duration-500 relative group cursor-pointer">
             <span className="text-xs font-inter uppercase tracking-widest text-red-400 font-bold block">
               ❌ ORDINARY CAR SCENTS
             </span>
-            <h3 className="font-sans text-2xl font-bold text-white">
+            <h3 className="font-sans text-2xl font-bold text-white group-hover:text-red-300 transition-colors">
               Synthetic Chemical Spray
             </h3>
             <ul className="space-y-3 text-xs text-white-300 font-inter font-light">
@@ -547,12 +536,12 @@ export default async function HomePage() {
             </ul>
           </div>
 
-          {/* Autoroma Luxury Car Perfume */}
-          <div className="bg-gradient-to-b from-neutral-900 to-black border border-white p-8 rounded-sm space-y-6 shadow-2xl relative">
+          {/* Aura Véloce Luxury Car Perfume */}
+          <div className="bg-gradient-to-b from-neutral-900 to-black border border-white-500/30 hover:border-emerald-400 p-8 rounded-sm space-y-6 shadow-2xl hover:-translate-y-2 hover:shadow-[0_20px_40px_rgba(52,211,153,0.25)] transition-all duration-500 relative group cursor-pointer">
             <span className="text-xs font-inter uppercase tracking-widest text-emerald-400 font-bold block">
-              ✓ AUTOROMA HAUTE PARFUMERIE
+              ✓ AURA VÉLOCE HAUTE PARFUMERIE
             </span>
-            <h3 className="font-sans text-2xl font-bold text-white">
+            <h3 className="font-sans text-2xl font-bold text-white group-hover:text-emerald-300 transition-colors">
               Pure Organic Essential Oil
             </h3>
             <ul className="space-y-3 text-xs text-white-100 font-inter font-light">
@@ -619,7 +608,7 @@ export default async function HomePage() {
       <section className="bg-bg-secondary py-16 sm:py-24 border-t border-white-500/20 px-4 sm:px-6 md:px-12 text-center space-y-8">
         <div className="max-w-2xl mx-auto space-y-4">
           <span className="text-label text-gold-300 uppercase tracking-widest block font-inter">
-            Autoroma Atelier Club
+            Aura Véloce Atelier Club
           </span>
           <h2 className="font-cormorant text-display-lg sm:text-display-xl font-light text-white-100">
             Enjoy 10% Off Your First Fragrance Order

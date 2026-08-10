@@ -3,8 +3,8 @@ import { GenZLetsConnectVideo } from '@/components/motion/GenZLetsConnectVideo'
 import { Mail, Phone, MapPin, Clock } from 'lucide-react'
 
 export const metadata = {
-  title: 'Concierge & Client Support — Autoroma',
-  description: 'Contact Autoroma concierge for order tracking, B2B wholesale inquiries, or fragrance assistance.',
+  title: 'Concierge & Client Support — AURA VÉLOCE',
+  description: 'Contact Aura Véloce concierge for order tracking, B2B wholesale inquiries, or fragrance assistance.',
 }
 
 export default function ContactPage() {
@@ -12,7 +12,7 @@ export default function ContactPage() {
     <main className="py-12 px-4 sm:px-6 md:px-12 max-w-7xl mx-auto space-y-12 min-h-[70vh]">
       <div className="space-y-2 text-center max-w-2xl mx-auto">
         <span className="text-label text-gold-300 uppercase tracking-widest block font-inter">
-          Autoroma Direct Hotline
+          Aura Véloce Direct Hotline
         </span>
         <h1 className="font-cormorant text-display-lg sm:text-display-xl font-light text-white-100">
           Let&apos;s Get Connected
@@ -37,7 +37,7 @@ export default function ContactPage() {
               <Mail className="h-5 w-5 text-gold-300 shrink-0" />
               <div>
                 <strong className="text-white-100 block">Email Support</strong>
-                <span>support@autoroma.in</span>
+                <span>support@auraveloce.in</span>
               </div>
             </div>
 
@@ -53,7 +53,7 @@ export default function ContactPage() {
               <MapPin className="h-5 w-5 text-gold-300 shrink-0" />
               <div>
                 <strong className="text-white-100 block">Atelier Location</strong>
-                <span>Autoroma Fragrances Pvt Ltd, BKC Commercial Complex, Mumbai, Maharashtra 400051</span>
+                <span>Aura Véloce Fragrances Pvt Ltd, BKC Commercial Complex, Mumbai, Maharashtra 400051</span>
               </div>
             </div>
 

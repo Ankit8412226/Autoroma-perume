@@ -81,7 +81,7 @@ export function GlowingCategoryCard({
     <Link
       href={href}
       onClick={handleClick}
-      className="group relative bg-bg-surface border border-white-500/20 hover:border-white p-6 space-y-5 transition-all duration-500 shadow-xl overflow-hidden hover:shadow-[0_0_35px_rgba(255,255,255,0.15)] block select-none rounded-sm"
+      className="group relative bg-bg-surface border border-white-500/20 hover:border-gold-300 p-6 space-y-5 transition-all duration-500 shadow-xl overflow-hidden hover:-translate-y-2 hover:shadow-[0_20px_40px_rgba(201,169,110,0.25)] block select-none rounded-sm"
     >
       {/* Animated Glowing Ambient Pulse */}
       <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-2xl group-hover:bg-white/15 group-hover:scale-125 transition-all duration-500 pointer-events-none" />

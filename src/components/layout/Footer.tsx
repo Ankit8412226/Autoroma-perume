@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { AuraVeloceLogo } from './AuraVeloceLogo'
 
 export function Footer() {
   return (
@@ -8,16 +9,11 @@ export function Footer() {
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
         {/* Brand Column */}
         <div className="space-y-4 md:col-span-1">
-          <div className="flex flex-col">
-            <span className="font-sans text-2xl tracking-[0.2em] text-white uppercase font-bold">
-              Autoroma
-            </span>
-            <span className="text-[8px] font-inter uppercase tracking-[0.35em] text-white-300">
-              Parfum d&apos;Automobile
-            </span>
-          </div>
+          <Link href="/">
+            <AuraVeloceLogo variant="full" gold iconSize={36} />
+          </Link>
 
-          <p className="text-xs text-white-300 font-light leading-relaxed max-w-sm">
+          <p className="text-xs text-white-300 font-light leading-relaxed max-w-sm pt-2">
             India&apos;s premier luxury automotive fragrance atelier. Formulated with heat-tested 60°C pure essential oils and anodized aluminum diffusers for BMW, Mercedes, Porsche, Audi, and Range Rover cabins.
           </p>
         </div>
@@ -106,7 +102,7 @@ export function Footer() {
 
       {/* Bottom Bar */}
       <div className="max-w-7xl mx-auto pt-8 border-t border-white-500/10 flex flex-col md:flex-row items-center justify-between text-xs text-white-400 font-light gap-4">
-        <span>© {new Date().getFullYear()} Autoroma Automotive Fragrances. All rights reserved.</span>
+        <span>© {new Date().getFullYear()} Aura Véloce Automotive Fragrances. All rights reserved.</span>
         <div className="flex gap-6">
           <Link href="/privacy" className="hover:text-white">Privacy Policy</Link>
           <Link href="/terms" className="hover:text-white">Terms of Service</Link>

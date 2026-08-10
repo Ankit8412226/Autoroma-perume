@@ -152,7 +152,7 @@ export function AtelierLabVisualizer() {
       <div className="lg:col-span-6 relative aspect-[4/3] w-full bg-bg-surface border border-gold-300/40 overflow-hidden group shadow-2xl">
         <Image
           src="/images/car-perfume-craft.png"
-          alt="Autoroma Perfumery Craftsmanship"
+          alt="Aura Véloce Perfumery Craftsmanship"
           fill
           sizes="(max-width: 1024px) 100vw, 50vw"
           className="object-cover group-hover:scale-105 transition-transform duration-700 ease-out"

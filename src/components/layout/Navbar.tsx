@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { gsap } from 'gsap'
 import { cn } from '@/utils/cn'
 import { ShoppingBag, Heart, User, Menu, X, Sparkles, Car, ChevronRight } from 'lucide-react'
+import { AuraVeloceLogo } from './AuraVeloceLogo'
 import { useCartStore, selectCartItemCount } from '@/stores/cart.store'
 import { useWishlistStore } from '@/stores/wishlist.store'
 
@@ -62,18 +63,8 @@ export function Navbar() {
                 <Menu className="h-4.5 w-4.5 text-white-100" />
               </button>
 
-              <Link href="/" className="flex items-center gap-1.5 sm:gap-2 group select-none shrink-0">
-                <div className="h-6 w-6 sm:h-7 sm:w-7 rounded-full bg-white/10 border border-white/30 flex items-center justify-center group-hover:border-white transition-all shrink-0">
-                  <span className="font-cormorant text-[10px] sm:text-xs font-semibold text-white">AU</span>
-                </div>
-                <div className="flex flex-col shrink-0">
-                  <span className="font-sans text-sm sm:text-xl tracking-[0.18em] sm:tracking-[0.2em] text-white font-bold uppercase leading-none">
-                    Autoroma
-                  </span>
-                  <span className="text-[6px] sm:text-[7px] font-inter uppercase tracking-[0.2em] sm:tracking-[0.25em] text-white-300 font-medium pt-0.5">
-                    Parfum d&apos;Automobile
-                  </span>
-                </div>
+              <Link href="/" className="flex items-center group select-none shrink-0">
+                <AuraVeloceLogo variant="full" gold />
               </Link>
             </div>
 
@@ -162,19 +153,9 @@ export function Navbar() {
           <div className="space-y-8">
             {/* Header with Brand Logo & Close Icon */}
             <div className="flex items-center justify-between border-b border-gold-300/30 pb-6">
-              <div className="flex items-center gap-3">
-                <div className="h-9 w-9 rounded-full bg-gold-300/10 border border-gold-300/40 flex items-center justify-center">
-                  <span className="font-cormorant text-sm font-semibold text-gold-300">AU</span>
-                </div>
-                <div>
-                  <span className="font-cormorant text-xl text-white-100 tracking-widest uppercase block font-light">
-                    Autoroma
-                  </span>
-                  <span className="text-[8px] uppercase tracking-widest text-gold-300 font-inter">
-                    Parfum d&apos;Automobile
-                  </span>
-                </div>
-              </div>
+              <Link href="/" onClick={() => setMobileMenuOpen(false)}>
+                <AuraVeloceLogo variant="full" gold iconSize={28} />
+              </Link>
 
               <button
                 onClick={() => setMobileMenuOpen(false)}
@@ -248,7 +229,7 @@ export function Navbar() {
 
           {/* Footer Info inside Slider */}
           <div className="border-t border-white-500/10 pt-6 text-center space-y-2 font-inter text-xs">
-            <p className="text-white-300">Support: support@maisonnoir.in</p>
+            <p className="text-white-300">Support: support@auraveloce.in</p>
             <span className="text-[10px] text-gold-300 uppercase tracking-widest block font-medium">
               Free Express Shipping Across India
             </span>

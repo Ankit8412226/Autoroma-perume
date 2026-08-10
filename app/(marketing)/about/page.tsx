@@ -9,8 +9,8 @@ import { AtelierLabVisualizer } from '@/components/motion/AtelierLabVisualizer'
 import { Sparkles, Car } from 'lucide-react'
 
 export const metadata = {
-  title: 'About the Atelier — Luxury Automotive Perfumery | Autoroma',
-  description: 'Discover how Autoroma crafts heat-tested 60°C, alcohol-free luxury car fragrances for BMW, Mercedes, Porsche, and Range Rover interiors.',
+  title: 'About the Atelier — Luxury Automotive Perfumery | AURA VÉLOCE',
+  description: 'Discover how Aura Véloce crafts heat-tested 60°C, alcohol-free luxury car fragrances for BMW, Mercedes, Porsche, and Range Rover interiors.',
 }
 
 export default function AboutPage() {
@@ -21,7 +21,7 @@ export default function AboutPage() {
         <div className="max-w-4xl mx-auto text-center space-y-6 z-10 flex flex-col items-center">
           <span className="text-label text-gold-300 uppercase tracking-widest block font-inter flex items-center gap-2">
             <Sparkles className="h-3.5 w-3.5 text-gold-300 animate-pulse" />
-            <span>The Autoroma Atelier · France & India</span>
+            <span>The Aura Véloce Atelier · France & India</span>
           </span>
 
           <RevealText
@@ -36,7 +36,7 @@ export default function AboutPage() {
             delay={0.2}
             className="text-body-md sm:text-body-lg text-white-200 font-light max-w-2xl mx-auto leading-relaxed font-inter"
           >
-            Born from a refusal to accept cheap paper trees or harsh synthetic alcohol sprays in luxury automobiles. Every Autoroma fragrance is formulated like fine perfumery, calibrated specifically for cabin climate control.
+            Born from a refusal to accept cheap paper trees or harsh synthetic alcohol sprays in luxury automobiles. Every Aura Véloce fragrance is formulated like fine perfumery, calibrated specifically for cabin climate control.
           </RevealText>
         </div>
       </section>
@@ -132,7 +132,7 @@ export default function AboutPage() {
               Designed for Long Indian Commutes
             </h2>
             <p className="text-xs sm:text-body-md text-white-200 font-light leading-relaxed font-inter">
-              Whether navigating Mumbai&apos;s monsoon traffic or cruising along the Bengaluru expressway, your car cabin is your personal sanctuary. Autoroma transforms mundane driving time into a grounding olfactory ritual.
+              Whether navigating Mumbai&apos;s monsoon traffic or cruising along the Bengaluru expressway, your car cabin is your personal sanctuary. Aura Véloce transforms mundane driving time into a grounding olfactory ritual.
             </p>
 
             <div className="pt-4 flex flex-col sm:flex-row items-center gap-4 sm:gap-6 w-full sm:w-auto">

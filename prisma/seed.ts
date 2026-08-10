@@ -4,7 +4,7 @@ import { hash } from 'bcryptjs'
 const prisma = new PrismaClient()
 
 async function main() {
-  console.log('🌱 Starting Maison Noir database seeding with high-res images...')
+  console.log('🌱 Starting Aura Véloce database seeding with high-res images...')
 
   // 1. Clear existing data
   await prisma.review.deleteMany()
@@ -23,8 +23,8 @@ async function main() {
 
   const admin = await prisma.user.create({
     data: {
-      name: 'Autoroma Admin',
-      email: 'admin@autoroma.com',
+      name: 'Aura Véloce Admin',
+      email: 'admin@auraveloce.com',
       passwordHash: adminPassword,
       role: UserRole.SUPER_ADMIN,
       isActive: true,
@@ -34,7 +34,7 @@ async function main() {
   const customer = await prisma.user.create({
     data: {
       name: 'Ankit Kumar',
-      email: 'user@autoroma.com',
+      email: 'user@auraveloce.com',
       passwordHash: customerPassword,
       role: UserRole.CUSTOMER,
       isActive: true,
@@ -85,7 +85,7 @@ async function main() {
       productType: ProductType.VENT_CLIP,
       price: 49900, // ₹499
       compareAtPrice: 59900,
-      sku: 'MN-VC-001',
+      sku: 'AV-VC-001',
       stock: 45,
       lowStockThreshold: 10,
       images: [
@@ -103,8 +103,8 @@ async function main() {
       compatible: ['All Cars', 'AC Vent Compatible'],
       mountType: ['AC Vent'],
       variants: [
-        { id: 'v1', label: 'Single Pack (Vent Clip)', sku: 'MN-VC-001-S', price: 49900, stock: 30 },
-        { id: 'v2', label: 'Duo Pack (2 Vent Clips)', sku: 'MN-VC-001-D', price: 89900, stock: 15 },
+        { id: 'v1', label: 'Single Pack (Vent Clip)', sku: 'AV-VC-001-S', price: 49900, stock: 30 },
+        { id: 'v2', label: 'Duo Pack (2 Vent Clips)', sku: 'AV-VC-001-D', price: 89900, stock: 15 },
       ],
       averageRating: 4.8,
       reviewCount: 34,
@@ -122,7 +122,7 @@ async function main() {
       productType: ProductType.SPRAY,
       price: 89900, // ₹899
       compareAtPrice: 119900,
-      sku: 'MN-SP-002',
+      sku: 'AV-SP-002',
       stock: 28,
       lowStockThreshold: 5,
       images: [
@@ -140,7 +140,7 @@ async function main() {
       compatible: ['All Cars'],
       mountType: ['Interior Spray'],
       variants: [
-        { id: 'v3', label: '100ml Aluminum Bottle', sku: 'MN-SP-002-100', price: 89900, stock: 28 },
+        { id: 'v3', label: '100ml Aluminum Bottle', sku: 'AV-SP-002-100', price: 89900, stock: 28 },
       ],
       averageRating: 4.9,
       reviewCount: 52,
@@ -158,7 +158,7 @@ async function main() {
       productType: ProductType.DASHBOARD_GEL,
       price: 69900, // ₹699
       compareAtPrice: 79900,
-      sku: 'MN-GEL-003',
+      sku: 'AV-GEL-003',
       stock: 60,
       lowStockThreshold: 10,
       images: [
@@ -176,7 +176,7 @@ async function main() {
       compatible: ['Dashboard', 'Cup Holder'],
       mountType: ['Dashboard', 'Cup Holder'],
       variants: [
-        { id: 'v4', label: '150g Matte Glass Jar', sku: 'MN-GEL-003-150', price: 69900, stock: 60 },
+        { id: 'v4', label: '150g Matte Glass Jar', sku: 'AV-GEL-003-150', price: 69900, stock: 60 },
       ],
       averageRating: 4.7,
       reviewCount: 19,
@@ -194,7 +194,7 @@ async function main() {
       productType: ProductType.HANGING,
       price: 39900, // ₹399
       compareAtPrice: 49900,
-      sku: 'MN-HG-004',
+      sku: 'AV-HG-004',
       stock: 80,
       lowStockThreshold: 15,
       images: [
@@ -212,7 +212,7 @@ async function main() {
       compatible: ['Rearview Mirror'],
       mountType: ['Rearview Mirror'],
       variants: [
-        { id: 'v5', label: '10ml Glass Bottle + Wood Cap', sku: 'MN-HG-004-10', price: 39900, stock: 80 },
+        { id: 'v5', label: '10ml Glass Bottle + Wood Cap', sku: 'AV-HG-004-10', price: 39900, stock: 80 },
       ],
       averageRating: 4.6,
       reviewCount: 27,
@@ -231,7 +231,7 @@ async function main() {
   // 5. Create Sample Coupon
   await prisma.coupon.create({
     data: {
-      code: 'NOIR20',
+      code: 'AV20',
       type: 'PERCENTAGE',
       value: 20,
       minOrderValue: 49900,
@@ -241,7 +241,7 @@ async function main() {
     },
   })
 
-  console.log('✅ Created Coupon NOIR20')
+  console.log('✅ Created Coupon AV20')
   console.log('🎉 Seeding completed successfully!')
 }
 

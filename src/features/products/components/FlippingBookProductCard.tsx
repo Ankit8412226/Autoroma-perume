@@ -131,7 +131,7 @@ export function FlippingBookProductCard({ product }: FlippingBookProductCardProp
         {/* ========================================================== */}
         <article
           onClick={toggleBook}
-          className="absolute inset-0 w-full h-full bg-bg-surface border border-white-500/20 hover:border-white p-5 flex flex-col justify-between cursor-pointer select-none [backface-visibility:hidden] shadow-2xl group overflow-hidden rounded-sm"
+          className="absolute inset-0 w-full h-full bg-bg-surface border border-white-500/20 hover:border-gold-300 p-5 flex flex-col justify-between cursor-pointer select-none [backface-visibility:hidden] shadow-2xl hover:-translate-y-2 hover:shadow-[0_20px_40px_rgba(201,169,110,0.25)] transition-all duration-500 group overflow-hidden rounded-sm"
         >
           {/* Decorative Book Spine Foil Line */}
           <div className="absolute top-0 bottom-0 left-0 w-2.5 bg-gradient-to-r from-neutral-600 via-neutral-400 to-neutral-200 border-r border-white/30 z-20" />

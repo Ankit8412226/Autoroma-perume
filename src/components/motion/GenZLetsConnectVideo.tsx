@@ -83,7 +83,7 @@ export function GenZLetsConnectVideo() {
       {/* Background Image Base */}
       <Image
         src="/images/contact-concierge.png"
-        alt="Autoroma GenZ Cyber Concierge Video Loop"
+        alt="Aura Véloce GenZ Cyber Concierge Video Loop"
         fill
         sizes="100vw"
         priority

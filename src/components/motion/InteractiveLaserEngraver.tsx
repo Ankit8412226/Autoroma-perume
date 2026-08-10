@@ -7,7 +7,7 @@ import { Button } from '@/components/ui'
 import { Building2, Zap, Sparkles } from 'lucide-react'
 
 export function InteractiveLaserEngraver() {
-  const [engravedText, setEngravedText] = React.useState('AUTOROMA')
+  const [engravedText, setEngravedText] = React.useState('AURA VÉLOCE')
 
   return (
     <div className="bg-gradient-to-r from-bg-secondary via-bg-surface to-bg-secondary border border-gold-300/40 p-4 sm:p-8 lg:p-12 grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-center">
