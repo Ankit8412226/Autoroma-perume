@@ -2,204 +2,244 @@
 
 import '@/lib/react-polyfill'
 import * as React from 'react'
-import { Canvas, extend, useFrame, useThree } from '@react-three/fiber'
-import { useAspect, useTexture } from '@react-three/drei'
-import { useMemo, useRef, useState, useEffect } from 'react'
-import * as THREE from 'three/webgpu'
-import { bloom } from 'three/examples/jsm/tsl/display/BloomNode.js'
+import * as THREE from 'three'
+import { Sparkles, Shield, Cpu, Zap } from 'lucide-react'
 
-import {
-  abs,
-  blendScreen,
-  float,
-  mod,
-  mx_cell_noise_float,
-  oneMinus,
-  smoothstep,
-  texture,
-  uniform,
-  uv,
-  vec2,
-  vec3,
-  pass,
-  mix,
-  add,
-} from 'three/tsl'
+export function HeroFuturisticDemo() {
+  const containerRef = React.useRef<HTMLDivElement>(null)
+  const canvasRef = React.useRef<HTMLCanvasElement>(null)
+  const [mounted, setMounted] = React.useState(false)
 
-const TEXTUREMAP = { src: 'https://i.postimg.cc/XYwvXN8D/img-4.png' }
-const DEPTHMAP = { src: 'https://i.postimg.cc/2SHKQh2q/raw-4.webp' }
-
-extend(THREE as any)
-
-// Post Processing component
-const PostProcessing = ({
-  strength = 1,
-  threshold = 1,
-  fullScreenEffect = true,
-}: {
-  strength?: number
-  threshold?: number
-  fullScreenEffect?: boolean
-}) => {
-  const { gl, scene, camera } = useThree()
-  const progressRef = useRef({ value: 0 })
-
-  const render = useMemo(() => {
-    const postProcessing = new (THREE as any).PostProcessing(gl as any)
-    const scenePass = pass(scene, camera)
-    const scenePassColor = scenePass.getTextureNode('output')
-    const bloomPass = bloom(scenePassColor, strength, 0.5, threshold)
-
-    // Create the scanning effect uniform
-    const uScanProgress = uniform(0)
-    progressRef.current = uScanProgress
-
-    // Create a red overlay that follows the scan line
-    const scanPos = float(uScanProgress.value)
-    const uvY = uv().y
-    const scanWidth = float(0.05)
-    const scanLine = smoothstep(0, scanWidth, abs(uvY.sub(scanPos)))
-    const redOverlay = vec3(1, 0, 0).mul(oneMinus(scanLine)).mul(0.4)
-
-    // Mix the original scene with the red overlay
-    const withScanEffect = mix(
-      scenePassColor,
-      add(scenePassColor, redOverlay),
-      fullScreenEffect ? smoothstep(0.9, 1.0, oneMinus(scanLine)) : 1.0
-    )
-
-    // Add bloom effect after scan effect
-    const final = withScanEffect.add(bloomPass)
-
-    postProcessing.outputNode = final
-
-    return postProcessing
-  }, [camera, gl, scene, strength, threshold, fullScreenEffect])
-
-  useFrame(({ clock }) => {
-    // Animate the scan line from top to bottom
-    progressRef.current.value = Math.sin(clock.getElapsedTime() * 0.5) * 0.5 + 0.5
-    render.renderAsync()
-  }, 1)
-
-  return null
-}
-
-const WIDTH = 300
-const HEIGHT = 300
-
-const Scene = () => {
-  const [rawMap, depthMap] = useTexture([TEXTUREMAP.src, DEPTHMAP.src])
-
-  const { material, uniforms } = useMemo(() => {
-    const uPointer = uniform(new THREE.Vector2(0))
-    const uProgress = uniform(0)
-
-    const strength = 0.01
-
-    const tDepthMap = texture(depthMap)
-
-    const tMap = texture(
-      rawMap,
-      uv().add(tDepthMap.r.mul(uPointer).mul(strength))
-    )
-
-    const aspect = float(WIDTH).div(HEIGHT)
-    const tUv = vec2(uv().x.mul(aspect), uv().y)
-
-    const tiling = vec2(120.0)
-    const tiledUv = mod(tUv.mul(tiling), 2.0).sub(1.0)
-
-    const brightness = mx_cell_noise_float(tUv.mul(tiling).div(2))
-
-    const dist = float(tiledUv.length())
-    const dot = float(smoothstep(0.5, 0.49, dist)).mul(brightness)
-
-    const depth = tDepthMap
-
-    const flow = oneMinus(smoothstep(0, 0.02, abs(depth.sub(uProgress))))
-
-    const mask = dot.mul(flow).mul(vec3(10, 0, 0))
-
-    const final = blendScreen(tMap, mask)
-
-    const material = new (THREE as any).MeshBasicNodeMaterial({
-      colorNode: final,
-    })
-
-    return {
-      material,
-      uniforms: {
-        uPointer,
-        uProgress,
-      },
-    }
-  }, [rawMap, depthMap])
-
-  const [w, h] = useAspect(WIDTH, HEIGHT)
-
-  useFrame(({ clock }) => {
-    uniforms.uProgress.value = Math.sin(clock.getElapsedTime() * 0.5) * 0.5 + 0.5
-  })
-
-  useFrame(({ pointer }) => {
-    uniforms.uPointer.value = pointer
-  })
-
-  const scaleFactor = 0.3
-  return (
-    <mesh scale={[w * scaleFactor, h * scaleFactor, 1]} material={material}>
-      <planeGeometry />
-    </mesh>
-  )
-}
-
-export const HeroFuturisticDemo = () => {
-  const [mounted, setMounted] = useState(false)
-
-  useEffect(() => {
+  React.useEffect(() => {
     setMounted(true)
   }, [])
 
-  if (!mounted) return <div className="h-full w-full bg-black min-h-[450px]" />
+  // WebGL Procedural 3D Atelier Terrain & Laser Grid Animation
+  React.useEffect(() => {
+    if (!mounted || !canvasRef.current || !containerRef.current) return
+
+    const canvas = canvasRef.current
+    const container = containerRef.current
+
+    let reqId: number
+    let renderer: THREE.WebGLRenderer
+
+    try {
+      renderer = new THREE.WebGLRenderer({
+        canvas,
+        antialias: true,
+        alpha: true,
+        powerPreference: 'high-performance',
+      })
+    } catch {
+      return
+    }
+
+    const scene = new THREE.Scene()
+    const camera = new THREE.PerspectiveCamera(
+      45,
+      container.clientWidth / container.clientHeight,
+      0.1,
+      1000
+    )
+    camera.position.set(0, 15, 80)
+    camera.lookAt(0, 5, 0)
+
+    // 1. Procedural Animated Cyber Terrain Plane
+    const planeGeo = new THREE.PlaneGeometry(160, 160, 64, 64)
+    const planeMat = new THREE.ShaderMaterial({
+      uniforms: {
+        uTime: { value: 0 },
+        uScanLine: { value: 0 },
+        uColor1: { value: new THREE.Color('#C9A96E') }, // Luxury Gold
+        uColor2: { value: new THREE.Color('#0A0A0C') }, // Dark Velvet
+      },
+      vertexShader: `
+        uniform float uTime;
+        varying vec2 vUv;
+        varying float vElevation;
+
+        void main() {
+          vUv = uv;
+          vec3 pos = position;
+          
+          float wave1 = sin(pos.x * 0.08 + uTime * 1.5) * cos(pos.y * 0.08 + uTime * 1.5) * 4.0;
+          float wave2 = sin(pos.x * 0.04 - uTime * 0.8) * 3.0;
+          pos.z += wave1 + wave2;
+
+          vElevation = pos.z;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
+        }
+      `,
+      fragmentShader: `
+        uniform float uTime;
+        uniform float uScanLine;
+        uniform vec3 uColor1;
+        uniform vec3 uColor2;
+        varying vec2 vUv;
+        varying float vElevation;
+
+        void main() {
+          // Grid pattern
+          vec2 gridUv = fract(vUv * 40.0);
+          float grid = step(0.93, gridUv.x) + step(0.93, gridUv.y);
+
+          // Laser scan line sweep
+          float scan = smoothstep(0.04, 0.0, abs(vUv.y - uScanLine));
+
+          vec3 baseColor = mix(uColor2, uColor1 * 0.5, clamp((vElevation + 5.0) / 10.0, 0.0, 1.0));
+          vec3 finalColor = mix(baseColor, uColor1, grid * 0.7);
+          finalColor += vec3(1.0, 0.2, 0.2) * scan * 2.0; // Red laser beam accent
+
+          float alpha = smoothstep(0.5, 0.1, distance(vUv, vec2(0.5))) * 0.85;
+          gl_FragColor = vec4(finalColor, alpha);
+        }
+      `,
+      transparent: true,
+      wireframe: false,
+    })
+
+    const terrainMesh = new THREE.Mesh(planeGeo, planeMat)
+    terrainMesh.rotation.x = -Math.PI / 2.5
+    scene.add(terrainMesh)
+
+    // 2. Wireframe Overlay Mesh
+    const wireMat = new THREE.MeshBasicMaterial({
+      color: new THREE.Color('#E8C98A'),
+      wireframe: true,
+      transparent: true,
+      opacity: 0.15,
+    })
+    const wireMesh = new THREE.Mesh(planeGeo, wireMat)
+    wireMesh.rotation.x = -Math.PI / 2.5
+    wireMesh.position.z = 0.2
+    scene.add(wireMesh)
+
+    // 3. Floating Gold Particles
+    const particleCount = 120
+    const particleGeo = new THREE.BufferGeometry()
+    const particlePos = new Float32Array(particleCount * 3)
+
+    for (let i = 0; i < particleCount; i++) {
+      particlePos[i * 3 + 0] = (Math.random() - 0.5) * 120
+      particlePos[i * 3 + 1] = Math.random() * 40
+      particlePos[i * 3 + 2] = (Math.random() - 0.5) * 80
+    }
+
+    particleGeo.setAttribute('position', new THREE.BufferAttribute(particlePos, 3))
+    const particleMat = new THREE.PointsMaterial({
+      color: new THREE.Color('#F7EDD8'),
+      size: 0.8,
+      transparent: true,
+      opacity: 0.6,
+      blending: THREE.AdditiveBlending,
+    })
+
+    const particles = new THREE.Points(particleGeo, particleMat)
+    scene.add(particles)
+
+    // Resize Handler
+    const handleResize = () => {
+      if (!container || !canvas || !renderer) return
+      const w = container.clientWidth
+      const h = container.clientHeight
+      camera.aspect = w / h
+      camera.updateProjectionMatrix()
+      renderer.setSize(w, h, false)
+    }
+
+    handleResize()
+    window.addEventListener('resize', handleResize)
+
+    // Animation Loop
+    const clock = new THREE.Clock()
+    const renderLoop = () => {
+      const elapsedTime = clock.getElapsedTime()
+
+      planeMat.uniforms.uTime.value = elapsedTime
+      planeMat.uniforms.uScanLine.value = (Math.sin(elapsedTime * 0.8) * 0.5 + 0.5)
+
+      // Rotate particles slowly
+      particles.rotation.y = elapsedTime * 0.05
+
+      renderer.render(scene, camera)
+      reqId = requestAnimationFrame(renderLoop)
+    }
+
+    renderLoop()
+
+    return () => {
+      cancelAnimationFrame(reqId)
+      window.removeEventListener('resize', handleResize)
+      planeGeo.dispose()
+      planeMat.dispose()
+      wireMat.dispose()
+      particleGeo.dispose()
+      particleMat.dispose()
+      renderer.dispose()
+    }
+  }, [mounted])
+
+  if (!mounted) {
+    return <div className="h-full w-full bg-black min-h-[450px]" />
+  }
 
   return (
-    <div className="h-full min-h-[450px] sm:min-h-[550px] lg:min-h-[620px] w-full relative overflow-hidden bg-black rounded-sm border border-white-500/20 shadow-2xl">
+    <div
+      ref={containerRef}
+      className="h-full min-h-[450px] sm:min-h-[550px] lg:min-h-[620px] w-full relative overflow-hidden bg-black rounded-sm border border-white-500/20 shadow-2xl flex flex-col justify-between p-6 group hover:border-gold-300/60 transition-all duration-500"
+    >
+      {/* Background WebGL 3D Canvas */}
+      <canvas
+        ref={canvasRef}
+        className="absolute inset-0 w-full h-full z-0 pointer-events-none opacity-90"
+      />
 
+      {/* Top Header Card Info Overlay */}
+      <div className="relative z-10 space-y-2">
+        <div className="inline-flex items-center gap-2 px-3 py-1 bg-gold-300/10 border border-gold-300/30 text-gold-300 text-[10px] font-inter uppercase tracking-[0.25em] w-fit">
+          <Zap className="h-3 w-3 text-emerald-400 animate-pulse" />
+          <span>3D ATELIER SHADER ENGINE</span>
+        </div>
 
-      <Canvas
-        flat
-        gl={((canvasTarget: any) => {
-          const domElement =
-            typeof window !== 'undefined' && canvasTarget instanceof HTMLCanvasElement
-              ? canvasTarget
-              : canvasTarget?.canvas || canvasTarget
+        <h3 className="font-sans text-xl sm:text-2xl font-bold text-white uppercase tracking-wider drop-shadow-md">
+          Aura Véloce Bespoke Lab
+        </h3>
 
-          const renderer = new (THREE as any).WebGPURenderer({ canvas: domElement })
+        <p className="text-xs text-white-300 font-inter font-light max-w-sm leading-relaxed drop-shadow">
+          Interactive real-time 3D scent formulation & laser-engraved casing visualizer.
+        </p>
+      </div>
 
-          if (!renderer.domElement) {
-            renderer.domElement = domElement
-          }
+      {/* Center Interactive Spec Badges */}
+      <div className="relative z-10 grid grid-cols-2 gap-3 max-w-xs my-auto">
+        <div className="bg-black/70 backdrop-blur-md border border-white-500/15 p-3 rounded-xs space-y-1">
+          <span className="text-[9px] text-gold-300 uppercase tracking-widest font-inter block font-semibold">
+            MATERIAL
+          </span>
+          <span className="text-xs text-white font-medium font-inter block">
+            Anodized Aluminum
+          </span>
+        </div>
 
-          if (domElement && typeof domElement.getContext === 'function') {
-            if (!renderer.domElement.getContext) {
-              renderer.domElement.getContext = domElement.getContext.bind(domElement)
-            }
-            if (!(renderer as any).getContext) {
-              ;(renderer as any).getContext = domElement.getContext.bind(domElement)
-            }
-          }
+        <div className="bg-black/70 backdrop-blur-md border border-white-500/15 p-3 rounded-xs space-y-1">
+          <span className="text-[9px] text-emerald-400 uppercase tracking-widest font-inter block font-semibold">
+            HEAT TOLERANCE
+          </span>
+          <span className="text-xs text-white font-medium font-inter block">
+            60°C Tested (Zero Leak)
+          </span>
+        </div>
+      </div>
 
-          if (typeof renderer.init === 'function') {
-            renderer.init()
-          }
-
-          return renderer
-        }) as any}
-      >
-        <PostProcessing fullScreenEffect={true} />
-        <Scene />
-      </Canvas>
+      {/* Bottom Footer Ribbon */}
+      <div className="relative z-10 pt-4 border-t border-white-500/20 flex items-center justify-between text-[10px] font-inter text-white-300 uppercase tracking-widest">
+        <span className="flex items-center gap-1.5">
+          <Sparkles className="h-3.5 w-3.5 text-gold-300 animate-spin" />
+          <span>REAL-TIME 60FPS SHADER</span>
+        </span>
+        <span className="text-white font-semibold">ATELIER ACTIVE</span>
+      </div>
     </div>
   )
 }
