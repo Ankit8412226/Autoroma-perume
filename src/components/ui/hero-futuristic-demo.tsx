@@ -1,17 +1,7 @@
 'use client'
 
+import '@/lib/react-polyfill'
 import * as React from 'react'
-
-// Polyfill ReactCurrentOwner for R3F compatibility in Next.js 15 / React 19
-if (typeof window !== 'undefined') {
-  const secret =
-    (React as any).__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED ||
-    (React as any).__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE
-  if (secret && !secret.ReactCurrentOwner) {
-    secret.ReactCurrentOwner = secret.ReactCurrentOwner || secret.A || secret.H || { current: null }
-  }
-}
-
 import { Canvas, extend, useFrame, useThree } from '@react-three/fiber'
 import { useAspect, useTexture } from '@react-three/drei'
 import { useMemo, useRef, useState, useEffect } from 'react'

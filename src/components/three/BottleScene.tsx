@@ -1,5 +1,6 @@
 'use client'
 
+import '@/lib/react-polyfill'
 import * as React from 'react'
 import { Canvas } from '@react-three/fiber'
 import { OrbitControls, Float } from '@react-three/drei'

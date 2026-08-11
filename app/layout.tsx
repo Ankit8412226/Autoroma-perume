@@ -1,3 +1,4 @@
+import '@/lib/react-polyfill'
 import type { Metadata } from 'next'
 import { Cormorant_Garamond, Inter } from 'next/font/google'
 import '@/styles/globals.css'
@@ -39,6 +40,10 @@ export const metadata: Metadata = {
     'premium automotive fragrance India',
     'best car perfume online India',
   ],
+  icons: {
+    icon: '/icon.svg',
+    shortcut: '/favicon.ico',
+  },
 }
 
 export default function RootLayout({
