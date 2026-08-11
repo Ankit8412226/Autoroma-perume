@@ -28,7 +28,12 @@ export function middleware(req: NextRequest) {
   }
 
   // Auth pages redirect logged-in users away
-  if (pathname === '/login' || pathname === '/register') {
+  if (
+    pathname === '/login' ||
+    pathname === '/register' ||
+    pathname === '/forgot-password' ||
+    pathname === '/reset-password'
+  ) {
     if (isAuthenticated) {
       return NextResponse.redirect(new URL('/account', req.url))
     }
@@ -45,5 +50,7 @@ export const config = {
     '/wishlist',
     '/login',
     '/register',
+    '/forgot-password',
+    '/reset-password',
   ],
 }

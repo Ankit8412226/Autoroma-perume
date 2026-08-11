@@ -18,6 +18,9 @@ import {
   CheckCircle2,
   Car,
 } from 'lucide-react'
+import { HeroFuturisticSection } from '@/components/ui/HeroFuturisticSection'
+import { HeroScrollDemo } from '@/components/ui/container-scroll-demo'
+import { GLSLHillsHeroCard } from '@/components/ui/GLSLHillsHeroCard'
 
 export const revalidate = 300 // ISR 5 minutes
 
@@ -231,6 +234,9 @@ export default async function HomePage() {
           <span>• AURA VÉLOCE PARFUM D&apos;AUTOMOBILE</span>
         </div>
       </section>
+
+      {/* 3D SCROLL CONTAINER SHOWCASE */}
+      <HeroScrollDemo />
 
       {/* BOMBAY MUSK COMPETITOR UX SECTION A: BEST SELLERS GRID ("The scents people ask about") */}
       <ScrollReveal className="px-4 sm:px-6 md:px-12 max-w-7xl mx-auto space-y-8">
@@ -603,6 +609,9 @@ export default async function HomePage() {
 
         <AnimatedFAQAccordion />
       </section>
+
+      {/* FUTURISTIC 3D ATELIER & CONTACT FORM SHOWCASE SECTION */}
+      <HeroFuturisticSection />
 
       {/* SECTION 11: NEWSLETTER BANNER */}
       <section className="bg-bg-secondary py-16 sm:py-24 border-t border-white-500/20 px-4 sm:px-6 md:px-12 text-center space-y-8">

@@ -6,7 +6,6 @@ import { LenisProvider } from '@/components/providers/LenisProvider'
 import { ToastProvider } from '@/components/ui/Toast'
 import { Navbar } from '@/components/layout/Navbar'
 import { Footer } from '@/components/layout/Footer'
-import { CustomCursor } from '@/components/layout/CustomCursor'
 import { LoadingScreen } from '@/components/layout/LoadingScreen'
 import { CartDrawer } from '@/features/cart/components/CartDrawer'
 
@@ -53,7 +52,6 @@ export default function RootLayout({
         <QueryProvider>
           <LenisProvider>
             <ToastProvider>
-              <CustomCursor />
               <Navbar />
               <CartDrawer />
               <div className="min-h-screen">

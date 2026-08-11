@@ -111,107 +111,37 @@ class RomanticVoiceEngine {
 
 const voiceEngine = new RomanticVoiceEngine()
 
+import { GLSLHills } from '@/components/ui/glsl-hills'
+
 export function RomanticPerfumeHeroVideo() {
-  const canvasRef = React.useRef<HTMLCanvasElement>(null)
   const [isPlayingAudio, setIsPlayingAudio] = React.useState(false)
-  const [videoLoaded, setVideoLoaded] = React.useState(false)
-
-  // 60fps Romantic Golden Bokeh & Dust Particle Canvas Layer
-  React.useEffect(() => {
-    const canvas = canvasRef.current
-    if (!canvas) return
-    const ctx = canvas.getContext('2d')
-    if (!ctx) return
-
-    let animId: number
-    let width = (canvas.width = canvas.parentElement?.clientWidth || window.innerWidth)
-    let height = (canvas.height = canvas.parentElement?.clientHeight || window.innerHeight)
-
-    const handleResize = () => {
-      if (!canvas || !canvas.parentElement) return
-      width = canvas.width = canvas.parentElement.clientWidth
-      height = canvas.height = canvas.parentElement.clientHeight
-    }
-    window.addEventListener('resize', handleResize)
-
-    // Romantic Floating Ember / Petal / Bokeh Particles
-    const particles: Array<{
-      x: number
-      y: number
-      size: number
-      speedY: number
-      speedX: number
-      opacity: number
-      hue: number
-    }> = []
-
-    for (let i = 0; i < 45; i++) {
-      particles.push({
-        x: Math.random() * width,
-        y: Math.random() * height,
-        size: Math.random() * 4 + 1.5,
-        speedY: Math.random() * -0.6 - 0.2,
-        speedX: Math.sin(Math.random() * Math.PI) * 0.3,
-        opacity: Math.random() * 0.6 + 0.2,
-        hue: Math.random() * 20 + 35, // Gold / Warm Amber Hue
-      })
-    }
-
-    const render = () => {
-      animId = requestAnimationFrame(render)
-      ctx.clearRect(0, 0, width, height)
-
-      particles.forEach((p) => {
-        p.y += p.speedY
-        p.x += p.speedX
-
-        if (p.y < -10) {
-          p.y = height + 10
-          p.x = Math.random() * width
-        }
-
-        ctx.beginPath()
-        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2)
-        ctx.fillStyle = `hsla(${p.hue}, 85%, 65%, ${p.opacity})`
-        ctx.shadowBlur = 12
-        ctx.shadowColor = `hsl(${p.hue}, 90%, 60%)`
-        ctx.fill()
-      })
-    }
-
-    render()
-
-    return () => {
-      window.removeEventListener('resize', handleResize)
-      cancelAnimationFrame(animId)
-    }
-  }, [])
 
   const toggleAudio = () => {
     voiceEngine.start((playing) => setIsPlayingAudio(playing))
   }
 
   return (
-    <div className="absolute inset-0 z-0 overflow-hidden select-none">
-      {/* Luxury Romantic Couple Image Background */}
-      <div className="absolute inset-0">
+    <div className="absolute inset-0 z-0 overflow-hidden select-none bg-black">
+      {/* LAYER 1: Pure HD Crystal Clear Luxury Romantic Couple Image Background */}
+      <div className="absolute inset-0 z-[1] opacity-100">
         <Image
           src="/images/aura-veloce-romantic-couple.png"
           alt="Aura Véloce Romantic Couple Car Perfume"
           fill
           priority
           sizes="100vw"
-          className="object-cover object-[center_top] sm:object-[center_center] brightness-105"
+          className="object-cover object-[center_top] sm:object-[center_center] brightness-105 contrast-105"
         />
       </div>
 
-      {/* 60fps Floating Amber Dust & Rose Gold Bokeh Particles */}
-      <canvas ref={canvasRef} className="absolute inset-0 z-[2] pointer-events-none opacity-80" />
+      {/* LAYER 2: 3D GLSL Wireframe Hills Terrain Shader Layer directly ON TOP of Image */}
+      <div className="absolute inset-0 z-[2] w-full h-full opacity-75 mix-blend-screen pointer-events-none">
+        <GLSLHills width="100%" height="100%" cameraZ={115} speed={0.4} />
+      </div>
 
-      {/* Romantic Warm Lens Flare Vignette Overlays */}
-      <div className="absolute inset-0 bg-gradient-to-r from-black/95 via-black/60 sm:via-black/40 to-transparent z-[3]" />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-transparent to-black/30 z-[3]" />
-      <div className="absolute top-1/4 right-1/4 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none animate-pulse z-[3]" />
+      {/* LAYER 3: Lightweight Edge Vignette for Text Legibility */}
+      <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/30 to-transparent z-[3] pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 z-[3] pointer-events-none" />
 
       {/* Floating Romantic Audio Control & Voiceover Button */}
       <div className="absolute bottom-6 right-6 sm:bottom-10 sm:right-10 z-30">
