@@ -275,13 +275,13 @@ export default async function HomePage() {
       </ScrollReveal>
 
       {/* BOMBAY MUSK COMPETITOR UX SECTION B: WHY IT LASTS 3 METRIC CIRCLES */}
-      <section className="bg-black border-y border-white-500/20 py-20 px-4 sm:px-6 md:px-12 my-16">
-        <div className="max-w-5xl mx-auto text-center space-y-12">
+      <section className="bg-black border-y border-white-500/20 py-12 sm:py-20 px-4 sm:px-6 md:px-12 my-10 sm:my-16">
+        <div className="max-w-5xl mx-auto text-center space-y-8 sm:space-y-12">
           <div className="space-y-3 max-w-2xl mx-auto">
             <span className="text-xs font-inter uppercase tracking-[0.3em] text-white-300 font-semibold block">
               WHY IT LASTS
             </span>
-            <h2 className="font-sans text-3xl sm:text-5xl font-light text-white tracking-tight">
+            <h2 className="font-sans text-2xl sm:text-4xl lg:text-5xl font-light text-white tracking-tight">
               Built like a perfume. Tuned for a car.
             </h2>
             <p className="text-xs sm:text-sm text-white-300 font-inter font-light">
@@ -289,40 +289,40 @@ export default async function HomePage() {
             </p>
           </div>
 
-          {/* 3 Circular Glowing Spec Badges Matching Screenshot 2 */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-center justify-center">
+          {/* 3 Circular Glowing Spec Badges */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8 items-center justify-center">
             {/* Circle 1 */}
-            <div className="flex flex-col items-center justify-center space-y-4">
-              <div className="w-36 h-36 rounded-full border border-white/20 bg-gradient-to-b from-white/10 to-transparent flex flex-col items-center justify-center shadow-[0_0_30px_rgba(255,255,255,0.05)] transition-all hover:scale-105 hover:border-white">
-                <span className="font-sans text-2xl sm:text-3xl font-bold text-white tracking-tight">
+            <div className="flex flex-col items-center justify-center space-y-3 sm:space-y-4">
+              <div className="w-28 h-28 sm:w-36 sm:h-36 rounded-full border border-white/20 bg-gradient-to-b from-white/10 to-transparent flex flex-col items-center justify-center shadow-[0_0_30px_rgba(255,255,255,0.05)] transition-all hover:scale-105 hover:border-white">
+                <span className="font-sans text-xl sm:text-3xl font-bold text-white tracking-tight">
                   20-30%
                 </span>
               </div>
-              <span className="text-[11px] font-inter uppercase tracking-[0.25em] text-white-300 font-medium">
+              <span className="text-[10px] sm:text-[11px] font-inter uppercase tracking-[0.25em] text-white-300 font-medium">
                 DESIGNER OIL
               </span>
             </div>
 
             {/* Circle 2 */}
-            <div className="flex flex-col items-center justify-center space-y-4">
-              <div className="w-36 h-36 rounded-full border border-white/20 bg-gradient-to-b from-white/10 to-transparent flex flex-col items-center justify-center shadow-[0_0_30px_rgba(255,255,255,0.05)] transition-all hover:scale-105 hover:border-white">
-                <span className="font-sans text-2xl sm:text-3xl font-bold text-white tracking-tight">
+            <div className="flex flex-col items-center justify-center space-y-3 sm:space-y-4">
+              <div className="w-28 h-28 sm:w-36 sm:h-36 rounded-full border border-white/20 bg-gradient-to-b from-white/10 to-transparent flex flex-col items-center justify-center shadow-[0_0_30px_rgba(255,255,255,0.05)] transition-all hover:scale-105 hover:border-white">
+                <span className="font-sans text-xl sm:text-3xl font-bold text-white tracking-tight">
                   60°C
                 </span>
               </div>
-              <span className="text-[11px] font-inter uppercase tracking-[0.25em] text-white-300 font-medium">
+              <span className="text-[10px] sm:text-[11px] font-inter uppercase tracking-[0.25em] text-white-300 font-medium">
                 HEAT STABLE
               </span>
             </div>
 
             {/* Circle 3 */}
-            <div className="flex flex-col items-center justify-center space-y-4">
-              <div className="w-36 h-36 rounded-full border border-white/20 bg-gradient-to-b from-white/10 to-transparent flex flex-col items-center justify-center shadow-[0_0_30px_rgba(255,255,255,0.05)] transition-all hover:scale-105 hover:border-white">
-                <span className="font-sans text-2xl sm:text-3xl font-bold text-white tracking-tight">
+            <div className="flex flex-col items-center justify-center space-y-3 sm:space-y-4">
+              <div className="w-28 h-28 sm:w-36 sm:h-36 rounded-full border border-white/20 bg-gradient-to-b from-white/10 to-transparent flex flex-col items-center justify-center shadow-[0_0_30px_rgba(255,255,255,0.05)] transition-all hover:scale-105 hover:border-white">
+                <span className="font-sans text-xl sm:text-3xl font-bold text-white tracking-tight">
                   100%
                 </span>
               </div>
-              <span className="text-[11px] font-inter uppercase tracking-[0.25em] text-white-300 font-medium">
+              <span className="text-[10px] sm:text-[11px] font-inter uppercase tracking-[0.25em] text-white-300 font-medium">
                 PLANT-BASED ALCOHOL-FREE
               </span>
             </div>

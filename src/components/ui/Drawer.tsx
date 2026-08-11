@@ -45,8 +45,8 @@ export function Drawer({
   if (!mounted || !isOpen) return null
 
   const positionStyles = {
-    right: 'right-0 top-0 bottom-0 h-full w-full max-w-md border-l border-gold-300/20',
-    left: 'left-0 top-0 bottom-0 h-full w-full max-w-md border-r border-gold-300/20',
+    right: 'right-0 top-0 bottom-0 h-full w-full sm:max-w-md border-l border-gold-300/20',
+    left: 'left-0 top-0 bottom-0 h-full w-full sm:max-w-md border-r border-gold-300/20',
   }
 
   return createPortal(
@@ -63,7 +63,7 @@ export function Drawer({
         role="dialog"
         aria-modal="true"
         className={cn(
-          'fixed bg-bg-secondary p-6 md:p-8 flex flex-col z-10 shadow-2xl rounded-none transition-transform duration-300 ease-out',
+          'fixed bg-bg-secondary p-4 sm:p-6 md:p-8 flex flex-col z-10 shadow-2xl rounded-none transition-transform duration-300 ease-out',
           positionStyles[position],
           className
         )}

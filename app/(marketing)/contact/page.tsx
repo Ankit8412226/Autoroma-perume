@@ -1,5 +1,6 @@
 import { Button, Input, Textarea } from '@/components/ui'
 import { GenZLetsConnectVideo } from '@/components/motion/GenZLetsConnectVideo'
+import { ScrollReveal } from '@/components/motion/ScrollReveal'
 import { Mail, Phone, MapPin, Clock } from 'lucide-react'
 
 export const metadata = {
@@ -10,7 +11,7 @@ export const metadata = {
 export default function ContactPage() {
   return (
     <main className="py-12 px-4 sm:px-6 md:px-12 max-w-7xl mx-auto space-y-12 min-h-[70vh]">
-      <div className="space-y-2 text-center max-w-2xl mx-auto">
+      <ScrollReveal className="space-y-2 text-center max-w-2xl mx-auto">
         <span className="text-label text-gold-300 uppercase tracking-widest block font-inter">
           Aura Véloce Direct Hotline
         </span>
@@ -20,12 +21,14 @@ export default function ContactPage() {
         <p className="text-xs sm:text-body-md text-white-300 font-light font-inter">
           Have questions regarding order status, vehicle cabin compatibility, or bulk fleet orders? Our concierge team is live 24/7.
         </p>
-      </div>
+      </ScrollReveal>
 
       {/* 60FPS GEN-Z VIDEO EQUALIZER MOTION LOOP SHOWCASE */}
-      <GenZLetsConnectVideo />
+      <ScrollReveal delay={0.1}>
+        <GenZLetsConnectVideo />
+      </ScrollReveal>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
+      <ScrollReveal delay={0.2} className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
         {/* Contact Info (5 cols) */}
         <div className="lg:col-span-5 bg-bg-surface border border-gold-300/30 p-6 sm:p-8 space-y-6">
           <span className="text-xs uppercase tracking-widest text-gold-300 font-inter block font-bold">
@@ -80,7 +83,7 @@ export default function ContactPage() {
             </Button>
           </form>
         </div>
-      </div>
+      </ScrollReveal>
     </main>
   )
 }

@@ -5,12 +5,12 @@ import { AuraVeloceLogo } from './AuraVeloceLogo'
 
 export function Footer() {
   return (
-    <footer className="bg-bg-secondary border-t border-white-500/20 text-white-300 font-inter pt-20 pb-12 px-6 md:px-12">
-      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
+    <footer className="bg-bg-secondary border-t border-white-500/20 text-white-300 font-inter pt-12 sm:pt-20 pb-8 sm:pb-12 px-4 sm:px-6 md:px-12">
+      <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-12 mb-12 sm:mb-16">
         {/* Brand Column */}
-        <div className="space-y-4 md:col-span-1">
+        <div className="space-y-4 sm:col-span-2 lg:col-span-1">
           <Link href="/">
-            <AuraVeloceLogo variant="full" gold iconSize={36} />
+            <AuraVeloceLogo variant="full" gold iconSize={32} />
           </Link>
 
           <p className="text-xs text-white-300 font-light leading-relaxed max-w-sm pt-2">
@@ -20,10 +20,10 @@ export function Footer() {
 
         {/* Quick Links */}
         <div className="space-y-3">
-          <span className="text-label text-white uppercase tracking-widest block mb-4 font-bold">
+          <span className="text-label text-white uppercase tracking-widest block mb-3 sm:mb-4 font-bold text-xs sm:text-sm">
             Collection
           </span>
-          <ul className="space-y-2 text-sm text-white-300 font-light">
+          <ul className="space-y-2 text-xs sm:text-sm text-white-300 font-light">
             <li>
               <Link href="/products?type=VENT_CLIP" className="hover:text-white transition-colors">
                 Vent Clip Fresheners
@@ -49,10 +49,10 @@ export function Footer() {
 
         {/* Client Services & B2B */}
         <div className="space-y-3">
-          <span className="text-label text-white uppercase tracking-widest block mb-4 font-bold">
+          <span className="text-label text-white uppercase tracking-widest block mb-3 sm:mb-4 font-bold text-xs sm:text-sm">
             Services & Corporate
           </span>
-          <ul className="space-y-2 text-sm text-white-300 font-light">
+          <ul className="space-y-2 text-xs sm:text-sm text-white-300 font-light">
             <li>
               <Link href="/b2b" className="hover:text-white transition-colors">
                 B2B Bulk & Showroom Supply
@@ -77,22 +77,22 @@ export function Footer() {
         </div>
 
         {/* Newsletter */}
-        <div className="space-y-4">
-          <span className="text-label text-white uppercase tracking-widest block mb-4 font-bold">
+        <div className="space-y-4 sm:col-span-2 lg:col-span-1">
+          <span className="text-label text-white uppercase tracking-widest block mb-3 sm:mb-4 font-bold text-xs sm:text-sm">
             Join The Club
           </span>
           <p className="text-xs text-white-400 leading-relaxed font-light">
             Receive exclusive invitations to new fragrance drops and limited-edition car diffuser series.
           </p>
-          <form onSubmit={(e) => e.preventDefault()} className="flex">
+          <form onSubmit={(e) => e.preventDefault()} className="flex flex-col sm:flex-row gap-2 sm:gap-0">
             <input
               type="email"
               placeholder="Enter your email"
-              className="input-base text-xs py-2 px-3 bg-bg-surface flex-1 border-r-0 border-white-500/20 text-white placeholder:text-white-400 focus:outline-none"
+              className="input-base text-xs py-2.5 px-3 bg-bg-surface flex-1 border sm:border-r-0 border-white-500/20 text-white placeholder:text-white-400 focus:outline-none rounded-sm sm:rounded-r-none"
             />
             <button
               type="submit"
-              className="bg-white text-black text-xs uppercase tracking-wider px-4 hover:bg-neutral-200 transition-colors font-bold"
+              className="bg-white text-black text-xs uppercase tracking-wider py-2.5 px-5 hover:bg-neutral-200 transition-colors font-bold rounded-sm sm:rounded-l-none"
             >
               Join
             </button>
@@ -101,9 +101,9 @@ export function Footer() {
       </div>
 
       {/* Bottom Bar */}
-      <div className="max-w-7xl mx-auto pt-8 border-t border-white-500/10 flex flex-col md:flex-row items-center justify-between text-xs text-white-400 font-light gap-4">
+      <div className="max-w-7xl mx-auto pt-6 sm:pt-8 border-t border-white-500/10 flex flex-col md:flex-row items-center justify-between text-center md:text-left text-[11px] sm:text-xs text-white-400 font-light gap-4">
         <span>© {new Date().getFullYear()} Aura Véloce Automotive Fragrances. All rights reserved.</span>
-        <div className="flex gap-6">
+        <div className="flex flex-wrap justify-center gap-4 sm:gap-6">
           <Link href="/privacy" className="hover:text-white">Privacy Policy</Link>
           <Link href="/terms" className="hover:text-white">Terms of Service</Link>
           <Link href="/shipping" className="hover:text-white">Shipping Policy</Link>

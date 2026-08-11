@@ -22,7 +22,7 @@ export function BottleScene() {
       <div className="w-full h-full flex items-center justify-center bg-gradient-radial from-bg-surface to-bg-primary p-8">
         <div className="relative aspect-[4/5] w-full max-w-xs border border-gold-300/30 p-6 flex flex-col items-center justify-center text-center">
           <span className="font-cormorant text-2xl text-gold-200 tracking-widest uppercase">
-            Maison Noir
+            Aura Véloce
           </span>
           <span className="text-[10px] uppercase tracking-widest text-white-400 mt-2">
             Automotive Fragrance Edition

@@ -183,10 +183,10 @@ export const Html = () => {
     setMounted(true)
   }, [])
 
-  if (!mounted) return <div className="h-svh bg-black" />
+  if (!mounted) return <div className="min-h-[400px] h-[65vh] lg:h-svh bg-black" />
 
   return (
-    <div className="h-svh relative overflow-hidden bg-black">
+    <div className="min-h-[400px] h-[65vh] lg:h-svh relative overflow-hidden bg-black">
 
 
       <Canvas

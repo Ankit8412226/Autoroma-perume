@@ -19,7 +19,7 @@ export function AuraVeloceLogo({
   const accentColor = gold ? '#E8C98A' : 'currentColor'
 
   return (
-    <div className={`flex items-center gap-2.5 select-none ${className}`}>
+    <div className={`flex items-center gap-1.5 sm:gap-2.5 select-none ${className}`}>
       {/* Sleek AV Monogram Crest Icon */}
       <svg
         width={iconSize}
@@ -79,11 +79,11 @@ export function AuraVeloceLogo({
 
       {variant !== 'icon' && (
         <div className="flex flex-col shrink-0 leading-none">
-          <span className="font-sans text-sm sm:text-xl tracking-[0.22em] text-white font-bold uppercase leading-none">
+          <span className="font-sans text-[13px] sm:text-lg md:text-xl tracking-[0.2em] text-white font-bold uppercase leading-none">
             Aura Véloce
           </span>
           {variant === 'full' && (
-            <span className="text-[6.5px] sm:text-[7.5px] font-inter uppercase tracking-[0.32em] text-gold-300 font-medium pt-1">
+            <span className="text-[6px] sm:text-[7.5px] font-inter uppercase tracking-[0.3em] text-gold-300 font-medium pt-1">
               Parfum d&apos;Automobile
             </span>
           )}
