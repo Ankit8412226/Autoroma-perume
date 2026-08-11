@@ -120,14 +120,14 @@ export function CheckoutForm() {
   }
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
       {/* Left: Shipping Form (7 cols) */}
-      <div className="lg:col-span-7 bg-bg-surface border border-white-500/20 p-8 space-y-6">
+      <div className="lg:col-span-7 bg-bg-surface border border-white-500/20 p-4 sm:p-6 md:p-8 space-y-6">
         <div className="space-y-1">
           <span className="text-label text-gold-300 uppercase tracking-widest block">
             Step 1 of 2
           </span>
-          <h2 className="font-cormorant text-heading-lg text-white-100 font-light">
+          <h2 className="font-cormorant text-2xl sm:text-heading-lg text-white-100 font-light">
             Shipping Details
           </h2>
         </div>
@@ -158,7 +158,7 @@ export function CheckoutForm() {
             placeholder="Flat 4B, Marine Heights, Marine Drive"
           />
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <Input
               label="City"
               value={city}
@@ -186,7 +186,7 @@ export function CheckoutForm() {
       </div>
 
       {/* Right: Order Review & Total (5 cols) */}
-      <div className="lg:col-span-5 bg-bg-surface border border-gold-300/30 p-8 space-y-6">
+      <div className="lg:col-span-5 bg-bg-surface border border-gold-300/30 p-4 sm:p-6 md:p-8 space-y-6">
         <span className="text-label text-gold-300 uppercase tracking-widest block">
           Order Summary
         </span>

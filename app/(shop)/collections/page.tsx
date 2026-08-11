@@ -38,20 +38,20 @@ export default async function CollectionsPage() {
   }
 
   return (
-    <main className="py-12 px-6 md:px-12 max-w-7xl mx-auto space-y-12 min-h-[70vh]">
+    <main className="py-12 px-4 sm:px-6 md:px-12 max-w-7xl mx-auto space-y-12 min-h-[70vh]">
       <div className="space-y-2 text-center max-w-2xl mx-auto">
         <span className="text-label text-gold-300 uppercase tracking-widest block font-inter">
           Olfactory Catalog
         </span>
-        <h1 className="font-cormorant text-display-xl font-light text-white-100">
+        <h1 className="font-cormorant text-3xl sm:text-5xl lg:text-display-xl font-light text-white-100">
           Curated Fragrance Series
         </h1>
-        <p className="text-body-md text-white-300 font-light">
+        <p className="text-xs sm:text-body-md text-white-300 font-light">
           Distinct olfactory themes crafted to complement specific vehicle interior materials and cabin moods.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
         {collections.map((col) => (
           <article key={col.id} className="group bg-bg-surface border border-white-500/20 hover:border-gold-300 transition-colors p-6 space-y-6 flex flex-col justify-between">
             <div className="space-y-4">

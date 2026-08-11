@@ -79,24 +79,24 @@ export default async function ProductsPage({ searchParams }: PageProps) {
   return (
     <main className="space-y-12 pb-24 bg-bg-primary text-white-100 min-h-screen">
       {/* Editorial Header Banner */}
-      <section className="bg-gradient-to-b from-bg-secondary via-bg-primary to-bg-primary border-b border-white-500/15 py-16 px-6 md:px-12 text-center space-y-6">
+      <section className="bg-gradient-to-b from-bg-secondary via-bg-primary to-bg-primary border-b border-white-500/15 py-12 sm:py-16 px-4 sm:px-6 md:px-12 text-center space-y-6">
         <div className="max-w-3xl mx-auto space-y-4">
-          <div className="inline-flex items-center gap-2 px-3 py-1 bg-gold-300/10 border border-gold-300/30 text-gold-300 text-xs font-inter uppercase tracking-widest">
+          <div className="inline-flex items-center gap-2 px-3 py-1 bg-gold-300/10 border border-gold-300/30 text-gold-300 text-[11px] sm:text-xs font-inter uppercase tracking-widest">
             <Car className="h-3.5 w-3.5" />
             <span>French Olfactory Craftsmanship · Heat-Tested Formulations</span>
           </div>
 
-          <h1 className="font-cormorant text-4xl sm:text-6xl text-white-100 font-light leading-tight">
+          <h1 className="font-cormorant text-3xl sm:text-5xl lg:text-6xl text-white-100 font-light leading-tight">
             Atelier Automotive Fragrance Catalog
           </h1>
 
-          <p className="text-body-md text-white-300 font-light max-w-2xl mx-auto leading-relaxed font-inter">
+          <p className="text-xs sm:text-body-md text-white-300 font-light max-w-2xl mx-auto leading-relaxed font-inter">
             Click any formulation card below to flip open its Atelier Book 📖 detailing top, heart, and base notes.
           </p>
         </div>
 
         {/* Value Pillars */}
-        <div className="pt-6 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-5xl mx-auto text-left text-xs font-inter border-t border-white-500/10">
+        <div className="pt-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 max-w-5xl mx-auto text-left text-xs font-inter border-t border-white-500/10">
           <div className="flex items-center gap-3 p-3 bg-bg-surface border border-white-500/10">
             <Sparkles className="h-4 w-4 text-gold-300 shrink-0" />
             <div>
@@ -132,7 +132,7 @@ export default async function ProductsPage({ searchParams }: PageProps) {
       </section>
 
       {/* Catalog Main Body */}
-      <div className="px-6 md:px-12 max-w-7xl mx-auto space-y-8">
+      <div className="px-4 sm:px-6 md:px-12 max-w-7xl mx-auto space-y-8">
         {/* Interactive Filter Pills & Dropdowns */}
         <Suspense fallback={<div className="h-16 bg-bg-surface animate-pulse" />}>
           <ProductFilters />
@@ -165,7 +165,7 @@ export default async function ProductsPage({ searchParams }: PageProps) {
             </Link>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
             {products.map((product) => (
               <FlippingBookProductCard key={product.id} product={product} />
             ))}

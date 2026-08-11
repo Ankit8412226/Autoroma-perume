@@ -18,7 +18,7 @@ export function ScentNotes({ topNotes, heartNotes, baseNotes }: ScentNotesProps)
         </h2>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 max-w-4xl mx-auto">
         {/* Top Notes */}
         <div className="bg-bg-surface border border-gold-300/20 p-6 text-center space-y-3">
           <span className="text-label text-gold-200 uppercase tracking-widest block">

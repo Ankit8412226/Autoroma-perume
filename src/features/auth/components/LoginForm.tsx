@@ -60,11 +60,11 @@ export function LoginForm() {
         <h2 className="font-sans text-xl font-bold text-white uppercase tracking-wider">
           OVER 135K+ HAPPY DRIVERS
         </h2>
-        <div className="flex items-center justify-center gap-4 text-[10px] font-inter uppercase tracking-widest text-white-300 pt-1 border-t border-white-500/10">
+        <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-4 text-[9px] sm:text-[10px] font-inter uppercase tracking-widest text-white-300 pt-1 border-t border-white-500/10">
           <span>🇮🇳 MADE IN INDIA</span>
-          <span>•</span>
+          <span className="hidden xs:inline">•</span>
           <span>♻️ RECYCLABLE</span>
-          <span>•</span>
+          <span className="hidden xs:inline">•</span>
           <span>🌱 ECO-FRIENDLY</span>
         </div>
       </div>

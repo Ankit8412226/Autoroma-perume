@@ -10,12 +10,12 @@ export default function WishlistPage() {
   const { productIds } = useWishlistStore()
 
   return (
-    <main className="py-12 px-6 md:px-12 max-w-7xl mx-auto space-y-8 min-h-[60vh]">
+    <main className="py-12 px-4 sm:px-6 md:px-12 max-w-7xl mx-auto space-y-8 min-h-[60vh]">
       <div className="space-y-2">
         <span className="text-label text-gold-300 uppercase tracking-widest block">
           Saved Selection
         </span>
-        <h1 className="font-cormorant text-display-xl font-light text-white-100">
+        <h1 className="font-cormorant text-3xl sm:text-5xl lg:text-display-xl font-light text-white-100">
           Your Wishlist
         </h1>
       </div>

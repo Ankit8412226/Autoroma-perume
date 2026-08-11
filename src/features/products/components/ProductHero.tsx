@@ -98,25 +98,25 @@ export function ProductHero({ product }: ProductHeroProps) {
             <Badge variant="gold">{product.productType.replace('_', ' ')}</Badge>
             <Badge variant="outline">{product.scentFamily}</Badge>
           </div>
-          <h1 className="font-cormorant text-display-lg text-white-100 font-light leading-tight">
+          <h1 className="font-cormorant text-2xl sm:text-4xl lg:text-display-lg text-white-100 font-light leading-tight">
             {product.name}
           </h1>
         </div>
 
         {/* Price & Star Rating */}
-        <div className="flex items-center justify-between border-y border-white-500/20 py-4">
+        <div className="flex flex-wrap items-center justify-between border-y border-white-500/20 py-4 gap-3">
           <div className="flex items-baseline gap-3">
-            <span className="text-heading-lg font-medium text-gold-200 tabular-nums">
+            <span className="text-2xl sm:text-heading-lg font-medium text-gold-200 tabular-nums font-inter">
               {formattedPrice}
             </span>
             {formattedCompare && (
-              <span className="text-sm text-white-400 line-through tabular-nums">
+              <span className="text-xs text-white-400 line-through tabular-nums font-inter">
                 {formattedCompare}
               </span>
             )}
           </div>
 
-          <div className="flex items-center gap-1.5 text-sm text-white-200">
+          <div className="flex items-center gap-1.5 text-xs sm:text-sm text-white-200">
             <Star className="h-4 w-4 fill-gold-300 text-gold-300" />
             <span className="tabular-nums font-medium">
               {product.averageRating > 0 ? product.averageRating.toFixed(1) : '5.0'}
@@ -126,12 +126,12 @@ export function ProductHero({ product }: ProductHeroProps) {
         </div>
 
         {/* Short Description */}
-        <p className="text-body-md text-white-200 font-light leading-relaxed">
+        <p className="text-xs sm:text-body-md text-white-200 font-light leading-relaxed">
           {product.shortDescription}
         </p>
 
         {/* Specifications Grid */}
-        <div className="grid grid-cols-2 gap-3 p-4 bg-bg-surface border border-white-500/20 text-xs text-white-300">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3.5 sm:p-4 bg-bg-surface border border-white-500/20 text-xs text-white-300">
           <div>
             <span className="text-white-400 block uppercase tracking-wider text-[10px]">Longevity</span>
             <span className="text-white-100 font-medium">{product.longevity}</span>
