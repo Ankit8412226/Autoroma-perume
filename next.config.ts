@@ -17,9 +17,6 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  experimental: {
-    optimizePackageImports: ['lucide-react', '@react-three/drei', 'gsap', 'lenis'],
-  },
 }
 
 export default nextConfig

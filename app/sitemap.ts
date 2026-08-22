@@ -1,31 +1,41 @@
 import type { MetadataRoute } from 'next'
-import { prisma } from '@/lib/db/prisma'
+import { PROPERTIES } from '@/data/properties'
+import { LOCATIONS } from '@/data/locations'
+import { AGENTS } from '@/data/agents'
 
-export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = 'https://maisonnoir.in'
+export default function sitemap(): MetadataRoute.Sitemap {
+  const baseUrl = 'https://auraveloce.com'
 
   const staticRoutes: MetadataRoute.Sitemap = [
-    { url: `${baseUrl}`, lastModified: new Date(), changeFrequency: 'daily', priority: 1.0 },
-    { url: `${baseUrl}/products`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.9 },
-    { url: `${baseUrl}/b2b`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.8 },
+    { url: baseUrl, lastModified: new Date(), changeFrequency: 'daily', priority: 1.0 },
+    { url: `${baseUrl}/properties`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.9 },
+    { url: `${baseUrl}/locations`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.8 },
+    { url: `${baseUrl}/agents`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.8 },
     { url: `${baseUrl}/about`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.7 },
+    { url: `${baseUrl}/services`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.7 },
+    { url: `${baseUrl}/contact`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.7 },
   ]
 
-  try {
-    const products = await prisma.product.findMany({
-      where: { status: 'ACTIVE', isActive: true },
-      select: { slug: true, updatedAt: true },
-    })
+  const propertyRoutes: MetadataRoute.Sitemap = PROPERTIES.map((p) => ({
+    url: `${baseUrl}/properties/${p.slug}`,
+    lastModified: new Date(p.createdAt),
+    changeFrequency: 'weekly',
+    priority: 0.8,
+  }))
 
-    const productRoutes: MetadataRoute.Sitemap = products.map((p) => ({
-      url: `${baseUrl}/products/${p.slug}`,
-      lastModified: p.updatedAt,
-      changeFrequency: 'weekly',
-      priority: 0.8,
-    }))
+  const locationRoutes: MetadataRoute.Sitemap = LOCATIONS.map((l) => ({
+    url: `${baseUrl}/locations/${l.slug}`,
+    lastModified: new Date(),
+    changeFrequency: 'weekly',
+    priority: 0.7,
+  }))
 
-    return [...staticRoutes, ...productRoutes]
-  } catch {
-    return staticRoutes
-  }
+  const agentRoutes: MetadataRoute.Sitemap = AGENTS.map((a) => ({
+    url: `${baseUrl}/agents/${a.slug}`,
+    lastModified: new Date(),
+    changeFrequency: 'weekly',
+    priority: 0.7,
+  }))
+
+  return [...staticRoutes, ...propertyRoutes, ...locationRoutes, ...agentRoutes]
 }
