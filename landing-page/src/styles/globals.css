@@ -1,0 +1,82 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Backgrounds */
+  --color-bg-primary:    #FAF9F6;   /* Warm White main background */
+  --color-bg-secondary:  #FFFFFF;   /* Crisp White section background */
+  --color-bg-surface:    #FFFFFF;   /* Cards & Panels */
+  --color-bg-elevated:   #F4F3EE;   /* Soft warm dropdowns */
+  --color-bg-overlay:    rgba(11, 79, 60, 0.60); /* Modal backdrop */
+
+  /* Brand Palette */
+  --color-brand-green:   #0B4F3C;   /* Deep Architectural Green */
+  --color-brand-dark:    #063B2D;   /* Dark Green */
+  --color-brand-soft:    #EAF3EF;   /* Soft Green Tint */
+  --color-brand-warm:    #FAF9F6;   /* Warm White */
+  --color-brand-sky:     #0EA5E9;   /* Sky Blue Accent */
+
+  /* Text & Accents */
+  --color-text-main:     #171A18;   /* Primary Charcoal Text */
+  --color-text-muted:    #6D746F;   /* Muted Body Text */
+  --color-white-100:     #FFFFFF;   /* Pure White */
+  --color-white-200:     #FAF9F6;   /* Warm White */
+}
+
+/* Global Reset & Base Styling */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-main);
+  font-family: var(--font-inter), sans-serif;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #FAF9F6;
+}
+::-webkit-scrollbar-thumb {
+  background: #C2CAC5;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #0B4F3C;
+}
+
+/* Input Fields Base */
+.input-base {
+  background: #FFFFFF;
+  border: 1px solid #D5DDD8;
+  color: #171A18;
+  padding: 0.75rem 1rem;
+  font-family: var(--font-inter), sans-serif;
+  font-size: 0.9375rem;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+  outline: none;
+  border-radius: 8px;
+}
+
+.input-base::placeholder {
+  color: #8C948F;
+}
+
+.input-base:focus {
+  border-color: #0B4F3C;
+  box-shadow: 0 0 0 3px rgba(11, 79, 60, 0.12);
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
