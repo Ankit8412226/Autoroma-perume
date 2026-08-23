@@ -71,7 +71,20 @@ exports.updatePlotStatus = async (req, res, next) => {
     if (!plot) return res.status(404).json({ message: 'Plot not found' });
 
     const prevStatus = plot.status;
-    plot.status = status;
+    const isAdminOrManager = req.user && ['ADMIN', 'MANAGER', 'DIRECTOR'].includes(req.user.role);
+
+    // Business Logic: If an Agent or Customer requests to purchase/book, set to PENDING (Hold) pending Admin approval!
+    let targetStatus = status;
+    let targetApprovalStatus = 'APPROVED';
+
+    if (!isAdminOrManager && (status === 'SOLD' || status === 'BOOKED')) {
+      targetStatus = 'PENDING';
+      targetApprovalStatus = 'PENDING_APPROVAL';
+    }
+
+    plot.status = targetStatus;
+    plot.approvalStatus = targetApprovalStatus;
+    if (req.user) plot.requestedByRole = req.user.role;
 
     if (ownerName !== undefined) plot.ownerName = ownerName;
     if (ownerPhone !== undefined) plot.ownerPhone = ownerPhone;
@@ -84,9 +97,9 @@ exports.updatePlotStatus = async (req, res, next) => {
     const totalPlotPrice = plot.totalCost || plot.price || 0;
     plot.dueBalance = Math.max(0, totalPlotPrice - (plot.paidAmount || 0));
 
-    if (status === 'BOOKED' || status === 'SOLD') {
+    if (targetStatus === 'BOOKED' || targetStatus === 'SOLD') {
       if (!plot.bookingDate) plot.bookingDate = new Date();
-    } else if (status === 'AVAILABLE') {
+    } else if (targetStatus === 'AVAILABLE') {
       plot.ownerName = '';
       plot.ownerPhone = '';
       plot.ownerEmail = '';
@@ -100,8 +113,8 @@ exports.updatePlotStatus = async (req, res, next) => {
 
     await plot.save();
 
-    // If status updated to SOLD, resolve seller employee (support Direct Sales when sellerEmployeeId === 'DIRECT')
-    if (status === 'SOLD' && prevStatus !== 'SOLD') {
+    // If status updated to SOLD and APPROVED, assign ownership & calculate MLM differential commission!
+    if (targetStatus === 'SOLD' && targetApprovalStatus === 'APPROVED' && prevStatus !== 'SOLD') {
       let resolvedSellerId = null;
 
       if (sellerEmployeeId && sellerEmployeeId !== 'DIRECT' && sellerEmployeeId !== 'NONE') {
