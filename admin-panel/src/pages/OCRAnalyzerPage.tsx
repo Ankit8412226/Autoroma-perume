@@ -3,9 +3,11 @@ import api from '../services/api';
 import { OcrValidationViewer } from '../components/ocr/OcrValidationViewer';
 import { useAuth } from '../context/AuthContext';
 import { UploadCloud, ScanText, Lock } from 'lucide-react';
+import { useToast } from '../context/ToastContext';
 
 export const OCRAnalyzerPage: React.FC = () => {
   const { user } = useAuth();
+  const toast = useToast();
   const isAdmin = user?.role === 'ADMIN' || user?.role === 'DIRECTOR';
   const [file, setFile] = useState<File | null>(null);
   const [mapName, setMapName] = useState<string>('Sector 82 Masterplan');
@@ -23,10 +25,11 @@ export const OCRAnalyzerPage: React.FC = () => {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
 
+      toast.success('Site map analyzed successfully!');
       setOcrResult(response.data);
     } catch (error) {
       console.error(error);
-      alert('Failed to analyze site map layout');
+      toast.error('Failed to analyze site map layout');
     } finally {
       setIsAnalyzing(false);
     }
@@ -37,44 +40,44 @@ export const OCRAnalyzerPage: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-extrabold text-[#F8FAFC]">AI Plot Map & Document Analyzer</h2>
-          <p className="text-xs text-[#94A3B8] mt-1">PyMuPDF + OpenCV + Google Gemini 1.5 Pro Vision OCR layout extraction pipeline</p>
+          <h2 className="text-2xl font-serif font-bold text-[#171A18]">AI Plot Map & Document Analyzer</h2>
+          <p className="text-xs text-[#171A18]/70 mt-1">PyMuPDF + OpenCV + Google Gemini 1.5 Pro Vision OCR layout extraction pipeline</p>
         </div>
       </div>
 
       {!isAdmin ? (
-        <div className="glass-panel p-12 rounded-2xl border border-[#1F2937] max-w-xl mx-auto text-center space-y-4">
-          <div className="w-16 h-16 rounded-2xl bg-amber-500/20 border border-amber-500/40 text-amber-400 flex items-center justify-center mx-auto">
+        <div className="bg-white p-12 rounded-3xl border border-[#0B4F3C]/15 max-w-xl mx-auto text-center space-y-4 shadow-sm">
+          <div className="w-16 h-16 rounded-2xl bg-amber-500/20 border border-amber-500/40 text-amber-700 flex items-center justify-center mx-auto">
             <Lock className="w-8 h-8" />
           </div>
-          <h3 className="text-lg font-bold text-white">Administrator Access Required</h3>
-          <p className="text-xs text-[#94A3B8]">
+          <h3 className="text-lg font-serif font-bold text-[#171A18]">Administrator Access Required</h3>
+          <p className="text-xs text-[#171A18]/70">
             Architectural Naksa map upload & Vision AI OCR analysis is restricted to Administrators and Directors.
           </p>
         </div>
       ) : !ocrResult ? (
-        <div className="glass-panel p-8 rounded-2xl border border-[#1F2937] max-w-2xl mx-auto space-y-6 text-center">
-          <div className="w-16 h-16 rounded-2xl bg-[#1E40AF]/20 border border-[#1E40AF]/40 text-[#3B82F6] flex items-center justify-center mx-auto shadow-lg">
+        <div className="bg-white p-8 rounded-3xl border border-[#0B4F3C]/15 max-w-2xl mx-auto space-y-6 text-center shadow-sm">
+          <div className="w-16 h-16 rounded-2xl bg-[#0B4F3C] text-white flex items-center justify-center mx-auto shadow-md">
             <ScanText className="w-8 h-8" />
           </div>
 
           <div>
-            <h3 className="text-lg font-bold text-white">Upload Architectural Site Plan / Layout</h3>
-            <p className="text-xs text-[#94A3B8] mt-1">Supports PDF, PNG, and JPG layout blueprints up to 50MB</p>
+            <h3 className="text-lg font-serif font-bold text-[#171A18]">Upload Architectural Site Plan / Layout</h3>
+            <p className="text-xs text-[#171A18]/70 mt-1">Supports PDF, PNG, and JPG layout blueprints up to 50MB</p>
           </div>
 
           <div className="space-y-4 text-left">
             <div>
-              <label className="text-xs text-[#94A3B8]">Layout Map Title</label>
+              <label className="text-xs text-[#171A18]/70 font-semibold">Layout Map Title</label>
               <input
                 type="text"
                 value={mapName}
                 onChange={(e) => setMapName(e.target.value)}
-                className="w-full mt-1 bg-[#0F172A] border border-[#1F2937] rounded-xl px-4 py-2 text-xs text-white focus:outline-none"
+                className="w-full mt-1 bg-[#FAF9F6] border border-[#0B4F3C]/20 rounded-xl px-4 py-2 text-xs text-[#171A18] font-bold focus:outline-none focus:border-[#0B4F3C]"
               />
             </div>
 
-            <div className="border-2 border-dashed border-[#1F2937] hover:border-[#1E40AF] rounded-2xl p-8 text-center cursor-pointer transition-colors">
+            <div className="border-2 border-dashed border-[#0B4F3C]/20 hover:border-[#0B4F3C] bg-[#FAF9F6] rounded-2xl p-8 text-center cursor-pointer transition-colors">
               <input
                 type="file"
                 accept=".pdf,.png,.jpg,.jpeg"
@@ -83,11 +86,11 @@ export const OCRAnalyzerPage: React.FC = () => {
                 id="file-upload"
               />
               <label htmlFor="file-upload" className="cursor-pointer flex flex-col items-center">
-                <UploadCloud className="w-8 h-8 text-[#94A3B8] mb-2" />
-                <span className="text-xs font-bold text-white">
+                <UploadCloud className="w-8 h-8 text-[#0B4F3C] mb-2" />
+                <span className="text-xs font-bold text-[#171A18]">
                   {file ? file.name : 'Click to select or drag blueprint file here'}
                 </span>
-                <span className="text-[10px] text-[#94A3B8] mt-1">Automated Plot No, Dimension & Status Detection</span>
+                <span className="text-[10px] text-[#171A18]/70 mt-1">Automated Plot No, Dimension & Status Detection</span>
               </label>
             </div>
           </div>
@@ -95,7 +98,7 @@ export const OCRAnalyzerPage: React.FC = () => {
           <button
             onClick={handleAnalyze}
             disabled={isAnalyzing}
-            className="w-full py-3 rounded-xl bg-gradient-to-r from-[#1E40AF] to-blue-900 text-white font-bold text-xs shadow-lg shadow-blue-900/40 hover:opacity-90 transition-all flex items-center justify-center gap-2"
+            className="w-full py-3 rounded-xl bg-[#0B4F3C] hover:bg-[#063B2D] text-white font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer border border-[#0B4F3C]"
           >
             {isAnalyzing ? (
               <>

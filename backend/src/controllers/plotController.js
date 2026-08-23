@@ -38,7 +38,6 @@ exports.getPlotById = async (req, res, next) => {
     const documents = await PlotDocument.find({ plotId: plot._id });
     const transactions = await Transaction.find({ plotId: plot._id }).populate('sellerEmployeeId');
 
-    // Transparent cost breakdown (base + PLC + OTMC + GST = Total Cost).
     const breakdown = computePricing(plot);
 
     res.json({
@@ -82,7 +81,6 @@ exports.updatePlotStatus = async (req, res, next) => {
     if (registryStatus !== undefined) plot.registryStatus = registryStatus;
     if (Array.isArray(paymentMilestones)) plot.paymentMilestones = paymentMilestones;
 
-    // Live calculation of remaining due balance
     const totalPlotPrice = plot.totalCost || plot.price || 0;
     plot.dueBalance = Math.max(0, totalPlotPrice - (plot.paidAmount || 0));
 
@@ -102,49 +100,38 @@ exports.updatePlotStatus = async (req, res, next) => {
 
     await plot.save();
 
-    // If status updated to SOLD, resolve seller employee
+    // If status updated to SOLD, resolve seller employee (support Direct Sales when sellerEmployeeId === 'DIRECT')
     if (status === 'SOLD' && prevStatus !== 'SOLD') {
-      const isAdmin = req.user && ['ADMIN', 'DIRECTOR', 'MANAGER'].includes(req.user.role);
+      let resolvedSellerId = null;
 
-      // Admins may credit the sale to any seller; everyone else can only credit
-      // the sale to themselves (prevents attributing/fabricating others' sales).
-      let resolvedSellerId = isAdmin ? sellerEmployeeId : null;
-
-      if (!resolvedSellerId && req.user) {
+      if (sellerEmployeeId && sellerEmployeeId !== 'DIRECT' && sellerEmployeeId !== 'NONE') {
+        resolvedSellerId = sellerEmployeeId;
+      } else if (!sellerEmployeeId && req.user) {
         const loggedInEmp = await Employee.findOne({ userId: req.user._id });
-        if (loggedInEmp) {
-          resolvedSellerId = loggedInEmp._id;
-        }
+        if (loggedInEmp) resolvedSellerId = loggedInEmp._id;
       }
 
-      // If still no seller employee, fallback to top level CEO / first employee
-      if (!resolvedSellerId) {
-        const topEmp = await Employee.findOne({ parentId: null });
-        if (topEmp) resolvedSellerId = topEmp._id;
-      }
-
-      // Guard: only ever create ONE completed sale + commission set per plot.
-      // Prevents a SOLD -> BOOKED -> SOLD cycle from paying commission twice.
       const existingSale = await Transaction.findOne({
         plotId: plot._id,
         status: 'COMPLETED'
       });
 
-      if (resolvedSellerId && !existingSale) {
+      if (!existingSale) {
         const transaction = await Transaction.create({
           plotId: plot._id,
           buyerName: plot.ownerName || ownerName || 'Customer',
           buyerPhone: plot.ownerPhone || ownerPhone || '',
           buyerEmail: plot.ownerEmail || ownerEmail || '',
-          sellerEmployeeId: resolvedSellerId,
+          sellerEmployeeId: resolvedSellerId || null,
           amount: plot.totalCost || plot.price || 0,
           paymentMode: paymentMode || 'NET_BANKING',
           status: 'COMPLETED',
           transactionDate: new Date()
         });
 
-        // Trigger automatic differential commission computation & sponsor tree rank updates
-        await processDifferentialCommission(transaction._id);
+        if (resolvedSellerId) {
+          await processDifferentialCommission(transaction._id);
+        }
       }
     }
 
@@ -154,8 +141,25 @@ exports.updatePlotStatus = async (req, res, next) => {
   }
 };
 
-// Live pricing preview for the plot form — returns the full cost breakdown
-// for a set of inputs without persisting anything.
+exports.getUserProperties = async (req, res, next) => {
+  try {
+    const userEmail = req.user ? req.user.email : req.query.email;
+    const filter = userEmail ? { ownerEmail: userEmail } : {};
+    
+    const plots = await Plot.find(filter).populate('projectId');
+    const transactions = await Transaction.find(userEmail ? { buyerEmail: userEmail } : {})
+      .populate('sellerEmployeeId')
+      .populate('plotId');
+
+    res.json({
+      plots,
+      transactions
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 exports.computePricePreview = async (req, res, next) => {
   try {
     const breakdown = computePricing(req.body || {});
@@ -249,8 +253,6 @@ exports.importPlotsCSV = async (req, res, next) => {
       const status = (item['Status'] || item.status || 'AVAILABLE').toUpperCase();
       const ownerName = item['Owner'] || item.ownerName || '';
 
-      // Back-derive the base rate from the sheet's authoritative Total Cost, then
-      // recompute all charges via the pricing engine so everything reconciles.
       const priceInputs = {
         sellableSqYrd, plc12mtr, plc9mtr, plcCorner, plcParkFacing,
         discountedPlc, otmc, totalCost: providedTotalCost

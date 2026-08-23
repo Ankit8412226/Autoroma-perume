@@ -82,7 +82,7 @@ export function Navbar() {
               {/* Saved Properties Pill Button */}
               <Link
                 href="/saved"
-                className="px-4 py-2 bg-brand-soft hover:bg-brand-green/10 border border-brand-green/20 text-brand-green rounded-md flex items-center gap-2 text-xs font-semibold transition-all shadow-sm cursor-pointer"
+                className="px-4 py-2.5 bg-brand-soft hover:bg-brand-green/10 border border-brand-green/20 text-brand-green rounded-md flex items-center gap-2 text-xs font-semibold transition-all shadow-sm cursor-pointer"
                 title="View Saved Properties"
               >
                 <Bookmark className="w-3.5 h-3.5 text-brand-green fill-brand-green/20" />
@@ -94,19 +94,22 @@ export function Navbar() {
                 )}
               </Link>
 
-              {/* Sleek Minimalist Login Action */}
-              <Link
-                href="/contact"
+              {/* Login Link */}
+              <a
+                href="http://localhost:3003"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="text-xs uppercase tracking-[0.14em] font-bold text-brand-charcoal hover:text-brand-green transition-colors px-2.5 py-1.5 inline-flex items-center gap-1.5 cursor-pointer"
+                title="User Login / Client Private Vault"
               >
                 <LogIn className="w-3.5 h-3.5 text-brand-green" />
                 <span>Login</span>
-              </Link>
+              </a>
 
               {/* Primary Contact CTA Button */}
               <Link
                 href="/contact"
-                className="inline-flex items-center gap-2 px-5 py-2.5 text-xs font-bold uppercase tracking-[0.14em] text-white bg-brand-green hover:bg-brand-dark rounded-md transition-all duration-200 shadow-md group cursor-pointer"
+                className="inline-flex items-center gap-2 px-6 py-2.5 text-xs font-bold uppercase tracking-[0.14em] text-white bg-brand-green hover:bg-brand-dark rounded-md transition-all duration-200 shadow-md group cursor-pointer"
               >
                 <PhoneCall className="w-3.5 h-3.5 text-white" />
                 <span className="text-white font-bold">Contact Us</span>
@@ -190,20 +193,22 @@ export function Navbar() {
                 </span>
               </Link>
 
-              <Link
-                href="/contact"
-                className="flex items-center justify-center gap-2 w-full px-4 py-3 text-brand-charcoal font-bold text-xs uppercase tracking-wider rounded-md hover:text-brand-green"
+              <a
+                href="http://localhost:3003"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-2 w-full px-4 py-3 text-brand-charcoal font-bold text-xs uppercase tracking-wider rounded-md hover:text-brand-green bg-brand-soft"
               >
                 <LogIn className="w-4 h-4 text-brand-green" />
                 Login
-              </Link>
+              </a>
 
               <Link
                 href="/contact"
                 className="flex items-center justify-center gap-2 w-full px-4 py-3.5 bg-brand-green text-white font-bold text-xs uppercase tracking-[0.15em] rounded-md hover:bg-brand-dark shadow-md"
               >
                 <PhoneCall className="w-4 h-4 text-white" />
-                <span className="text-white">Contact Advisory</span>
+                <span className="text-white font-bold">Contact Us</span>
               </Link>
             </div>
           </div>

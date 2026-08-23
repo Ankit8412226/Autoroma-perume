@@ -22,12 +22,17 @@ const userSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ['ADMIN', 'MANAGER', 'EMPLOYEE', 'AGENT', 'DIRECTOR'],
+    enum: ['ADMIN', 'MANAGER', 'EMPLOYEE', 'AGENT', 'DIRECTOR', 'USER'],
     default: 'AGENT'
   },
   isActive: {
     type: Boolean,
     default: true
+  },
+  approvalStatus: {
+    type: String,
+    enum: ['APPROVED', 'PENDING_APPROVAL', 'REJECTED'],
+    default: 'APPROVED'
   },
   avatar: {
     type: String,

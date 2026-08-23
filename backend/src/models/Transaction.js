@@ -25,7 +25,8 @@ const transactionSchema = new mongoose.Schema({
   sellerEmployeeId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Employee',
-    required: true
+    required: false,
+    default: null
   },
   amount: {
     type: Number,

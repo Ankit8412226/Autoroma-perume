@@ -28,7 +28,7 @@ export const DashboardPage: React.FC = () => {
   if (isLoading || !stats) {
     return (
       <div className="flex items-center justify-center h-96">
-        <div className="w-8 h-8 border-4 border-[#1E40AF] border-t-transparent rounded-full animate-spin"></div>
+        <div className="w-8 h-8 border-4 border-[#0B4F3C] border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
@@ -40,11 +40,11 @@ export const DashboardPage: React.FC = () => {
       {/* Page Title */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-extrabold text-[#F8FAFC]">Executive CRM Dashboard</h2>
-          <p className="text-xs text-[#94A3B8] mt-1">Real-time financial performance, plot inventory & MLM downline metrics</p>
+          <h2 className="text-2xl font-serif font-bold text-[#171A18]">Executive CRM Dashboard</h2>
+          <p className="text-xs text-[#171A18]/70 mt-1">Real-time financial performance, plot inventory & MLM downline metrics</p>
         </div>
         <div className="flex items-center gap-2">
-          <span className="px-3 py-1 rounded-full bg-[#22C55E]/10 border border-[#22C55E]/30 text-[#22C55E] text-xs font-bold">
+          <span className="px-3 py-1 rounded-full bg-[#EAF3EF] border border-[#0B4F3C]/30 text-[#0B4F3C] text-xs font-bold">
             ● System Active
           </span>
         </div>
@@ -57,7 +57,7 @@ export const DashboardPage: React.FC = () => {
           value={`₹${(kpi.totalRevenue / 10000000).toFixed(2)} Cr`}
           subtitle="Lifetime Gross Transaction Volume"
           icon={DollarSign}
-          color="from-[#1E40AF] to-blue-900"
+          color="from-[#0B4F3C] to-[#063B2D]"
           trend="+18.4% MoM"
         />
         <StatCard
@@ -65,7 +65,7 @@ export const DashboardPage: React.FC = () => {
           value={`₹${(kpi.monthlyRevenue / 100000).toFixed(2)} Lakh`}
           subtitle="Current Billing Cycle"
           icon={TrendingUp}
-          color="from-cyan-600 to-blue-800"
+          color="from-[#0B4F3C] to-[#063B2D]"
           trend="+12.2% vs target"
         />
         <StatCard
@@ -73,14 +73,14 @@ export const DashboardPage: React.FC = () => {
           value={kpi.totalEmployees}
           subtitle="Across 7 Qualification Tiers"
           icon={Users}
-          color="from-purple-600 to-indigo-900"
+          color="from-[#0B4F3C] to-[#063B2D]"
         />
         <StatCard
           title="Total Real Estate Plots"
           value={kpi.totalPlots}
           subtitle={`${kpi.availablePlots} Available • ${kpi.soldPlots} Sold`}
           icon={MapPin}
-          color="from-emerald-600 to-teal-900"
+          color="from-[#0B4F3C] to-[#063B2D]"
         />
       </div>
 
@@ -95,11 +95,11 @@ export const DashboardPage: React.FC = () => {
       </div>
 
       {/* Bottom Performance Leaderboard */}
-      <div className="glass-card p-6 rounded-2xl border border-[#1F2937]">
-        <h3 className="text-base font-bold text-white mb-4">Top Performing MLM Sales Executives</h3>
+      <div className="bg-white p-6 rounded-2xl border border-[#0B4F3C]/15 shadow-sm space-y-4">
+        <h3 className="text-base font-serif font-bold text-[#171A18]">Top Performing MLM Sales Executives</h3>
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs text-[#F8FAFC]">
-            <thead className="bg-[#0F172A] text-[#94A3B8] uppercase text-[10px]">
+          <table className="w-full text-left text-xs text-[#171A18]">
+            <thead className="bg-[#EAF3EF] text-[#0B4F3C] uppercase text-[10px] font-bold border-b border-[#0B4F3C]/15">
               <tr>
                 <th className="p-3">Rank</th>
                 <th className="p-3">Executive Name</th>
@@ -108,18 +108,18 @@ export const DashboardPage: React.FC = () => {
                 <th className="p-3">Team Sales</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#1F2937]">
+            <tbody className="divide-y divide-[#0B4F3C]/10">
               {charts.topEmployees.map((emp, index) => (
-                <tr key={index} className="hover:bg-[#1F2937]/50 transition-colors">
-                  <td className="p-3 font-bold text-[#F97316]">#{index + 1}</td>
+                <tr key={index} className="hover:bg-[#EAF3EF]/40 transition-colors">
+                  <td className="p-3 font-bold text-[#0B4F3C]">#{index + 1}</td>
                   <td className="p-3 font-bold">{emp.name}</td>
                   <td className="p-3">
-                    <span className="px-2.5 py-0.5 rounded-full bg-[#1E40AF]/20 text-[#3B82F6] text-[10px] font-bold border border-[#1E40AF]/40">
+                    <span className="px-2.5 py-0.5 rounded-full bg-[#EAF3EF] text-[#0B4F3C] text-[10px] font-bold border border-[#0B4F3C]/20">
                       {emp.rank}
                     </span>
                   </td>
-                  <td className="p-3 font-bold text-white">{emp.sales}</td>
-                  <td className="p-3 font-bold text-[#22C55E]">{emp.teamSales}</td>
+                  <td className="p-3 font-bold text-[#171A18]">{emp.sales}</td>
+                  <td className="p-3 font-bold text-[#0B4F3C]">{emp.teamSales}</td>
                 </tr>
               ))}
             </tbody>

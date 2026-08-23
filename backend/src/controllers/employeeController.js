@@ -18,7 +18,7 @@ exports.getEmployees = async (req, res, next) => {
     }
 
     const employees = await Employee.find(filter)
-      .populate('userId', 'fullName email phone role avatar')
+      .populate('userId', 'fullName email phone role avatar approvalStatus isActive')
       .populate({
         path: 'parentId',
         populate: { path: 'userId', select: 'fullName' }
@@ -60,12 +60,15 @@ exports.createEmployee = async (req, res, next) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password || 'Password123!', salt);
 
+    // Note: Direct onboarding by an existing agent or admin creates an immediately APPROVED & ACTIVE agent!
     user = await User.create({
-      fullName,
       email,
-      phone,
       password: hashedPassword,
-      role: safeRole
+      fullName,
+      phone,
+      role: safeRole,
+      isActive: true,
+      approvalStatus: 'APPROVED'
     });
 
     const empCount = await Employee.countDocuments();
@@ -76,22 +79,11 @@ exports.createEmployee = async (req, res, next) => {
       employeeCode,
       joiningDate: joiningDate || new Date(),
       currentRank: 'Business Executive',
-      parentId: sponsorParentId || null
+      parentId: sponsorParentId
     });
 
-    // If sponsor specified, automatically recalculate sales metrics & promote rank up the entire upline chain!
-    if (sponsorParentId) {
-      let currentId = sponsorParentId;
-      while (currentId) {
-        await calculateEmployeeSalesMetrics(currentId);
-        await evaluateAndUpgradeRank(currentId);
-        const parentEmp = await Employee.findById(currentId);
-        currentId = parentEmp ? parentEmp.parentId : null;
-      }
-    }
-
     res.status(201).json({
-      message: 'Agent created successfully and attached to sponsor tree with auto rank evaluation',
+      message: 'Direct agent onboarding successful!',
       employee,
       user
     });
@@ -102,33 +94,11 @@ exports.createEmployee = async (req, res, next) => {
 
 exports.updateEmployee = async (req, res, next) => {
   try {
-    const { id } = req.params;
     const { fullName, phone, currentRank, parentId } = req.body;
+    const employee = await Employee.findById(req.params.id);
 
-    const employee = await Employee.findById(id);
-    if (!employee) return res.status(404).json({ message: 'Employee not found' });
-
-    const isAdmin = req.user && ['ADMIN', 'DIRECTOR'].includes(req.user.role);
-
-    // Non-admins may only edit themselves or people in their own downline.
-    if (!isAdmin) {
-      const loggedInEmp = await Employee.findOne({ userId: req.user._id });
-      if (!loggedInEmp) {
-        return res.status(403).json({ message: 'No employee profile found for your account' });
-      }
-      const downlines = await getDownlineEmployeeIds(loggedInEmp._id);
-      const allowedIds = [loggedInEmp._id.toString(), ...downlines.map((d) => d.toString())];
-      if (!allowedIds.includes(employee._id.toString())) {
-        return res.status(403).json({ message: 'Access denied: you can only edit yourself or your downline' });
-      }
-    }
-
-    // SECURITY: rank and sponsor (parent) are system-controlled — only an admin
-    // can change them. This blocks self-promotion / re-parenting by agents.
-    if (isAdmin) {
-      if (currentRank) employee.currentRank = currentRank;
-      if (parentId !== undefined) employee.parentId = parentId || null;
-      await employee.save();
+    if (!employee) {
+      return res.status(404).json({ message: 'Employee not found' });
     }
 
     if (fullName || phone) {
@@ -138,7 +108,16 @@ exports.updateEmployee = async (req, res, next) => {
       });
     }
 
-    res.json({ message: 'Employee updated successfully', employee });
+    if (currentRank) employee.currentRank = currentRank;
+    if (parentId !== undefined) employee.parentId = parentId || null;
+
+    await employee.save();
+
+    const updated = await Employee.findById(employee._id)
+      .populate('userId', 'fullName email phone role avatar approvalStatus isActive')
+      .populate('parentId');
+
+    res.json(updated);
   } catch (error) {
     next(error);
   }
@@ -146,12 +125,13 @@ exports.updateEmployee = async (req, res, next) => {
 
 exports.deleteEmployee = async (req, res, next) => {
   try {
-    const { id } = req.params;
-    const employee = await Employee.findById(id);
-    if (!employee) return res.status(404).json({ message: 'Employee not found' });
+    const employee = await Employee.findById(req.params.id);
+    if (!employee) {
+      return res.status(404).json({ message: 'Employee not found' });
+    }
 
     await User.findByIdAndDelete(employee.userId);
-    await Employee.findByIdAndDelete(id);
+    await Employee.findByIdAndDelete(req.params.id);
 
     res.json({ message: 'Employee deleted successfully' });
   } catch (error) {
@@ -162,7 +142,7 @@ exports.deleteEmployee = async (req, res, next) => {
 exports.getEmployeeById = async (req, res, next) => {
   try {
     const employee = await Employee.findById(req.params.id)
-      .populate('userId', 'fullName email phone role avatar')
+      .populate('userId', 'fullName email phone role avatar approvalStatus isActive')
       .populate('parentId');
 
     if (!employee) {
@@ -196,6 +176,51 @@ exports.updateEmployeeRank = async (req, res, next) => {
   try {
     const result = await evaluateAndUpgradeRank(req.params.id);
     res.json(result);
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Approval Actions for Public Agent Applications
+exports.approveAgent = async (req, res, next) => {
+  try {
+    const employee = await Employee.findById(req.params.id);
+    if (!employee) return res.status(404).json({ message: 'Agent record not found' });
+
+    const user = await User.findById(employee.userId);
+    if (!user) return res.status(404).json({ message: 'User record not found' });
+
+    user.approvalStatus = 'APPROVED';
+    user.isActive = true;
+    await user.save();
+
+    res.json({
+      message: `🎉 Agent ${user.fullName} (${employee.employeeCode}) has been APPROVED & Activated!`,
+      employee,
+      user
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.rejectAgent = async (req, res, next) => {
+  try {
+    const employee = await Employee.findById(req.params.id);
+    if (!employee) return res.status(404).json({ message: 'Agent record not found' });
+
+    const user = await User.findById(employee.userId);
+    if (!user) return res.status(404).json({ message: 'User record not found' });
+
+    user.approvalStatus = 'REJECTED';
+    user.isActive = false;
+    await user.save();
+
+    res.json({
+      message: `Agent application for ${user.fullName} has been rejected.`,
+      employee,
+      user
+    });
   } catch (error) {
     next(error);
   }

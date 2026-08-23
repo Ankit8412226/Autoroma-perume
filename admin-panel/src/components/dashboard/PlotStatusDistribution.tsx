@@ -7,9 +7,9 @@ interface PlotStatusDistributionProps {
 
 export const PlotStatusDistribution: React.FC<PlotStatusDistributionProps> = ({ data }) => {
   return (
-    <div className="glass-card p-6 rounded-2xl border border-[#1F2937] flex flex-col">
-      <h3 className="text-base font-bold text-[#F8FAFC]">Plot Inventory Status</h3>
-      <p className="text-xs text-[#94A3B8] mb-4">Real-time status breakdown across inventory</p>
+    <div className="bg-white p-6 rounded-2xl border border-[#0B4F3C]/15 shadow-sm flex flex-col">
+      <h3 className="text-base font-serif font-bold text-[#171A18]">Plot Inventory Status</h3>
+      <p className="text-xs text-[#171A18]/70 mb-4">Real-time status breakdown across inventory</p>
 
       <div className="h-64 w-full flex-1">
         <ResponsiveContainer width="100%" height="100%">
@@ -24,11 +24,11 @@ export const PlotStatusDistribution: React.FC<PlotStatusDistributionProps> = ({ 
               dataKey="value"
             >
               {data.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={entry.color} stroke="#111827" strokeWidth={2} />
+                <Cell key={`cell-${index}`} fill={entry.color} stroke="#FFFFFF" strokeWidth={2} />
               ))}
             </Pie>
             <Tooltip
-              contentStyle={{ backgroundColor: '#111827', borderColor: '#1F2937', borderRadius: '12px', color: '#F8FAFC' }}
+              contentStyle={{ backgroundColor: '#FFFFFF', borderColor: '#0B4F3C', borderRadius: '12px', color: '#171A18', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
             />
             <Legend verticalAlign="bottom" height={36} />
           </PieChart>

@@ -1,125 +1,133 @@
 import * as React from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
+import { PropertySearch } from '@/components/real-estate/PropertySearch'
+import { PropertyGrid } from '@/components/real-estate/PropertyGrid'
+import { SectionHeading } from '@/components/real-estate/SectionHeading'
+import { LocationCard } from '@/components/real-estate/LocationCard'
+import { DevelopmentFeature } from '@/components/real-estate/DevelopmentFeature'
+import { MarketSnapshot } from '@/components/real-estate/MarketSnapshot'
+import { AgentCard } from '@/components/real-estate/AgentCard'
+import { PropertyMap } from '@/components/real-estate/PropertyMap'
 import { PROPERTIES } from '@/data/properties'
 import { LOCATIONS } from '@/data/locations'
 import { AGENTS } from '@/data/agents'
-import { PropertySearch } from '@/components/real-estate/PropertySearch'
-import { PropertyCard } from '@/components/real-estate/PropertyCard'
-import { PropertyGrid } from '@/components/real-estate/PropertyGrid'
-import { LocationCard } from '@/components/real-estate/LocationCard'
-import { AgentCard } from '@/components/real-estate/AgentCard'
-import { SectionHeading } from '@/components/real-estate/SectionHeading'
-import { PropertyMap } from '@/components/real-estate/PropertyMap'
-import { MarketSnapshot } from '@/components/real-estate/MarketSnapshot'
-import { DevelopmentFeature } from '@/components/real-estate/DevelopmentFeature'
-import { CompareDrawer } from '@/components/real-estate/CompareDrawer'
-import { ArrowRight, CheckCircle2, ArrowUpRight } from 'lucide-react'
-
-export const metadata = {
-  title: 'House & Sky — Exceptional Homes. Under Open Skies.',
-  description: 'Explore exceptional architectural homes, luxury penthouses, modern villas, and prime real estate across Mumbai, Goa, Delhi NCR, Bangalore, and Hyderabad.',
-}
+import { Shield, Sparkles, Building2, CheckCircle2, UserPlus, ArrowUpRight } from 'lucide-react'
 
 export default function HomePage() {
-  const featuredProperties = PROPERTIES.filter((p) => p.isFeatured)
+  const featuredProperties = PROPERTIES.filter((p) => p.isFeatured).slice(0, 3)
+  const heroProperty = PROPERTIES[0]
+
+  const stats = [
+    { label: 'PROPERTIES REPRESENTED', value: '140+' },
+    { label: 'COMMUNITY ADVISORS', value: '45+' },
+    { label: 'PRIME LOCATIONS', value: '6 CITIES' },
+    { label: 'OFF-MARKET MANIFEST', value: '₹1,200 Cr+' },
+  ]
 
   const categories = [
     {
-      title: 'Penthouses & Sky Villas',
-      count: '14 Properties',
-      image: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800&q=80&auto=format&fit=crop',
-      href: '/properties?type=Penthouse',
+      title: 'Seafront Penthouses',
+      subtitle: 'Bandra West, Worli, Marine Drive',
+      image: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=800&q=80',
+      href: '/properties?category=penthouse',
     },
     {
-      title: 'Architectural Villas',
-      count: '18 Properties',
-      image: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=800&q=80&auto=format&fit=crop',
-      href: '/properties?type=Villa',
+      title: 'Private Coastal Villas',
+      subtitle: 'Assagao, Anjuna, Moira',
+      image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&q=80',
+      href: '/properties?category=villa',
     },
     {
-      title: 'Coastal & Waterfront',
-      count: '9 Properties',
-      image: 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=800&q=80&auto=format&fit=crop',
-      href: '/properties?type=Waterfront',
+      title: 'Golf Course Residences',
+      subtitle: 'Golf Course Road, Gurgaon',
+      image: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800&q=80',
+      href: '/properties?category=duplex',
     },
     {
-      title: 'Commercial Assets',
-      count: '6 Properties',
-      image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&q=80&auto=format&fit=crop',
-      href: '/properties?type=Commercial',
+      title: 'Heritage Palatial Estates',
+      subtitle: 'Jubilee Hills, Sadashivnagar',
+      image: 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=800&q=80',
+      href: '/properties?category=estate',
     },
-  ]
-
-  const stats = [
-    { label: 'CURATED PROPERTIES', value: '10K+' },
-    { label: 'HAPPY CLIENTS', value: '25K+' },
-    { label: 'CLIENT RATING', value: '4.9 ⭐' },
-    { label: 'EXPERIENCE', value: '15+ Years' },
   ]
 
   return (
-    <div className="space-y-20 sm:space-y-28 pb-20 relative bg-bg-primary">
-      <CompareDrawer />
+    <div className="space-y-16 sm:space-y-24 pb-16">
+      {/* 1. HERO SECTION */}
+      <section className="relative min-h-[85vh] flex items-center justify-center overflow-hidden bg-brand-charcoal text-white pt-8">
+        <div className="absolute inset-0 z-0">
+          <Image
+            src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=1920&q=85&auto=format&fit=crop"
+            alt="House & Sky Architectural Estate"
+            fill
+            priority
+            className="object-cover opacity-40 scale-105 transition-transform duration-1000"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-black/30" />
+        </div>
 
-      {/* 1. HERO SECTION — HOUSE & SKY ASYMMETRIC EDITORIAL */}
-      <section className="relative min-h-[85vh] flex flex-col justify-between pt-6 pb-12 overflow-hidden bg-white border-b border-brand-green/10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 sm:pt-14 w-full">
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full py-16">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-            {/* Left Copy & Search */}
-            <div className="lg:col-span-6 space-y-6">
-              <div className="inline-flex items-center gap-2 px-3 py-1 bg-brand-soft border border-brand-green/20 rounded-md">
-                <span className="w-2 h-2 bg-brand-green rounded-full" />
-                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-brand-green">
-                  HOUSE & SKY REAL ESTATE
+            {/* Left Main Hero Copy & Search */}
+            <div className="lg:col-span-7 space-y-6 text-left">
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-white/10 backdrop-blur-md border border-white/20 rounded-full">
+                <Sparkles className="w-3.5 h-3.5 text-brand-sky" />
+                <span className="text-[10px] sm:text-xs font-bold uppercase tracking-[0.2em] text-white">
+                  EXCEPTIONAL HOMES. UNDER OPEN SKIES.
                 </span>
               </div>
 
-              <h1 className="font-serif text-4xl sm:text-6xl text-brand-charcoal font-normal leading-[1.08] tracking-tight">
-                Exceptional homes. <br />
-                <span className="italic font-serif text-brand-green">Under open skies.</span>
-              </h1>
+              <div className="space-y-4">
+                <h1 className="font-serif text-4xl sm:text-6xl lg:text-6xl font-normal leading-[1.1] text-white tracking-tight">
+                  Architectural Residences & Trophy Estates
+                </h1>
+                <p className="text-xs sm:text-base text-white/80 font-light leading-relaxed max-w-xl">
+                  Representing India&apos;s most distinguished sea-facing penthouses, private coastal villas, and high-yield real estate investments.
+                </p>
+              </div>
 
-              <p className="text-sm sm:text-base text-brand-charcoal/70 font-light max-w-lg leading-relaxed">
-                Explore exceptional properties in locations that make everyday living better.
-              </p>
-
-              {/* Integrated Property Search */}
               <div className="pt-2">
-                <PropertySearch variant="hero" />
+                <PropertySearch />
               </div>
             </div>
 
-            {/* Right Architectural Image & High-Contrast Featured Card */}
-            <div className="lg:col-span-6 relative">
-              <div className="relative aspect-[4/3] w-full overflow-hidden rounded-lg border border-brand-green/15 shadow-lg">
-                <Image
-                  src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=1400&q=90&auto=format&fit=crop"
-                  alt="House & Sky Featured Architecture"
-                  fill
-                  priority
-                  className="object-cover"
-                />
-              </div>
-
-              {/* Floating Featured Card */}
-              <div className="absolute -bottom-6 left-6 right-6 sm:left-auto sm:right-6 sm:w-88 bg-white border border-brand-green/30 p-5 rounded-lg shadow-2xl space-y-2.5 z-20">
-                <div className="flex items-center justify-between">
-                  <span className="px-2.5 py-0.5 bg-brand-soft border border-brand-green/20 text-brand-green text-[9px] uppercase tracking-[0.18em] font-bold rounded">
+            {/* Right Floating Featured Residence Showcase */}
+            <div className="lg:col-span-5 hidden lg:block">
+              <div className="bg-white/95 backdrop-blur-md border border-brand-green/30 rounded-xl p-6 shadow-2xl text-brand-charcoal space-y-4">
+                <div className="relative aspect-[16/10] w-full rounded-lg overflow-hidden border border-brand-green/15">
+                  <Image
+                    src={heroProperty.images.hero}
+                    alt={heroProperty.title}
+                    fill
+                    className="object-cover"
+                  />
+                  <span className="absolute top-3 left-3 px-3 py-1 bg-brand-green text-white text-[10px] uppercase font-bold tracking-widest rounded">
                     FEATURED RESIDENCE
                   </span>
-                  <span className="text-[10px] font-mono text-brand-charcoal/60 font-semibold">Bandra West</span>
                 </div>
-                <h3 className="font-serif text-xl text-brand-charcoal font-semibold">The Imperial Residences</h3>
-                <p className="text-xs text-brand-charcoal/70 font-medium">Bandra West, Mumbai</p>
-                <div className="pt-2 border-t border-brand-green/15 flex items-center justify-between">
-                  <span className="font-bold text-brand-green text-base">₹4.85 Cr onwards</span>
+
+                <div className="space-y-1">
+                  <span className="text-xl font-serif font-bold text-brand-green block">
+                    {heroProperty.formattedPrice}
+                  </span>
+                  <h3 className="font-serif text-lg text-brand-charcoal font-bold">
+                    {heroProperty.title}
+                  </h3>
+                  <p className="text-xs text-brand-charcoal/70 font-light">
+                    {heroProperty.location.area}, {heroProperty.location.city}
+                  </p>
+                </div>
+
+                <div className="pt-3 border-t border-brand-green/15 flex items-center justify-between text-xs">
+                  <span className="font-mono text-brand-charcoal/70">
+                    {heroProperty.specs.bedrooms} Beds · {heroProperty.specs.bathrooms} Baths · {heroProperty.specs.areaSqFt.toLocaleString()} sq ft
+                  </span>
                   <Link
-                    href="/properties/the-solitaire-sky-villa-bandra"
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-brand-green text-white font-bold text-xs uppercase tracking-wider rounded-md hover:bg-brand-dark transition-all shadow-sm"
+                    href={`/properties/${heroProperty.slug}`}
+                    className="px-3.5 py-2 bg-brand-green hover:bg-brand-dark text-white font-bold text-[10px] uppercase tracking-wider rounded-md transition-all shadow-sm"
                   >
-                    <span>View</span>
-                    <ArrowRight className="w-3.5 h-3.5 text-white" />
+                    View Residence
                   </Link>
                 </div>
               </div>
@@ -128,15 +136,15 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 2. TRUST STATS STRIP */}
+      {/* 2. BRAND STATS BAR */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 p-8 bg-white border border-brand-green/15 rounded-lg text-center shadow-sm">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 bg-white border border-brand-green/15 rounded-lg p-6 sm:p-8 shadow-sm">
           {stats.map((s) => (
-            <div key={s.label} className="space-y-1">
-              <span className="block text-[10px] font-bold uppercase tracking-[0.2em] text-brand-green">
+            <div key={s.label} className="text-center space-y-1">
+              <span className="block text-[10px] font-bold tracking-[0.2em] text-brand-green uppercase">
                 {s.label}
               </span>
-              <span className="font-sans text-2xl sm:text-3xl font-bold text-brand-charcoal tracking-tight">
+              <span className="text-2xl sm:text-3xl font-serif text-brand-charcoal font-bold block">
                 {s.value}
               </span>
             </div>
@@ -198,45 +206,37 @@ export default function HomePage() {
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent opacity-85" />
               <div className="absolute bottom-0 left-0 right-0 p-6 space-y-2 z-10 text-white">
-                <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-brand-sky font-bold">
-                  {cat.count}
-                </span>
-                <h3 className="font-serif text-2xl text-white font-normal group-hover:text-brand-soft transition-colors">
+                <h3 className="font-serif text-xl text-white font-normal group-hover:text-brand-soft transition-colors">
                   {cat.title}
                 </h3>
-                <div className="inline-flex items-center gap-1 text-xs text-white/90 font-semibold tracking-wider pt-1">
-                  <span>Explore</span>
-                  <ArrowUpRight className="w-3.5 h-3.5 text-brand-sky" />
-                </div>
+                <p className="text-xs text-white/80 font-light">{cat.subtitle}</p>
               </div>
             </Link>
           ))}
         </div>
       </section>
 
-      {/* 7. FEATURED DEVELOPMENT */}
+      {/* 7. FLAGSHIP DEVELOPMENT SHOWCASE */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <DevelopmentFeature />
       </section>
 
-      {/* 8. WHY HOUSE & SKY */}
-      <section className="bg-white py-16 border-y border-brand-green/10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-            <div className="lg:col-span-6 relative aspect-[4/3] w-full rounded-lg overflow-hidden border border-brand-green/15 shadow-md">
+      {/* 8. PHILOSOPHY / TRUST */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="bg-white border border-brand-green/15 rounded-lg p-8 sm:p-12 shadow-sm">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+            <div className="lg:col-span-5 relative aspect-[4/3] rounded-md overflow-hidden">
               <Image
-                src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1200&q=85&auto=format&fit=crop"
-                alt="House & Sky Architectural Diligence"
+                src="https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=1000&q=80"
+                alt="House & Sky Architectural Advisory"
                 fill
                 className="object-cover"
               />
             </div>
-
-            <div className="lg:col-span-6 space-y-6">
-              <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-brand-green block">
-                WHY HOUSE & SKY
+            <div className="lg:col-span-7 space-y-6">
+              <span className="text-[10px] uppercase tracking-[0.25em] font-bold text-brand-green block">
+                OUR PHILOSOPHY
               </span>
-
               <h2 className="font-serif text-3xl sm:text-4xl text-brand-charcoal font-normal leading-tight">
                 Property decisions deserve better information.
               </h2>
@@ -276,7 +276,35 @@ export default function HomePage() {
         <MarketSnapshot />
       </section>
 
-      {/* 10. MEET THE PEOPLE BEHIND THE PROPERTIES */}
+      {/* 10. WORK WITH US / BECOME AN AGENT */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="bg-brand-soft border border-brand-green/20 rounded-lg p-8 sm:p-12 shadow-sm flex flex-col md:flex-row items-center justify-between gap-8">
+          <div className="space-y-3 max-w-2xl">
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-white border border-brand-green/15 rounded-md">
+              <UserPlus className="w-4 h-4 text-brand-green" />
+              <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-brand-green">
+                CAREERS & PARTNERSHIPS
+              </span>
+            </div>
+            <h3 className="font-serif text-3xl sm:text-4xl text-brand-charcoal font-normal">
+              Work with Us — Join House & Sky Advisory
+            </h3>
+            <p className="text-xs sm:text-sm text-brand-charcoal/70 font-light leading-relaxed">
+              We empower top-tier real estate agents, estate managers, and luxury property advisors with full multi-level network backing, transparent commissions, and high-net-worth client leads.
+            </p>
+          </div>
+
+          <Link
+            href="/contact?role=agent"
+            className="px-6 py-3.5 bg-brand-green hover:bg-brand-dark text-white font-bold text-xs uppercase tracking-[0.18em] rounded-md transition-all shadow-md flex items-center gap-2 shrink-0"
+          >
+            <span>Apply as an Agent</span>
+            <ArrowUpRight className="w-4 h-4 text-white" />
+          </Link>
+        </div>
+      </section>
+
+      {/* 11. MEET THE PEOPLE BEHIND THE PROPERTIES */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <SectionHeading
           eyebrow="OUR TEAM"
@@ -291,7 +319,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 11. FINAL CTA */}
+      {/* 12. FINAL CTA */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="bg-brand-dark text-white rounded-lg p-8 sm:p-14 text-center space-y-6 shadow-xl border border-brand-green/20">
           <h2 className="font-serif text-3xl sm:text-4xl text-white font-normal">

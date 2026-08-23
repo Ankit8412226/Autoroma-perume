@@ -14,21 +14,23 @@ import {
   FileBarChart,
   Bell,
   Settings,
-  ShieldCheck,
-  Building
+  Building,
+  Bot,
+  MessageSquare,
+  ShieldCheck
 } from 'lucide-react';
 
-// adminOnly items are visible only to the company owner side (ADMIN / DIRECTOR).
-// Everything else is available to agents for their own team & earnings.
 const navigationItems = [
   { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard, adminOnly: true },
-  { name: 'Employees', path: '/employees', icon: Users },
-  { name: 'MLM Tree', path: '/mlm-tree', icon: GitMerge },
+  { name: 'Customer Inquiries', path: '/inquiries', icon: MessageSquare },
+  { name: 'Employees & Agents', path: '/employees', icon: Users },
+  { name: 'MLM Network Tree', path: '/mlm-tree', icon: GitMerge },
   { name: 'Projects', path: '/projects', icon: Building2, adminOnly: true },
   { name: 'Plot Management', path: '/plots', icon: MapPin },
   { name: 'Plot Maps', path: '/plot-maps', icon: Map, adminOnly: true },
   { name: 'Commissions', path: '/commissions', icon: DollarSign },
   { name: 'Payouts', path: '/payouts', icon: CreditCard },
+  { name: 'AI Knowledge Base', path: '/ai-knowledge', icon: Bot, adminOnly: true },
   { name: 'OCR Analyzer', path: '/ocr-analyzer', icon: ScanText, adminOnly: true },
   { name: 'Reports', path: '/reports', icon: FileBarChart, adminOnly: true },
   { name: 'Notifications', path: '/notifications', icon: Bell },
@@ -43,17 +45,17 @@ export const Sidebar: React.FC = () => {
   const visibleItems = navigationItems.filter((item) => !item.adminOnly || isAdmin);
 
   return (
-    <aside className="w-64 bg-[#111827] border-r border-[#1F2937] flex flex-col h-screen sticky top-0 z-30 select-none">
+    <aside className="w-64 bg-white border-r border-[#0B4F3C]/15 flex flex-col h-screen sticky top-0 z-30 select-none shadow-sm">
       {/* Brand Header */}
-      <div className="p-5 border-b border-[#1F2937] flex items-center gap-3">
-        <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#1E40AF] to-[#F97316] flex items-center justify-center shadow-lg shadow-blue-900/40">
-          <Building className="w-6 h-6 text-white" />
+      <div className="p-5 border-b border-[#0B4F3C]/15 flex items-center gap-3">
+        <div className="w-10 h-10 rounded-xl bg-[#0B4F3C] flex items-center justify-center shadow-md">
+          <Building className="w-5 h-5 text-white" />
         </div>
         <div>
-          <h1 className="font-extrabold text-lg text-[#F8FAFC] tracking-tight leading-none">
-            HIPPO <span className="text-[#F97316]">CRM</span>
+          <h1 className="font-serif font-bold text-lg text-[#171A18] tracking-tight leading-none">
+            House & <span className="text-[#0B4F3C] italic font-serif">Sky</span>
           </h1>
-          <p className="text-[10px] text-[#94A3B8] font-medium tracking-wide uppercase mt-1">Real Estate MLM Platform</p>
+          <p className="text-[9px] text-[#0B4F3C] font-bold tracking-widest uppercase mt-1">Enterprise Advisory & CRM</p>
         </div>
       </div>
 
@@ -66,14 +68,14 @@ export const Sidebar: React.FC = () => {
               key={item.path}
               to={item.path}
               className={({ isActive }) =>
-                `flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200 ${
+                `flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-200 ${
                   isActive
-                    ? 'bg-gradient-to-r from-[#1E40AF] to-blue-900 text-white shadow-md shadow-blue-900/30'
-                    : 'text-[#94A3B8] hover:bg-[#1F2937] hover:text-[#F8FAFC]'
+                    ? 'bg-[#0B4F3C] text-white shadow-md'
+                    : 'text-[#171A18]/70 hover:bg-[#EAF3EF] hover:text-[#0B4F3C]'
                 }`
               }
             >
-              <Icon className="w-5 h-5 flex-shrink-0" />
+              <Icon className="w-4 h-4 flex-shrink-0" />
               <span>{item.name}</span>
             </NavLink>
           );
@@ -81,10 +83,10 @@ export const Sidebar: React.FC = () => {
       </nav>
 
       {/* Enterprise Footer */}
-      <div className="p-4 border-t border-[#1F2937] bg-[#0F172A]/50">
-        <div className="flex items-center gap-2 text-xs text-[#94A3B8]">
-          <ShieldCheck className="w-4 h-4 text-[#22C55E]" />
-          <span>Multi-Tier MLM System v1.0</span>
+      <div className="p-4 border-t border-[#0B4F3C]/15 bg-[#EAF3EF]/50">
+        <div className="flex items-center gap-2 text-xs text-[#0B4F3C] font-bold">
+          <ShieldCheck className="w-4 h-4 text-[#0B4F3C]" />
+          <span>House & Sky Network v1.0</span>
         </div>
       </div>
     </aside>

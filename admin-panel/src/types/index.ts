@@ -7,6 +7,16 @@ export interface User {
   avatar?: string;
 }
 
+export const RANKS = [
+  'Business Executive',
+  'Sr Business Executive',
+  'Team Leader',
+  'Sr Team Leader',
+  'Business Development Manager',
+  'Associate Sales Director',
+  'Director Sales'
+];
+
 export interface Employee {
   id: string;
   employeeCode: string;
@@ -44,6 +54,7 @@ export interface Project {
   totalPlots: number;
   status: 'UPCOMING' | 'ACTIVE' | 'COMPLETED';
   basePricePerSqft: number;
+  bannerImage?: string;
 }
 
 export interface Plot {
@@ -84,6 +95,7 @@ export interface Plot {
   registryDate?: string;
   registryStatus?: 'NOT_REGISTERED' | 'PENDING' | 'REGISTERED';
   paymentMilestones?: PaymentMilestone[];
+  sellerEmployeeId?: any;
 }
 
 export interface PaymentMilestone {

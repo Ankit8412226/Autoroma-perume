@@ -1,22 +1,55 @@
 const { processMapImageOCR } = require('../services/ocrPipeline');
 const PlotMap = require('../models/PlotMap');
 const Plot = require('../models/Plot');
+const Project = require('../models/Project');
 const { computePricing, deriveBaseRatePerSqYrd } = require('../services/pricingEngine');
 
 /** Axis-aligned bounding box for a polygon, used as the canvas rectangle fallback. */
 function bboxFromPoints(points) {
   if (!Array.isArray(points) || points.length === 0) {
-    return { x: 50, y: 50, width: 120, height: 90 };
+    return null;
   }
   const xs = points.map((p) => Number(p.x) || 0);
   const ys = points.map((p) => Number(p.y) || 0);
   const minX = Math.min(...xs);
   const minY = Math.min(...ys);
+  const maxX = Math.max(...xs);
+  const maxY = Math.max(...ys);
+
+  if (maxX <= minX || maxY <= minY) {
+    return null;
+  }
+
   return {
     x: minX,
     y: minY,
-    width: Math.max(...xs) - minX || 120,
-    height: Math.max(...ys) - minY || 90
+    width: maxX - minX || 125,
+    height: maxY - minY || 90
+  };
+}
+
+/** Generates clean non-overlapping grid layout for plots if polygon points are absent. */
+function generateGridPosition(index) {
+  const col = index % 5;
+  const row = Math.floor(index / 5);
+  const startX = 60;
+  const startY = 60;
+  const gapX = 160;
+  const gapY = 110;
+  const width = 135;
+  const height = 85;
+
+  const x = startX + col * gapX;
+  const y = startY + row * gapY;
+
+  return {
+    coordinates: { x, y, width, height },
+    points: [
+      { x, y },
+      { x: x + width, y },
+      { x: x + width, y: y + height },
+      { x, y: y + height }
+    ]
   };
 }
 
@@ -24,12 +57,11 @@ exports.analyzeMap = async (req, res, next) => {
   try {
     const { projectId, mapName } = req.body;
 
-    // Execute OCR + PyMuPDF + OpenCV extraction pipeline
     const result = await processMapImageOCR({
       projectId: projectId || '656565656565656565656565',
-      mapName: mapName || 'Green Valley Masterplan',
+      mapName: mapName || 'Government Masterplan Layout',
       fileBuffer: req.file ? req.file.buffer : null,
-      fileName: req.file ? req.file.originalname : 'map_layout.pdf'
+      fileName: req.file ? req.file.originalname : 'naksa_blueprint.pdf'
     });
 
     res.json(result);
@@ -52,11 +84,25 @@ exports.approveMapOverlay = async (req, res, next) => {
     }
     await plotMap.save();
 
-    // Sync extracted plots into the Plots table with reconciled pricing AND
-    // canvas geometry (both polygon points and a bounding-box rectangle).
+    // 1. Update Project blueprint background image URL so PlotMapCanvas renders it!
+    if (plotMap.projectId && plotMap.imageUrl) {
+      await Project.findByIdAndUpdate(plotMap.projectId, {
+        bannerImage: plotMap.imageUrl
+      });
+    }
+
+    // 2. Sync extracted plots into the Plots table
+    let index = 0;
     for (const plotData of plotMap.vectorOverlayData) {
-      const points = plotData.polygonPoints || plotData.polygon?.points || [];
-      const coordinates = bboxFromPoints(points);
+      let points = plotData.polygonPoints || plotData.polygon?.points || [];
+      let coordinates = bboxFromPoints(points);
+
+      // If points are invalid or missing, generate a clean grid layout position
+      if (!coordinates || points.length < 3) {
+        const grid = generateGridPosition(index);
+        coordinates = grid.coordinates;
+        points = grid.points;
+      }
 
       const priceInputs = {
         sellableSqYrd: plotData.sellableSqYrd || 0,
@@ -76,7 +122,7 @@ exports.approveMapOverlay = async (req, res, next) => {
         { projectId: plotMap.projectId, plotNo: plotData.plotNo },
         {
           projectId: plotMap.projectId,
-          block: plotData.plotNo.split('-')[0] || 'E5',
+          block: plotData.plotNo.split('-')[0] || 'A1',
           plotNo: plotData.plotNo,
           sizeSqft: plotData.sizeSqft || (plotData.sellableSqYrd ? plotData.sellableSqYrd * 9 : 1800),
           sellableSqYrd: plotData.sellableSqYrd || 0,
@@ -99,6 +145,7 @@ exports.approveMapOverlay = async (req, res, next) => {
         },
         { upsert: true, new: true }
       );
+      index++;
     }
 
     res.json({

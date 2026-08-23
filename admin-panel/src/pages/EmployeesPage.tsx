@@ -1,13 +1,22 @@
 import React, { useEffect, useState } from 'react';
 import api from '../services/api';
-import { Employee } from '../types';
+import { Employee, RANKS } from '../types';
 import { AddEmployeeModal } from '../components/employees/AddEmployeeModal';
-import { Users, UserPlus, Trash2, Edit, RefreshCw } from 'lucide-react';
+import { AgentProfileModal } from '../components/employees/AgentProfileModal';
+import { UserPlus, Trash2, RefreshCw, Search, Users, Award, TrendingUp, ShieldCheck, Eye, CheckCircle2, XCircle, Clock } from 'lucide-react';
+import { useToast } from '../context/ToastContext';
 
 export const EmployeesPage: React.FC = () => {
+  const toast = useToast();
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isAddModalOpen, setIsAddModalOpen] = useState<boolean>(false);
+  const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null);
+
+  // Filters & Search
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [rankFilter, setRankFilter] = useState<string>('ALL');
+  const [approvalFilter, setApprovalFilter] = useState<string>('ALL');
 
   useEffect(() => {
     fetchEmployees();
@@ -25,105 +34,356 @@ export const EmployeesPage: React.FC = () => {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!window.confirm('Are you sure you want to delete this agent?')) return;
+  const handleApproveAgent = async (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    try {
+      const res = await api.post(`/employees/${id}/approve`);
+      toast.success(res.data.message || 'Agent approved and activated!');
+      fetchEmployees();
+    } catch (error: any) {
+      console.error(error);
+      toast.error(error.response?.data?.message || 'Failed to approve agent');
+    }
+  };
+
+  const handleRejectAgent = async (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    if (!window.confirm('Are you sure you want to reject this agent application?')) return;
+    try {
+      const res = await api.post(`/employees/${id}/reject`);
+      toast.info(res.data.message || 'Agent application rejected');
+      fetchEmployees();
+    } catch (error: any) {
+      console.error(error);
+      toast.error(error.response?.data?.message || 'Failed to reject agent application');
+    }
+  };
+
+  const handleDelete = async (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    if (!window.confirm('Are you sure you want to delete this agent and remove them from the network tree?')) return;
     try {
       await api.delete(`/employees/${id}`);
+      toast.success('Agent deleted successfully');
       fetchEmployees();
     } catch (error) {
       console.error(error);
-      alert('Failed to delete agent');
+      toast.error('Failed to delete agent');
     }
   };
+
+  // Filtered List
+  const filteredEmployees = employees.filter((emp) => {
+    const name = emp.userId?.fullName || '';
+    const email = emp.userId?.email || '';
+    const phone = emp.userId?.phone || '';
+    const code = emp.employeeCode || '';
+    const status = (emp.userId as any)?.approvalStatus || 'APPROVED';
+
+    const matchesSearch =
+      name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      phone.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      code.toLowerCase().includes(searchQuery.toLowerCase());
+
+    const matchesRank = rankFilter === 'ALL' || emp.currentRank === rankFilter;
+    const matchesApproval = approvalFilter === 'ALL' || status === approvalFilter;
+
+    return matchesSearch && matchesRank && matchesApproval;
+  });
+
+  // KPI Calculations
+  const totalAgents = employees.length;
+  const pendingApprovalsCount = employees.filter((e) => (e.userId as any)?.approvalStatus === 'PENDING_APPROVAL').length;
+  const directorsCount = employees.filter(
+    (e) => e.currentRank === 'Director Sales' || e.currentRank === 'Associate Sales Director'
+  ).length;
+  const totalSelfSales = employees.reduce((sum, e) => sum + (e.selfSalesCount || 0), 0);
 
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
       {/* Page Title & Add Action */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-extrabold text-[#F8FAFC]">MLM Sales Executives & Directory</h2>
-          <p className="text-xs text-[#94A3B8] mt-1">Manage team members, downline sponsors, and rank promotions</p>
+          <h2 className="text-2xl font-serif font-bold text-[#171A18]">MLM Sales Executives & Directory</h2>
+          <p className="text-xs text-[#171A18]/70 mt-1">Manage team members, downline sponsors, and public agent application approvals</p>
         </div>
         <div className="flex items-center gap-3">
           <button
             onClick={fetchEmployees}
-            className="p-2.5 rounded-xl bg-[#111827] border border-[#1F2937] text-[#94A3B8] hover:text-white"
+            className="p-2.5 rounded-xl bg-[#EAF3EF] border border-[#0B4F3C]/20 text-[#0B4F3C] hover:bg-[#0B4F3C] hover:text-white transition-colors cursor-pointer"
+            title="Refresh Directory"
           >
             <RefreshCw className="w-4 h-4" />
           </button>
           <button
             onClick={() => setIsAddModalOpen(true)}
-            className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#1E40AF] to-blue-900 text-white font-bold text-xs shadow-lg shadow-blue-900/40 hover:opacity-90 flex items-center gap-2"
+            className="px-4 py-2.5 rounded-xl bg-[#0B4F3C] hover:bg-[#063B2D] text-white font-bold text-xs shadow-md flex items-center gap-2 cursor-pointer border border-[#0B4F3C]"
           >
-            <UserPlus className="w-4 h-4" /> Add New Agent
+            <UserPlus className="w-4 h-4" /> Add New Agent (Direct Onboarding)
           </button>
         </div>
       </div>
 
+      {/* Pending Agent Applications Banner */}
+      {pendingApprovalsCount > 0 && (
+        <div className="p-4 bg-amber-50 rounded-2xl border border-amber-200 text-amber-900 flex items-center justify-between text-xs">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-xl bg-amber-500 text-white flex items-center justify-center font-bold">
+              <Clock className="w-4 h-4" />
+            </div>
+            <div>
+              <p className="font-bold">Pending Public Agent Applications ({pendingApprovalsCount})</p>
+              <p className="text-[11px] opacity-80 mt-0.5">Public site applicants require Admin/Manager approval before logging in.</p>
+            </div>
+          </div>
+          <button
+            onClick={() => setApprovalFilter('PENDING_APPROVAL')}
+            className="px-3.5 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs shadow-sm cursor-pointer"
+          >
+            View Pending ({pendingApprovalsCount})
+          </button>
+        </div>
+      )}
+
+      {/* KPI Top Stat Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="bg-white p-4 rounded-2xl border border-[#0B4F3C]/15 shadow-sm flex items-center justify-between">
+          <div>
+            <p className="text-[10px] font-bold text-[#0B4F3C] uppercase tracking-wider">Total Sales Team</p>
+            <h3 className="text-2xl font-serif font-bold text-[#171A18] mt-0.5">{totalAgents} Agents</h3>
+            <p className="text-[10px] text-[#171A18]/70 mt-0.5">Across all downlines</p>
+          </div>
+          <div className="w-10 h-10 rounded-xl bg-[#0B4F3C] text-white flex items-center justify-center shadow-md">
+            <Users className="w-5 h-5" />
+          </div>
+        </div>
+
+        <div className="bg-white p-4 rounded-2xl border border-[#0B4F3C]/15 shadow-sm flex items-center justify-between">
+          <div>
+            <p className="text-[10px] font-bold text-[#0B4F3C] uppercase tracking-wider">Pending Applications</p>
+            <h3 className="text-2xl font-serif font-bold text-amber-700 mt-0.5">{pendingApprovalsCount} Pending</h3>
+            <p className="text-[10px] text-[#171A18]/70 mt-0.5">Requires Admin Approval</p>
+          </div>
+          <div className="w-10 h-10 rounded-xl bg-amber-600 text-white flex items-center justify-center shadow-md">
+            <Clock className="w-5 h-5" />
+          </div>
+        </div>
+
+        <div className="bg-white p-4 rounded-2xl border border-[#0B4F3C]/15 shadow-sm flex items-center justify-between">
+          <div>
+            <p className="text-[10px] font-bold text-[#0B4F3C] uppercase tracking-wider">Sales Directors</p>
+            <h3 className="text-2xl font-serif font-bold text-[#0B4F3C] mt-0.5">{directorsCount} Directors</h3>
+            <p className="text-[10px] text-[#171A18]/70 mt-0.5">Top tier leadership</p>
+          </div>
+          <div className="w-10 h-10 rounded-xl bg-[#0B4F3C] text-white flex items-center justify-center shadow-md">
+            <Award className="w-5 h-5" />
+          </div>
+        </div>
+
+        <div className="bg-white p-4 rounded-2xl border border-[#0B4F3C]/15 shadow-sm flex items-center justify-between">
+          <div>
+            <p className="text-[10px] font-bold text-[#0B4F3C] uppercase tracking-wider">Direct Sales Volume</p>
+            <h3 className="text-2xl font-serif font-bold text-[#171A18] mt-0.5">{totalSelfSales} Plots</h3>
+            <p className="text-[10px] text-[#171A18]/70 mt-0.5">Personal conversions</p>
+          </div>
+          <div className="w-10 h-10 rounded-xl bg-[#0B4F3C] text-white flex items-center justify-center shadow-md">
+            <TrendingUp className="w-5 h-5" />
+          </div>
+        </div>
+      </div>
+
+      {/* Filter & Search Toolbar */}
+      <div className="bg-white p-4 rounded-2xl border border-[#0B4F3C]/15 flex flex-wrap items-center justify-between gap-4 shadow-sm">
+        <div className="flex flex-wrap items-center gap-3">
+          {/* Approval Filter Pills */}
+          <div className="flex items-center gap-1 bg-[#FAF9F6] border border-[#0B4F3C]/20 p-1 rounded-xl">
+            <button
+              onClick={() => setApprovalFilter('ALL')}
+              className={`px-3 py-1 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
+                approvalFilter === 'ALL' ? 'bg-[#0B4F3C] text-white' : 'text-[#171A18]/70 hover:text-[#171A18]'
+              }`}
+            >
+              All Agents ({employees.length})
+            </button>
+            <button
+              onClick={() => setApprovalFilter('PENDING_APPROVAL')}
+              className={`px-3 py-1 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
+                approvalFilter === 'PENDING_APPROVAL' ? 'bg-amber-600 text-white' : 'text-amber-800 hover:text-amber-900'
+              }`}
+            >
+              Pending Approval ({pendingApprovalsCount})
+            </button>
+            <button
+              onClick={() => setApprovalFilter('APPROVED')}
+              className={`px-3 py-1 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
+                approvalFilter === 'APPROVED' ? 'bg-emerald-700 text-white' : 'text-emerald-800 hover:text-emerald-900'
+              }`}
+            >
+              Active Approved
+            </button>
+          </div>
+
+          {/* Rank Selector */}
+          <div>
+            <select
+              value={rankFilter}
+              onChange={(e) => setRankFilter(e.target.value)}
+              className="bg-[#FAF9F6] border border-[#0B4F3C]/20 text-[#171A18] font-bold text-xs rounded-xl px-3 py-2 focus:outline-none focus:border-[#0B4F3C]"
+            >
+              <option value="ALL">All MLM Ranks</option>
+              {RANKS.map((r) => (
+                <option key={r} value={r}>{r}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        {/* Search Bar */}
+        <div className="relative">
+          <Search className="w-4 h-4 text-[#0B4F3C] absolute left-3 top-2.5" />
+          <input
+            type="text"
+            placeholder="Search by Name, Code, Email..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-9 pr-4 py-2 bg-[#FAF9F6] border border-[#0B4F3C]/20 rounded-xl text-xs text-[#171A18] font-bold focus:outline-none focus:border-[#0B4F3C] w-64"
+          />
+        </div>
+      </div>
+
       {/* Directory Table */}
-      <div className="glass-card p-6 rounded-2xl border border-[#1F2937]">
+      <div className="bg-white p-6 rounded-2xl border border-[#0B4F3C]/15 shadow-sm">
         {isLoading ? (
           <div className="flex justify-center p-8">
-            <div className="w-8 h-8 border-4 border-[#1E40AF] border-t-transparent rounded-full animate-spin"></div>
+            <div className="w-8 h-8 border-4 border-[#0B4F3C] border-t-transparent rounded-full animate-spin"></div>
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs text-white">
-              <thead className="bg-[#0F172A] text-[#94A3B8] uppercase text-[10px]">
+            <table className="w-full text-left text-xs text-[#171A18]">
+              <thead className="bg-[#EAF3EF] text-[#0B4F3C] uppercase text-[10px] font-bold border-b border-[#0B4F3C]/15">
                 <tr>
                   <th className="p-3">Code</th>
                   <th className="p-3">Full Name</th>
+                  <th className="p-3">Phone & Email</th>
                   <th className="p-3">Sponsor Upline</th>
                   <th className="p-3">Current Rank</th>
+                  <th className="p-3">Approval Status</th>
                   <th className="p-3">Self Sales</th>
-                  <th className="p-3">Team Sales</th>
-                  <th className="p-3">Active Legs</th>
-                  <th className="p-3">Actions</th>
+                  <th className="p-3 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#1F2937]">
-                {employees.map((emp) => (
-                  <tr key={emp.id} className="hover:bg-[#111827]">
-                    <td className="p-3 font-mono font-bold text-[#F97316]">{emp.employeeCode}</td>
-                    <td className="p-3 font-bold">
-                      {emp.userId ? emp.userId.fullName : 'Executive'}
-                      <p className="text-[10px] text-[#94A3B8] font-normal">{emp.userId ? emp.userId.email : ''}</p>
-                    </td>
-                    <td className="p-3 text-[#94A3B8]">
-                      {emp.parentId && typeof emp.parentId === 'object' && (emp.parentId as any).userId
-                        ? (emp.parentId as any).userId.fullName
-                        : 'Root / CEO'}
-                    </td>
-                    <td className="p-3">
-                      <span className="px-2.5 py-0.5 rounded-full bg-[#1E40AF]/20 text-[#3B82F6] font-bold text-[10px] border border-[#1E40AF]/40">
-                        {emp.currentRank}
-                      </span>
-                    </td>
-                    <td className="p-3 font-bold text-white">{emp.selfSalesCount}</td>
-                    <td className="p-3 font-bold text-[#22C55E]">{emp.teamSalesCount}</td>
-                    <td className="p-3 font-bold text-[#3B82F6]">{emp.activeLegsCount}</td>
-                    <td className="p-3">
-                      <button
-                        onClick={() => handleDelete(emp.id)}
-                        className="p-1.5 rounded-lg text-[#EF4444] hover:bg-[#EF4444]/20 transition-colors"
-                        title="Delete Agent"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+              <tbody className="divide-y divide-[#0B4F3C]/10">
+                {filteredEmployees.map((emp) => {
+                  const approvalStatus = (emp.userId as any)?.approvalStatus || 'APPROVED';
+                  const isPending = approvalStatus === 'PENDING_APPROVAL';
+
+                  return (
+                    <tr
+                      key={emp.id}
+                      onClick={() => setSelectedAgentId(emp.id)}
+                      className={`transition-colors cursor-pointer group ${
+                        isPending ? 'bg-amber-50/60 hover:bg-amber-100/60' : 'hover:bg-[#EAF3EF]/40'
+                      }`}
+                    >
+                      <td className="p-3 font-mono font-bold text-[#0B4F3C] group-hover:underline">
+                        {emp.employeeCode}
+                      </td>
+                      <td className="p-3 font-bold text-[#171A18]">
+                        {emp.userId ? emp.userId.fullName : 'Executive'}
+                      </td>
+                      <td className="p-3 text-[#171A18]/70">
+                        <p className="font-semibold text-[#171A18]">{emp.userId?.phone || 'N/A'}</p>
+                        <p className="text-[10px] text-[#171A18]/60">{emp.userId?.email || 'N/A'}</p>
+                      </td>
+                      <td className="p-3 text-[#171A18]/70">
+                        {emp.parentId && typeof emp.parentId === 'object' && (emp.parentId as any).userId
+                          ? (emp.parentId as any).userId.fullName
+                          : 'Root / CEO'}
+                      </td>
+                      <td className="p-3">
+                        <span className="px-2.5 py-0.5 rounded-full bg-[#EAF3EF] text-[#0B4F3C] font-bold text-[10px] border border-[#0B4F3C]/20">
+                          {emp.currentRank}
+                        </span>
+                      </td>
+                      <td className="p-3">
+                        {isPending ? (
+                          <span className="px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-800 font-extrabold text-[10px] border border-amber-500/30 flex items-center gap-1 w-fit">
+                            <Clock className="w-3 h-3 text-amber-700" /> Pending Admin Approval
+                          </span>
+                        ) : approvalStatus === 'REJECTED' ? (
+                          <span className="px-2.5 py-0.5 rounded-full bg-red-500/20 text-red-800 font-extrabold text-[10px] border border-red-500/30">
+                            Rejected
+                          </span>
+                        ) : (
+                          <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-800 font-extrabold text-[10px] border border-emerald-500/30 flex items-center gap-1 w-fit">
+                            <CheckCircle2 className="w-3 h-3 text-emerald-700" /> Active Approved
+                          </span>
+                        )}
+                      </td>
+                      <td className="p-3 font-bold text-[#171A18]">{emp.selfSalesCount}</td>
+                      <td className="p-3 text-right space-x-1.5">
+                        {isPending ? (
+                          <>
+                            <button
+                              onClick={(e) => handleApproveAgent(e, emp.id)}
+                              className="px-3 py-1.5 rounded-lg bg-[#0B4F3C] hover:bg-[#063B2D] text-white text-xs font-bold shadow-md cursor-pointer inline-flex items-center gap-1 border border-[#0B4F3C]"
+                            >
+                              <CheckCircle2 className="w-3.5 h-3.5" /> Approve Agent
+                            </button>
+                            <button
+                              onClick={(e) => handleRejectAgent(e, emp.id)}
+                              className="p-1.5 rounded-lg bg-red-50 text-red-700 hover:bg-red-600 hover:text-white transition-colors cursor-pointer border border-red-200"
+                              title="Reject Application"
+                            >
+                              <XCircle className="w-3.5 h-3.5" />
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedAgentId(emp.id);
+                              }}
+                              className="p-1.5 rounded-lg bg-[#EAF3EF] text-[#0B4F3C] hover:bg-[#0B4F3C] hover:text-white transition-colors cursor-pointer inline-flex items-center gap-1 text-[11px] font-bold px-2.5"
+                              title="View Dossier / Promote"
+                            >
+                              <Eye className="w-3.5 h-3.5" /> Dossier
+                            </button>
+                            <button
+                              onClick={(e) => handleDelete(e, emp.id)}
+                              className="p-1.5 rounded-lg text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
+                              title="Delete Agent"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
         )}
       </div>
 
-      {/* Add Agent Modal */}
+      {/* Add Agent Modal (Direct Onboarding) */}
       {isAddModalOpen && (
         <AddEmployeeModal
-          existingEmployees={employees}
           onClose={() => setIsAddModalOpen(false)}
+          onSuccess={fetchEmployees}
+        />
+      )}
+
+      {/* Agent Performance Dossier & Promotion Modal */}
+      {selectedAgentId && (
+        <AgentProfileModal
+          employeeId={selectedAgentId}
+          allEmployees={employees}
+          onClose={() => setSelectedAgentId(null)}
           onSuccess={fetchEmployees}
         />
       )}

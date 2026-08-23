@@ -5,6 +5,7 @@ import { QueryProvider } from '@/components/providers/QueryProvider'
 import { ToastProvider } from '@/components/ui/Toast'
 import { Navbar } from '@/components/layout/Navbar'
 import { Footer } from '@/components/layout/Footer'
+import { HouseAndSkyChatbot } from '@/components/real-estate/HouseAndSkyChatbot'
 
 const cormorant = Cormorant_Garamond({
   subsets: ['latin'],
@@ -59,6 +60,7 @@ export default function RootLayout({
               {children}
             </div>
             <Footer />
+            <HouseAndSkyChatbot />
           </ToastProvider>
         </QueryProvider>
       </body>

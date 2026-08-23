@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { X, CreditCard, DollarSign } from 'lucide-react';
+import { X, CreditCard } from 'lucide-react';
 import api from '../../services/api';
 import { Employee } from '../../types';
 import { useAuth } from '../../context/AuthContext';
+import { useToast } from '../../context/ToastContext';
 
 interface RequestPayoutModalProps {
   employees: Employee[];
@@ -16,6 +17,7 @@ export const RequestPayoutModal: React.FC<RequestPayoutModalProps> = ({
   onSuccess
 }) => {
   const { employee: loggedInEmployee } = useAuth();
+  const toast = useToast();
 
   const [employeeId, setEmployeeId] = useState<string>(loggedInEmployee ? loggedInEmployee.id : '');
   const [amount, setAmount] = useState<number>(50000);
@@ -38,42 +40,42 @@ export const RequestPayoutModal: React.FC<RequestPayoutModalProps> = ({
         }
       });
 
-      alert('Payout request submitted successfully! Pending admin approval.');
+      toast.success('Payout request submitted successfully! Pending admin approval.');
       onSuccess();
       onClose();
     } catch (error) {
       console.error(error);
-      alert('Failed to submit payout request');
+      toast.error('Failed to submit payout request');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-      <div className="bg-[#111827] border border-[#1F2937] w-full max-w-md rounded-2xl p-6 space-y-6 shadow-2xl">
-        <div className="flex items-center justify-between border-b border-[#1F2937] pb-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+      <div className="bg-white border border-[#0B4F3C]/20 w-full max-w-md rounded-3xl p-6 space-y-6 shadow-2xl">
+        <div className="flex items-center justify-between border-b border-[#0B4F3C]/15 pb-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[#22C55E]/20 border border-[#22C55E]/40 text-[#22C55E] flex items-center justify-center">
+            <div className="w-10 h-10 rounded-xl bg-[#0B4F3C] text-white flex items-center justify-center shadow-md">
               <CreditCard className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-lg font-bold text-white">Request Commission Payout</h3>
-              <p className="text-xs text-[#94A3B8]">Disburse earned MLM sales commissions to bank account</p>
+              <h3 className="text-lg font-serif font-bold text-[#171A18]">Request Commission Payout</h3>
+              <p className="text-xs text-[#171A18]/70">Disburse earned MLM sales commissions to bank account</p>
             </div>
           </div>
-          <button onClick={onClose} className="p-2 rounded-xl bg-[#0F172A] text-[#94A3B8] hover:text-white">
+          <button onClick={onClose} className="p-2 rounded-xl bg-[#EAF3EF] text-[#0B4F3C] hover:bg-[#0B4F3C] hover:text-white transition-colors cursor-pointer">
             <X className="w-5 h-5" />
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4 text-xs">
           <div>
-            <label className="text-[#94A3B8]">Select Beneficiary Agent</label>
+            <label className="text-[#171A18]/70 font-semibold">Select Beneficiary Agent</label>
             <select
               value={employeeId}
               onChange={(e) => setEmployeeId(e.target.value)}
-              className="w-full mt-1 bg-[#0F172A] border border-[#1F2937] rounded-xl px-3 py-2 text-white font-bold focus:outline-none focus:border-[#1E40AF]"
+              className="w-full mt-1 bg-[#FAF9F6] border border-[#0B4F3C]/20 rounded-xl px-3 py-2 text-[#171A18] font-bold focus:outline-none focus:border-[#0B4F3C]"
             >
               {employees.map((emp) => (
                 <option key={emp.id} value={emp.id}>
@@ -85,67 +87,67 @@ export const RequestPayoutModal: React.FC<RequestPayoutModalProps> = ({
           </div>
 
           <div>
-            <label className="text-[#94A3B8]">Payout Amount (₹)</label>
+            <label className="text-[#171A18]/70 font-semibold">Payout Amount (₹)</label>
             <input
               type="number"
               required
               min={1000}
               value={amount}
               onChange={(e) => setAmount(Number(e.target.value))}
-              className="w-full mt-1 bg-[#0F172A] border border-[#1F2937] rounded-xl px-3 py-2 text-white font-extrabold text-sm focus:outline-none focus:border-[#1E40AF]"
+              className="w-full mt-1 bg-[#FAF9F6] border border-[#0B4F3C]/20 rounded-xl px-3 py-2 text-[#0B4F3C] font-extrabold text-sm focus:outline-none focus:border-[#0B4F3C]"
             />
           </div>
 
-          <div className="p-3 bg-[#0F172A] rounded-xl border border-[#1F2937] space-y-3">
-            <p className="font-bold text-white text-[11px]">Bank Account Details:</p>
+          <div className="p-3 bg-[#EAF3EF] rounded-xl border border-[#0B4F3C]/20 space-y-3">
+            <p className="font-bold text-[#0B4F3C] text-[11px]">Bank Account Details:</p>
             
             <div>
-              <label className="text-[#94A3B8]">Bank Name</label>
+              <label className="text-[#171A18]/70 font-semibold">Bank Name</label>
               <input
                 type="text"
                 required
                 value={bankName}
                 onChange={(e) => setBankName(e.target.value)}
-                className="w-full mt-1 bg-[#111827] border border-[#1F2937] rounded-xl px-3 py-1.5 text-white"
+                className="w-full mt-1 bg-white border border-[#0B4F3C]/20 rounded-xl px-3 py-1.5 text-[#171A18] font-bold"
               />
             </div>
 
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <label className="text-[#94A3B8]">Account Number</label>
+                <label className="text-[#171A18]/70 font-semibold">Account Number</label>
                 <input
                   type="text"
                   required
                   value={accountNumber}
                   onChange={(e) => setAccountNumber(e.target.value)}
-                  className="w-full mt-1 bg-[#111827] border border-[#1F2937] rounded-xl px-3 py-1.5 text-white font-mono"
+                  className="w-full mt-1 bg-white border border-[#0B4F3C]/20 rounded-xl px-3 py-1.5 text-[#171A18] font-mono font-bold"
                 />
               </div>
               <div>
-                <label className="text-[#94A3B8]">IFSC Code</label>
+                <label className="text-[#171A18]/70 font-semibold">IFSC Code</label>
                 <input
                   type="text"
                   required
                   value={ifscCode}
                   onChange={(e) => setIfscCode(e.target.value)}
-                  className="w-full mt-1 bg-[#111827] border border-[#1F2937] rounded-xl px-3 py-1.5 text-white font-mono"
+                  className="w-full mt-1 bg-white border border-[#0B4F3C]/20 rounded-xl px-3 py-1.5 text-[#171A18] font-mono font-bold"
                 />
               </div>
             </div>
           </div>
 
-          <div className="pt-4 border-t border-[#1F2937] flex items-center gap-3">
+          <div className="pt-4 border-t border-[#0B4F3C]/15 flex items-center gap-3">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 py-2.5 rounded-xl bg-[#0F172A] border border-[#1F2937] font-bold text-xs text-[#94A3B8] hover:text-white"
+              className="flex-1 py-2.5 rounded-xl bg-[#FAF9F6] border border-[#0B4F3C]/20 font-bold text-xs text-[#171A18]/70 hover:text-[#171A18]"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-[#22C55E] to-emerald-600 font-bold text-xs text-white shadow-lg hover:opacity-90"
+              className="flex-1 py-2.5 rounded-xl bg-[#0B4F3C] hover:bg-[#063B2D] font-bold text-xs text-white shadow-md cursor-pointer border border-[#0B4F3C]"
             >
               {isSubmitting ? 'Submitting...' : 'Submit Request'}
             </button>

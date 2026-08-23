@@ -38,7 +38,21 @@ router.post('/auth/login', authLimiter, validate({
   email: { required: true, type: 'email' },
   password: { required: true, type: 'string' }
 }), authController.login);
+router.post('/auth/forgot-password', authLimiter, validate({
+  email: { required: true, type: 'email' }
+}), authController.forgotPassword);
+router.post('/auth/reset-password', authLimiter, validate({
+  resetToken: { required: true, type: 'string' },
+  newPassword: { required: true, type: 'string', minLength: 6 }
+}), authController.resetPassword);
 router.get('/auth/me', protect, authController.getMe);
+
+router.post('/auth/register-public-agent', authLimiter, validate({
+  fullName: { required: true, type: 'string', minLength: 2, maxLength: 80 },
+  email: { required: true, type: 'email' },
+  password: { required: true, type: 'string', minLength: 6, maxLength: 128 },
+  phone: { required: true, type: 'string', minLength: 5, maxLength: 20 }
+}), authController.registerPublicAgent);
 
 // --- Employee / Agent CRUD & MLM Routes ---
 router.get('/employees', protect, employeeController.getEmployees);
@@ -58,6 +72,8 @@ router.put('/employees/:id', protect, validate({
   parentId: { type: 'objectId' }
 }), employeeController.updateEmployee);
 router.delete('/employees/:id', protect, authorize('ADMIN'), employeeController.deleteEmployee);
+router.post('/employees/:id/approve', protect, authorize('ADMIN', 'MANAGER', 'DIRECTOR'), employeeController.approveAgent);
+router.post('/employees/:id/reject', protect, authorize('ADMIN', 'MANAGER', 'DIRECTOR'), employeeController.rejectAgent);
 router.post('/employees/:id/evaluate-rank', protect, authorize('ADMIN', 'DIRECTOR'), employeeController.updateEmployeeRank);
 
 router.get('/mlm/tree', protect, mlmController.getTree);
@@ -85,6 +101,12 @@ router.delete('/projects/:id', protect, authorize('ADMIN'), projectController.de
 router.put('/projects/:projectId/settings', protect, authorize('ADMIN'), projectController.updateProjectSettings);
 
 // --- Plot Management & Sales Routes ---
+router.get('/user/my-properties', (req, res, next) => {
+  if (req.headers.authorization) {
+    return protect(req, res, next);
+  }
+  next();
+}, plotController.getUserProperties);
 router.get('/plots', protect, plotController.getPlots);
 router.get('/plots/export-csv', protect, authorize('ADMIN', 'DIRECTOR', 'MANAGER'), plotController.exportPlotsCSV);
 router.post('/plots/compute-price', protect, authorize('ADMIN', 'DIRECTOR', 'MANAGER'), plotController.computePricePreview);

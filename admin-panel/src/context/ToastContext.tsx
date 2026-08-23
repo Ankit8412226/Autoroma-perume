@@ -20,9 +20,9 @@ const ToastContext = createContext<ToastContextType | undefined>(undefined);
 let idSeq = 1;
 
 const STYLES: Record<ToastType, { icon: React.ReactNode; ring: string }> = {
-  success: { icon: <CheckCircle2 className="w-5 h-5 text-[#22C55E]" />, ring: 'border-[#22C55E]/40' },
-  error: { icon: <XCircle className="w-5 h-5 text-[#EF4444]" />, ring: 'border-[#EF4444]/40' },
-  info: { icon: <Info className="w-5 h-5 text-[#3B82F6]" />, ring: 'border-[#3B82F6]/40' }
+  success: { icon: <CheckCircle2 className="w-5 h-5 text-[#0B4F3C]" />, ring: 'border-[#0B4F3C]/30 bg-white' },
+  error: { icon: <XCircle className="w-5 h-5 text-red-600" />, ring: 'border-red-300 bg-white' },
+  info: { icon: <Info className="w-5 h-5 text-[#0B4F3C]" />, ring: 'border-[#0B4F3C]/30 bg-white' }
 };
 
 export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -52,11 +52,11 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         {toasts.map((t) => (
           <div
             key={t.id}
-            className={`flex items-start gap-3 p-3 rounded-xl bg-[#111827] border ${STYLES[t.type].ring} shadow-2xl animate-in slide-in-from-right-4 fade-in duration-200`}
+            className={`flex items-start gap-3 p-3.5 rounded-2xl border ${STYLES[t.type].ring} shadow-xl animate-in slide-in-from-right-4 fade-in duration-200`}
           >
             <div className="flex-shrink-0 mt-0.5">{STYLES[t.type].icon}</div>
-            <p className="flex-1 text-xs text-[#F8FAFC] font-medium leading-relaxed">{t.message}</p>
-            <button onClick={() => remove(t.id)} className="text-[#94A3B8] hover:text-white">
+            <p className="flex-1 text-xs text-[#171A18] font-bold leading-relaxed">{t.message}</p>
+            <button onClick={() => remove(t.id)} className="text-[#171A18]/50 hover:text-[#171A18]">
               <X className="w-4 h-4" />
             </button>
           </div>

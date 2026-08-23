@@ -3,7 +3,6 @@ import { FileBarChart, Download, Loader2 } from 'lucide-react';
 import api from '../services/api';
 import { useToast } from '../context/ToastContext';
 
-// Each report maps to a real backend endpoint that streams a CSV of live data.
 const REPORTS = [
   { title: 'Revenue & Sales Report', type: 'REVENUE', endpoint: '/reports/revenue', desc: 'Every completed sale transaction with project, plot, buyer, seller & amount' },
   { title: 'Differential Commission Audit', type: 'COMMISSION', endpoint: '/reports/commission-audit', desc: 'Full upline differential commission calculation audit trail' },
@@ -41,28 +40,28 @@ export const ReportsPage: React.FC = () => {
     <div className="space-y-6 animate-in fade-in duration-300">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-extrabold text-[#F8FAFC]">Financial & Audit Reports</h2>
-          <p className="text-xs text-[#94A3B8] mt-1">Exportable CSV financial audits, MLM tree reports, and plot inventory ledgers — generated from live data</p>
+          <h2 className="text-2xl font-serif font-bold text-[#171A18]">Financial & Audit Reports</h2>
+          <p className="text-xs text-[#171A18]/70 mt-1">Exportable CSV financial audits, MLM tree reports, and plot inventory ledgers — generated from live data</p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {REPORTS.map((report, idx) => (
-          <div key={idx} className="glass-card p-6 rounded-2xl border border-[#1F2937] hover:border-[#1E40AF] transition-all space-y-4">
-            <FileBarChart className="w-8 h-8 text-[#3B82F6]" />
+          <div key={idx} className="bg-white p-6 rounded-2xl border border-[#0B4F3C]/15 hover:border-[#0B4F3C]/40 transition-all space-y-4 shadow-sm">
+            <FileBarChart className="w-8 h-8 text-[#0B4F3C]" />
             <div>
-              <h3 className="font-bold text-white text-base">{report.title}</h3>
-              <p className="text-xs text-[#94A3B8] mt-1">{report.desc}</p>
+              <h3 className="font-serif font-bold text-[#171A18] text-base">{report.title}</h3>
+              <p className="text-xs text-[#171A18]/70 mt-1">{report.desc}</p>
             </div>
             <button
               onClick={() => handleExportReport(report.endpoint, report.title)}
               disabled={loading === report.endpoint}
-              className="w-full py-2.5 bg-[#0F172A] border border-[#1F2937] text-white hover:bg-[#1E40AF] text-xs font-bold rounded-xl flex items-center justify-center gap-2 transition-colors disabled:opacity-60"
+              className="w-full py-2.5 bg-[#0B4F3C] hover:bg-[#063B2D] text-white text-xs font-bold rounded-xl flex items-center justify-center gap-2 transition-colors cursor-pointer border border-[#0B4F3C] disabled:opacity-60"
             >
               {loading === report.endpoint ? (
                 <><Loader2 className="w-4 h-4 animate-spin" /> Generating...</>
               ) : (
-                <><Download className="w-4 h-4 text-emerald-400" /> Export CSV</>
+                <><Download className="w-4 h-4 text-white" /> Export CSV</>
               )}
             </button>
           </div>
