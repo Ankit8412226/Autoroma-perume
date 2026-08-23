@@ -35,6 +35,7 @@ export function Navbar() {
   const savedCount = mounted ? savedIds.length : 0
 
   const navLinks = [
+    { label: 'Properties', href: '/properties' },
     { label: 'Locations', href: '/locations' },
     { label: 'Agents', href: '/agents' },
     { label: 'Services', href: '/services' },
@@ -58,9 +59,9 @@ export function Navbar() {
             </Link>
 
             {/* Desktop Navigation Links */}
-            <nav className="hidden lg:flex items-center space-x-8">
+            <nav className="hidden lg:flex items-center space-x-7">
               {navLinks.map((link) => {
-                const isActive = pathname === link.href
+                const isActive = pathname === link.href || (link.href === '/properties' && pathname.startsWith('/properties'))
                 return (
                   <Link
                     key={link.label}
