@@ -6,8 +6,8 @@ import { Building, Lock, Mail, ShieldCheck, UserCheck, Briefcase } from 'lucide-
 
 export const LoginPage: React.FC = () => {
   const [selectedRole, setSelectedRole] = useState<'ADMIN' | 'AGENT' | 'MANAGER'>('ADMIN');
-  const [email, setEmail] = useState<string>('ankit@hippo.com');
-  const [password, setPassword] = useState<string>('Password123!');
+  const [email, setEmail] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
 
@@ -16,9 +16,6 @@ export const LoginPage: React.FC = () => {
 
   const handleRoleSelect = (role: 'ADMIN' | 'AGENT' | 'MANAGER') => {
     setSelectedRole(role);
-    if (role === 'ADMIN') setEmail('ankit@hippo.com');
-    else if (role === 'AGENT') setEmail('agent2@hippo.com');
-    else if (role === 'MANAGER') setEmail('agent5@hippo.com');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -111,6 +108,7 @@ export const LoginPage: React.FC = () => {
               <input
                 type="email"
                 required
+                placeholder="enter your email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full bg-[#FAF9F6] border border-[#0B4F3C]/20 rounded-xl pl-9 pr-4 py-2.5 text-xs text-[#171A18] placeholder-[#171A18]/50 focus:outline-none focus:border-[#0B4F3C]"
@@ -125,6 +123,7 @@ export const LoginPage: React.FC = () => {
               <input
                 type="password"
                 required
+                placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full bg-[#FAF9F6] border border-[#0B4F3C]/20 rounded-xl pl-9 pr-4 py-2.5 text-xs text-[#171A18] placeholder-[#171A18]/50 focus:outline-none focus:border-[#0B4F3C]"
@@ -140,12 +139,6 @@ export const LoginPage: React.FC = () => {
             {isLoading ? 'Authenticating...' : `Sign In as ${selectedRole}`}
           </button>
         </form>
-
-        <div className="p-3 rounded-xl bg-[#EAF3EF] border border-[#0B4F3C]/15 text-[11px] text-[#171A18]/70 space-y-1">
-          <p className="font-bold text-[#0B4F3C]">Default Demo Credentials:</p>
-          <p>Email: <span className="text-[#0B4F3C] font-mono font-bold">{email}</span></p>
-          <p>Password: <span className="text-[#0B4F3C] font-mono font-bold">Password123!</span></p>
-        </div>
       </div>
     </div>
   );
