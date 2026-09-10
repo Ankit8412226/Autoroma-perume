@@ -1,11 +1,8 @@
+import { formatCurrency as formatCurrencyINR } from './formatters';
+
 /**
- * Formats price in paise to INR string (e.g. 39900 -> ₹399)
+ * Formats price to INR string (e.g. 1500000 -> ₹15,00,000)
  */
-export function formatCurrency(priceInPaise: number): string {
-  const rupees = priceInPaise / 100
-  return new Intl.NumberFormat('en-IN', {
-    style: 'currency',
-    currency: 'INR',
-    maximumFractionDigits: rupees % 1 === 0 ? 0 : 2,
-  }).format(rupees)
+export function formatCurrency(amount: number | string | null | undefined): string {
+  return formatCurrencyINR(amount);
 }

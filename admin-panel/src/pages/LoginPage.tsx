@@ -6,7 +6,7 @@ import { Building, Lock, Mail, ShieldCheck, UserCheck, Briefcase } from 'lucide-
 
 export const LoginPage: React.FC = () => {
   const [selectedRole, setSelectedRole] = useState<'ADMIN' | 'AGENT' | 'MANAGER'>('ADMIN');
-  const [email, setEmail] = useState<string>('ankit@houseandsky.com');
+  const [email, setEmail] = useState<string>('ankit@hippo.com');
   const [password, setPassword] = useState<string>('Password123!');
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
@@ -16,9 +16,9 @@ export const LoginPage: React.FC = () => {
 
   const handleRoleSelect = (role: 'ADMIN' | 'AGENT' | 'MANAGER') => {
     setSelectedRole(role);
-    if (role === 'ADMIN') setEmail('ankit@houseandsky.com');
-    else if (role === 'AGENT') setEmail('agent@houseandsky.com');
-    else if (role === 'MANAGER') setEmail('manager@houseandsky.com');
+    if (role === 'ADMIN') setEmail('ankit@hippo.com');
+    else if (role === 'AGENT') setEmail('agent2@hippo.com');
+    else if (role === 'MANAGER') setEmail('agent5@hippo.com');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {

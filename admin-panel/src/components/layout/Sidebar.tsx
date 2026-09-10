@@ -20,29 +20,38 @@ import {
   ShieldCheck
 } from 'lucide-react';
 
-const navigationItems = [
-  { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard, adminOnly: true },
-  { name: 'Customer Inquiries', path: '/inquiries', icon: MessageSquare },
-  { name: 'Employees & Agents', path: '/employees', icon: Users },
-  { name: 'MLM Network Tree', path: '/mlm-tree', icon: GitMerge },
-  { name: 'Projects', path: '/projects', icon: Building2, adminOnly: true },
-  { name: 'Plot Management', path: '/plots', icon: MapPin },
-  { name: 'Plot Maps', path: '/plot-maps', icon: Map, adminOnly: true },
-  { name: 'Commissions', path: '/commissions', icon: DollarSign },
-  { name: 'Payouts', path: '/payouts', icon: CreditCard },
-  { name: 'AI Knowledge Base', path: '/ai-knowledge', icon: Bot, adminOnly: true },
-  { name: 'OCR Analyzer', path: '/ocr-analyzer', icon: ScanText, adminOnly: true },
-  { name: 'Reports', path: '/reports', icon: FileBarChart, adminOnly: true },
-  { name: 'Notifications', path: '/notifications', icon: Bell },
-  { name: 'Settings', path: '/settings', icon: Settings, adminOnly: true },
-];
+const ALL_ROLES = ['ADMIN', 'DIRECTOR', 'MANAGER', 'EMPLOYEE', 'AGENT'];
+const ADMIN_DIRECTOR = ['ADMIN', 'DIRECTOR'];
+const ADMIN_DIRECTOR_MANAGER = ['ADMIN', 'DIRECTOR', 'MANAGER'];
 
-const ADMIN_ROLES = ['ADMIN', 'DIRECTOR'];
+interface NavItem {
+  name: string;
+  path: string;
+  icon: any;
+  allowedRoles: string[];
+}
+
+const navigationItems: NavItem[] = [
+  { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard, allowedRoles: ADMIN_DIRECTOR },
+  { name: 'Customer Inquiries', path: '/inquiries', icon: MessageSquare, allowedRoles: ALL_ROLES },
+  { name: 'Employees & Agents', path: '/employees', icon: Users, allowedRoles: ALL_ROLES },
+  { name: 'MLM Network Tree', path: '/mlm-tree', icon: GitMerge, allowedRoles: ALL_ROLES },
+  { name: 'Projects', path: '/projects', icon: Building2, allowedRoles: ADMIN_DIRECTOR },
+  { name: 'Plot Management', path: '/plots', icon: MapPin, allowedRoles: ALL_ROLES },
+  { name: 'Plot Maps', path: '/plot-maps', icon: Map, allowedRoles: ADMIN_DIRECTOR_MANAGER },
+  { name: 'Commissions', path: '/commissions', icon: DollarSign, allowedRoles: ALL_ROLES },
+  { name: 'Payouts', path: '/payouts', icon: CreditCard, allowedRoles: ALL_ROLES },
+  { name: 'AI Knowledge Base', path: '/ai-knowledge', icon: Bot, allowedRoles: ADMIN_DIRECTOR },
+  { name: 'OCR Analyzer', path: '/ocr-analyzer', icon: ScanText, allowedRoles: ADMIN_DIRECTOR },
+  { name: 'Reports', path: '/reports', icon: FileBarChart, allowedRoles: ADMIN_DIRECTOR },
+  { name: 'Notifications', path: '/notifications', icon: Bell, allowedRoles: ALL_ROLES },
+  { name: 'Settings', path: '/settings', icon: Settings, allowedRoles: ADMIN_DIRECTOR },
+];
 
 export const Sidebar: React.FC = () => {
   const { user } = useAuth();
-  const isAdmin = !!user && ADMIN_ROLES.includes(user.role);
-  const visibleItems = navigationItems.filter((item) => !item.adminOnly || isAdmin);
+  const userRole = user?.role || 'AGENT';
+  const visibleItems = navigationItems.filter((item) => item.allowedRoles.includes(userRole));
 
   return (
     <aside className="w-64 bg-white border-r border-[#0B4F3C]/15 flex flex-col h-screen sticky top-0 z-30 select-none shadow-sm">

@@ -1,85 +1,66 @@
 import React, { useState, useEffect } from 'react'
+import { inquiriesService } from '../services/inquiriesService'
+import { TableSkeleton } from '../components/common/Skeleton'
+import { EmptyState } from '../components/common/EmptyState'
+import { ErrorState } from '../components/common/ErrorState'
+import { formatDate } from '../utils/formatters'
 import {
   MessageSquare,
   Search,
   Filter,
-  UserCheck,
-  Calendar,
   Phone,
   Mail,
-  MapPin,
-  CheckCircle2,
-  Clock,
-  ArrowUpRight,
   RefreshCw,
-  Plus
+  Inbox
 } from 'lucide-react'
 
 export function LeadsInquiriesPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('ALL')
   const [isLoading, setIsLoading] = useState(false)
-
-  const [inquiries, setInquiries] = useState([
-    {
-      id: 'inq-101',
-      customerName: 'Rajesh Singhania',
-      email: 'rajesh.s@singhaniagroup.in',
-      phone: '+91 98201 99887',
-      project: 'The Solitaire Sky Villa Enclave',
-      plotNo: 'Plot E5-104',
-      type: 'SITE_VISIT_REQUEST',
-      message: 'Interested in booking a private site tour for Plot E5-104 this weekend with senior estate advisor.',
-      assignedAgent: 'Kabir Merchant (EMP-1001)',
-      status: 'NEW',
-      date: 'Aug 23, 2026 at 11:30 AM',
-    },
-    {
-      id: 'inq-102',
-      customerName: 'Ananya Deshmukh',
-      email: 'ananya.d@deshmukhhomes.com',
-      phone: '+91 98190 22334',
-      project: 'Casa de Assagao Coastal Enclave',
-      plotNo: 'Plot GA-208',
-      type: 'PRICE_QUOTATION',
-      message: 'Requesting formal PLC breakdown & milestone payment options for coastal land plot GA-208.',
-      assignedAgent: 'Unassigned (Direct Desk)',
-      status: 'IN_PROGRESS',
-      date: 'Aug 22, 2026 at 04:15 PM',
-    },
-    {
-      id: 'inq-103',
-      customerName: 'Devendra Kapoor',
-      email: 'd.kapoor@kapoorcapital.com',
-      phone: '+91 98700 44556',
-      project: 'Golf Course Credenza Enclave',
-      plotNo: 'Plot GC-54',
-      type: 'CONTACT_FORM_SUBMISSION',
-      message: 'Looking for 450 Sq Yrd prime land plots on Golf Course Road for commercial villa development.',
-      assignedAgent: 'Natasha Roy (EMP-1004)',
-      status: 'CONVERTED',
-      date: 'Aug 20, 2026 at 02:45 PM',
-    },
-  ])
+  const [error, setError] = useState<string | null>(null)
+  const [inquiries, setInquiries] = useState<any[]>([])
 
   useEffect(() => {
     fetchInquiries()
   }, [])
 
   const fetchInquiries = async () => {
+    setIsLoading(true)
+    setError(null)
     try {
-      setIsLoading(true)
-      const res = await fetch('/api/reports')
-      if (res.ok) {
-        const data = await res.json()
-        if (data.inquiries && data.inquiries.length > 0) {
-          setInquiries(data.inquiries)
-        }
+      const data = await inquiriesService.getInquiries()
+      if (Array.isArray(data)) {
+        const formatted = data.map((inq: any) => ({
+          id: inq._id ? `INQ-${inq._id.slice(-6).toUpperCase()}` : (inq.id || 'INQ'),
+          rawId: inq._id,
+          customerName: inq.name || inq.customerName || 'Customer',
+          email: inq.email || 'No email provided',
+          phone: inq.phone || 'No phone provided',
+          project: inq.projectName || (inq.projectId ? inq.projectId.name : 'General Inquiry'),
+          plotNo: inq.plotNo || 'N/A',
+          type: inq.inquiryType || 'CONTACT_FORM',
+          message: inq.message || '',
+          assignedAgent: inq.assignedAgentId ? (inq.assignedAgentId.userId ? inq.assignedAgentId.userId.fullName : 'Assigned Agent') : 'Unassigned (Direct Desk)',
+          status: inq.status || 'NEW',
+          date: formatDate(inq.createdAt, { includeTime: true, fallback: 'Just now' })
+        }))
+        setInquiries(formatted)
       }
-    } catch (e) {
-      console.log('Inquiries sync fallback', e)
+    } catch (e: any) {
+      console.error('Inquiries load error', e)
+      setError(e?.friendlyMessage || 'Failed to fetch customer inquiries.')
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const handleStatusChange = async (rawId: string, newStatus: string) => {
+    try {
+      await inquiriesService.updateInquiryStatus(rawId, { status: newStatus })
+      fetchInquiries()
+    } catch (e: any) {
+      console.error('Failed to update status', e)
     }
   }
 
@@ -105,6 +86,7 @@ export function LeadsInquiriesPage() {
           <button
             onClick={fetchInquiries}
             className="p-2 text-[#0B4F3C] bg-[#EAF3EF] border border-[#0B4F3C]/20 rounded-xl hover:bg-[#0B4F3C] hover:text-white transition-colors cursor-pointer"
+            title="Refresh Inquiries"
           >
             <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
           </button>
@@ -134,7 +116,7 @@ export function LeadsInquiriesPage() {
             <button
               key={st}
               onClick={() => setStatusFilter(st)}
-              className={`px-3 py-1 text-xs font-bold rounded-lg border transition-all ${
+              className={`px-3 py-1 text-xs font-bold rounded-lg border transition-all cursor-pointer ${
                 statusFilter === st
                   ? 'bg-[#0B4F3C] text-white border-[#0B4F3C]'
                   : 'bg-[#FAF9F6] text-[#0B4F3C] border-[#0B4F3C]/20 hover:bg-[#EAF3EF]'
@@ -147,65 +129,87 @@ export function LeadsInquiriesPage() {
       </div>
 
       {/* Inquiries Table */}
-      <div className="bg-white border border-[#0B4F3C]/15 rounded-2xl p-6 shadow-sm space-y-4">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead>
-              <tr className="border-b border-[#0B4F3C]/15 text-[#0B4F3C] font-bold uppercase text-[10px] bg-[#EAF3EF]">
-                <th className="py-3.5 px-4">Lead ID</th>
-                <th className="py-3.5 px-4">Customer Details</th>
-                <th className="py-3.5 px-4">Target Land Plot</th>
-                <th className="py-3.5 px-4">Inquiry Type</th>
-                <th className="py-3.5 px-4">Assigned Agent</th>
-                <th className="py-3.5 px-4">Status</th>
-                <th className="py-3.5 px-4">Submitted Date</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[#0B4F3C]/10">
-              {filteredInquiries.map((inq) => (
-                <tr key={inq.id} className="hover:bg-[#EAF3EF]/40 transition-colors">
-                  <td className="py-4 px-4 font-mono font-bold text-[#0B4F3C]">{inq.id}</td>
-                  <td className="py-4 px-4 space-y-0.5">
-                    <h4 className="font-bold text-[#171A18] text-sm">{inq.customerName}</h4>
-                    <p className="text-[11px] text-[#171A18]/70 flex items-center gap-1">
-                      <Mail className="w-3 h-3 text-[#0B4F3C]" /> {inq.email}
-                    </p>
-                    <p className="text-[11px] text-[#171A18]/70 flex items-center gap-1">
-                      <Phone className="w-3 h-3 text-[#0B4F3C]" /> {inq.phone}
-                    </p>
-                  </td>
-                  <td className="py-4 px-4 space-y-0.5">
-                    <span className="font-bold text-[#171A18] block">{inq.project}</span>
-                    <span className="px-2 py-0.5 bg-[#EAF3EF] text-[#0B4F3C] text-[10px] font-bold rounded border border-[#0B4F3C]/20 inline-block">
-                      {inq.plotNo}
-                    </span>
-                  </td>
-                  <td className="py-4 px-4">
-                    <span className="px-2.5 py-1 rounded bg-[#FAF9F6] border border-[#0B4F3C]/20 font-bold text-[10px] text-[#0B4F3C]">
-                      {inq.type}
-                    </span>
-                  </td>
-                  <td className="py-4 px-4 font-bold text-xs text-[#171A18]/80">{inq.assignedAgent}</td>
-                  <td className="py-4 px-4">
-                    <span
-                      className={`px-2.5 py-1 rounded-full text-[10px] font-bold border ${
-                        inq.status === 'NEW'
-                          ? 'bg-amber-500/20 text-amber-800 border-amber-500/30'
-                          : inq.status === 'IN_PROGRESS'
-                          ? 'bg-sky-500/20 text-sky-800 border-sky-500/30'
-                          : 'bg-emerald-500/20 text-emerald-800 border-emerald-500/30'
-                      }`}
-                    >
-                      {inq.status}
-                    </span>
-                  </td>
-                  <td className="py-4 px-4 font-mono text-[11px] text-[#171A18]/70">{inq.date}</td>
+      {isLoading ? (
+        <TableSkeleton rows={6} columns={7} />
+      ) : error ? (
+        <ErrorState title="Inquiries Load Failed" message={error} onRetry={fetchInquiries} />
+      ) : filteredInquiries.length === 0 ? (
+        <EmptyState
+          title="No Customer Leads Found"
+          description={
+            searchTerm || statusFilter !== 'ALL'
+              ? 'No customer inquiries match your active filter criteria.'
+              : 'No leads or inquiries have been received yet from the landing page.'
+          }
+          icon={Inbox}
+        />
+      ) : (
+        <div className="bg-white border border-[#0B4F3C]/15 rounded-2xl p-6 shadow-sm space-y-4">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead>
+                <tr className="border-b border-[#0B4F3C]/15 text-[#0B4F3C] font-bold uppercase text-[10px] bg-[#EAF3EF]">
+                  <th className="py-3.5 px-4">Lead ID</th>
+                  <th className="py-3.5 px-4">Customer Details</th>
+                  <th className="py-3.5 px-4">Target Land Plot</th>
+                  <th className="py-3.5 px-4">Inquiry Type</th>
+                  <th className="py-3.5 px-4">Assigned Agent</th>
+                  <th className="py-3.5 px-4">Status</th>
+                  <th className="py-3.5 px-4">Submitted Date</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-[#0B4F3C]/10">
+                {filteredInquiries.map((inq) => (
+                  <tr key={inq.id} className="hover:bg-[#EAF3EF]/40 transition-colors">
+                    <td className="py-4 px-4 font-mono font-bold text-[#0B4F3C]">{inq.id}</td>
+                    <td className="py-4 px-4 space-y-0.5">
+                      <h4 className="font-bold text-[#171A18] text-sm">{inq.customerName}</h4>
+                      <p className="text-[11px] text-[#171A18]/70 flex items-center gap-1">
+                        <Mail className="w-3 h-3 text-[#0B4F3C]" /> {inq.email}
+                      </p>
+                      <p className="text-[11px] text-[#171A18]/70 flex items-center gap-1">
+                        <Phone className="w-3 h-3 text-[#0B4F3C]" /> {inq.phone}
+                      </p>
+                    </td>
+                    <td className="py-4 px-4 space-y-0.5">
+                      <span className="font-bold text-[#171A18] block">{inq.project}</span>
+                      <span className="px-2 py-0.5 bg-[#EAF3EF] text-[#0B4F3C] text-[10px] font-bold rounded border border-[#0B4F3C]/20 inline-block">
+                        Plot: {inq.plotNo}
+                      </span>
+                    </td>
+                    <td className="py-4 px-4">
+                      <span className="px-2.5 py-1 rounded bg-[#FAF9F6] border border-[#0B4F3C]/20 font-bold text-[10px] text-[#0B4F3C]">
+                        {inq.type}
+                      </span>
+                    </td>
+                    <td className="py-4 px-4 font-bold text-xs text-[#171A18]/80">{inq.assignedAgent}</td>
+                    <td className="py-4 px-4">
+                      <select
+                        value={inq.status}
+                        onChange={(e) => inq.rawId && handleStatusChange(inq.rawId, e.target.value)}
+                        className={`px-2.5 py-1 rounded-full text-[10px] font-bold border cursor-pointer focus:outline-none ${
+                          inq.status === 'NEW'
+                            ? 'bg-amber-500/20 text-amber-800 border-amber-500/30'
+                            : inq.status === 'IN_PROGRESS'
+                            ? 'bg-sky-500/20 text-sky-800 border-sky-500/30'
+                            : 'bg-emerald-500/20 text-emerald-800 border-emerald-500/30'
+                        }`}
+                      >
+                        <option value="NEW">NEW</option>
+                        <option value="IN_PROGRESS">IN_PROGRESS</option>
+                        <option value="CONTACTED">CONTACTED</option>
+                        <option value="CONVERTED">CONVERTED</option>
+                        <option value="REJECTED">REJECTED</option>
+                      </select>
+                    </td>
+                    <td className="py-4 px-4 font-mono text-[11px] text-[#171A18]/70">{inq.date}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   )
 }

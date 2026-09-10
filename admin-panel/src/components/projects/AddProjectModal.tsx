@@ -20,17 +20,37 @@ export const AddProjectModal: React.FC<AddProjectModalProps> = ({ onClose, onSuc
   const [fileName, setFileName] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const [isUploading, setIsUploading] = useState(false);
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       setFileName(file.name);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        if (reader.result) {
-          setMapImageUrl(reader.result as string);
+      try {
+        setIsUploading(true);
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('folder', 'project_maps');
+
+        const response = await api.post('/upload', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+
+        if (response.data?.url) {
+          setMapImageUrl(response.data.url);
+          toast.success('Map uploaded to S3 successfully!');
         }
-      };
-      reader.readAsDataURL(file);
+      } catch (err) {
+        console.error('S3 Upload Error:', err);
+        toast.error('Failed to upload image to S3, using fallback local preview');
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          if (reader.result) setMapImageUrl(reader.result as string);
+        };
+        reader.readAsDataURL(file);
+      } finally {
+        setIsUploading(false);
+      }
     }
   };
 

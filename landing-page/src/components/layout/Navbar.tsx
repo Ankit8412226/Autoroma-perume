@@ -95,18 +95,6 @@ export function Navbar() {
                 )}
               </Link>
 
-              {/* Login Link */}
-              <a
-                href="http://localhost:3003"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-xs uppercase tracking-[0.14em] font-bold text-brand-charcoal hover:text-brand-green transition-colors px-2.5 py-1.5 inline-flex items-center gap-1.5 cursor-pointer"
-                title="User Login / Client Private Vault"
-              >
-                <LogIn className="w-3.5 h-3.5 text-brand-green" />
-                <span>Login</span>
-              </a>
-
               {/* Primary Contact CTA Button */}
               <Link
                 href="/contact"
@@ -193,16 +181,6 @@ export function Navbar() {
                   {savedCount}
                 </span>
               </Link>
-
-              <a
-                href="http://localhost:3003"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2 w-full px-4 py-3 text-brand-charcoal font-bold text-xs uppercase tracking-wider rounded-md hover:text-brand-green bg-brand-soft"
-              >
-                <LogIn className="w-4 h-4 text-brand-green" />
-                Login
-              </a>
 
               <Link
                 href="/contact"

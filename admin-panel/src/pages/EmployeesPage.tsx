@@ -3,13 +3,18 @@ import api from '../services/api';
 import { Employee, RANKS } from '../types';
 import { AddEmployeeModal } from '../components/employees/AddEmployeeModal';
 import { AgentProfileModal } from '../components/employees/AgentProfileModal';
-import { UserPlus, Trash2, RefreshCw, Search, Users, Award, TrendingUp, ShieldCheck, Eye, CheckCircle2, XCircle, Clock } from 'lucide-react';
+import { TableSkeleton } from '../components/common/Skeleton';
+import { EmptyState } from '../components/common/EmptyState';
+import { ErrorState } from '../components/common/ErrorState';
+import { formatNumber } from '../utils/formatters';
+import { UserPlus, Trash2, RefreshCw, Search, Users, Award, TrendingUp, Eye, CheckCircle2, XCircle, Clock } from 'lucide-react';
 import { useToast } from '../context/ToastContext';
 
 export const EmployeesPage: React.FC = () => {
   const toast = useToast();
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState<boolean>(false);
   const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null);
 
@@ -23,12 +28,14 @@ export const EmployeesPage: React.FC = () => {
   }, []);
 
   const fetchEmployees = async () => {
+    setIsLoading(true);
+    setError(null);
     try {
-      setIsLoading(true);
       const response = await api.get('/employees');
-      setEmployees(response.data);
-    } catch (error) {
-      console.error(error);
+      setEmployees(response.data || []);
+    } catch (err: any) {
+      console.error(err);
+      setError(err?.friendlyMessage || 'Failed to fetch employees directory.');
     } finally {
       setIsLoading(false);
     }
@@ -42,7 +49,7 @@ export const EmployeesPage: React.FC = () => {
       fetchEmployees();
     } catch (error: any) {
       console.error(error);
-      toast.error(error.response?.data?.message || 'Failed to approve agent');
+      toast.error(error?.friendlyMessage || 'Failed to approve agent');
     }
   };
 
@@ -55,7 +62,7 @@ export const EmployeesPage: React.FC = () => {
       fetchEmployees();
     } catch (error: any) {
       console.error(error);
-      toast.error(error.response?.data?.message || 'Failed to reject agent application');
+      toast.error(error?.friendlyMessage || 'Failed to reject agent application');
     }
   };
 
@@ -66,13 +73,12 @@ export const EmployeesPage: React.FC = () => {
       await api.delete(`/employees/${id}`);
       toast.success('Agent deleted successfully');
       fetchEmployees();
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      toast.error('Failed to delete agent');
+      toast.error(error?.friendlyMessage || 'Failed to delete agent');
     }
   };
 
-  // Filtered List
   const filteredEmployees = employees.filter((emp) => {
     const name = emp.userId?.fullName || '';
     const email = emp.userId?.email || '';
@@ -92,7 +98,6 @@ export const EmployeesPage: React.FC = () => {
     return matchesSearch && matchesRank && matchesApproval;
   });
 
-  // KPI Calculations
   const totalAgents = employees.length;
   const pendingApprovalsCount = employees.filter((e) => (e.userId as any)?.approvalStatus === 'PENDING_APPROVAL').length;
   const directorsCount = employees.filter(
@@ -114,7 +119,7 @@ export const EmployeesPage: React.FC = () => {
             className="p-2.5 rounded-xl bg-[#EAF3EF] border border-[#0B4F3C]/20 text-[#0B4F3C] hover:bg-[#0B4F3C] hover:text-white transition-colors cursor-pointer"
             title="Refresh Directory"
           >
-            <RefreshCw className="w-4 h-4" />
+            <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
           </button>
           <button
             onClick={() => setIsAddModalOpen(true)}
@@ -151,7 +156,7 @@ export const EmployeesPage: React.FC = () => {
         <div className="bg-white p-4 rounded-2xl border border-[#0B4F3C]/15 shadow-sm flex items-center justify-between">
           <div>
             <p className="text-[10px] font-bold text-[#0B4F3C] uppercase tracking-wider">Total Sales Team</p>
-            <h3 className="text-2xl font-serif font-bold text-[#171A18] mt-0.5">{totalAgents} Agents</h3>
+            <h3 className="text-2xl font-serif font-bold text-[#171A18] mt-0.5">{formatNumber(totalAgents)} Agents</h3>
             <p className="text-[10px] text-[#171A18]/70 mt-0.5">Across all downlines</p>
           </div>
           <div className="w-10 h-10 rounded-xl bg-[#0B4F3C] text-white flex items-center justify-center shadow-md">
@@ -162,7 +167,7 @@ export const EmployeesPage: React.FC = () => {
         <div className="bg-white p-4 rounded-2xl border border-[#0B4F3C]/15 shadow-sm flex items-center justify-between">
           <div>
             <p className="text-[10px] font-bold text-[#0B4F3C] uppercase tracking-wider">Pending Applications</p>
-            <h3 className="text-2xl font-serif font-bold text-amber-700 mt-0.5">{pendingApprovalsCount} Pending</h3>
+            <h3 className="text-2xl font-serif font-bold text-amber-700 mt-0.5">{formatNumber(pendingApprovalsCount)} Pending</h3>
             <p className="text-[10px] text-[#171A18]/70 mt-0.5">Requires Admin Approval</p>
           </div>
           <div className="w-10 h-10 rounded-xl bg-amber-600 text-white flex items-center justify-center shadow-md">
@@ -173,7 +178,7 @@ export const EmployeesPage: React.FC = () => {
         <div className="bg-white p-4 rounded-2xl border border-[#0B4F3C]/15 shadow-sm flex items-center justify-between">
           <div>
             <p className="text-[10px] font-bold text-[#0B4F3C] uppercase tracking-wider">Sales Directors</p>
-            <h3 className="text-2xl font-serif font-bold text-[#0B4F3C] mt-0.5">{directorsCount} Directors</h3>
+            <h3 className="text-2xl font-serif font-bold text-[#0B4F3C] mt-0.5">{formatNumber(directorsCount)} Directors</h3>
             <p className="text-[10px] text-[#171A18]/70 mt-0.5">Top tier leadership</p>
           </div>
           <div className="w-10 h-10 rounded-xl bg-[#0B4F3C] text-white flex items-center justify-center shadow-md">
@@ -184,7 +189,7 @@ export const EmployeesPage: React.FC = () => {
         <div className="bg-white p-4 rounded-2xl border border-[#0B4F3C]/15 shadow-sm flex items-center justify-between">
           <div>
             <p className="text-[10px] font-bold text-[#0B4F3C] uppercase tracking-wider">Direct Sales Volume</p>
-            <h3 className="text-2xl font-serif font-bold text-[#171A18] mt-0.5">{totalSelfSales} Plots</h3>
+            <h3 className="text-2xl font-serif font-bold text-[#171A18] mt-0.5">{formatNumber(totalSelfSales)} Plots</h3>
             <p className="text-[10px] text-[#171A18]/70 mt-0.5">Personal conversions</p>
           </div>
           <div className="w-10 h-10 rounded-xl bg-[#0B4F3C] text-white flex items-center justify-center shadow-md">
@@ -196,7 +201,6 @@ export const EmployeesPage: React.FC = () => {
       {/* Filter & Search Toolbar */}
       <div className="bg-white p-4 rounded-2xl border border-[#0B4F3C]/15 flex flex-wrap items-center justify-between gap-4 shadow-sm">
         <div className="flex flex-wrap items-center gap-3">
-          {/* Approval Filter Pills */}
           <div className="flex items-center gap-1 bg-[#FAF9F6] border border-[#0B4F3C]/20 p-1 rounded-xl">
             <button
               onClick={() => setApprovalFilter('ALL')}
@@ -224,7 +228,6 @@ export const EmployeesPage: React.FC = () => {
             </button>
           </div>
 
-          {/* Rank Selector */}
           <div>
             <select
               value={rankFilter}
@@ -239,7 +242,6 @@ export const EmployeesPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Search Bar */}
         <div className="relative">
           <Search className="w-4 h-4 text-[#0B4F3C] absolute left-3 top-2.5" />
           <input
@@ -253,12 +255,24 @@ export const EmployeesPage: React.FC = () => {
       </div>
 
       {/* Directory Table */}
-      <div className="bg-white p-6 rounded-2xl border border-[#0B4F3C]/15 shadow-sm">
-        {isLoading ? (
-          <div className="flex justify-center p-8">
-            <div className="w-8 h-8 border-4 border-[#0B4F3C] border-t-transparent rounded-full animate-spin"></div>
-          </div>
-        ) : (
+      {isLoading ? (
+        <TableSkeleton rows={6} columns={7} />
+      ) : error ? (
+        <ErrorState title="Directory Load Failed" message={error} onRetry={fetchEmployees} />
+      ) : filteredEmployees.length === 0 ? (
+        <EmptyState
+          title="No Agents Found"
+          description={
+            searchQuery || rankFilter !== 'ALL' || approvalFilter !== 'ALL'
+              ? 'No agents match your filter criteria. Try clearing search query or resetting filters.'
+              : 'No sales executives or agents are registered in the system yet.'
+          }
+          icon={Users}
+          actionLabel="Add Agent"
+          onAction={() => setIsAddModalOpen(true)}
+        />
+      ) : (
+        <div className="bg-white p-6 rounded-2xl border border-[#0B4F3C]/15 shadow-sm">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs text-[#171A18]">
               <thead className="bg-[#EAF3EF] text-[#0B4F3C] uppercase text-[10px] font-bold border-b border-[#0B4F3C]/15">
@@ -287,7 +301,7 @@ export const EmployeesPage: React.FC = () => {
                       }`}
                     >
                       <td className="p-3 font-mono font-bold text-[#0B4F3C] group-hover:underline">
-                        {emp.employeeCode}
+                        {emp.employeeCode || '—'}
                       </td>
                       <td className="p-3 font-bold text-[#171A18]">
                         {emp.userId ? emp.userId.fullName : 'Executive'}
@@ -303,7 +317,7 @@ export const EmployeesPage: React.FC = () => {
                       </td>
                       <td className="p-3">
                         <span className="px-2.5 py-0.5 rounded-full bg-[#EAF3EF] text-[#0B4F3C] font-bold text-[10px] border border-[#0B4F3C]/20">
-                          {emp.currentRank}
+                          {emp.currentRank || 'Business Executive'}
                         </span>
                       </td>
                       <td className="p-3">
@@ -321,7 +335,7 @@ export const EmployeesPage: React.FC = () => {
                           </span>
                         )}
                       </td>
-                      <td className="p-3 font-bold text-[#171A18]">{emp.selfSalesCount}</td>
+                      <td className="p-3 font-bold text-[#171A18]">{formatNumber(emp.selfSalesCount)}</td>
                       <td className="p-3 text-right space-x-1.5">
                         {isPending ? (
                           <>
@@ -367,8 +381,8 @@ export const EmployeesPage: React.FC = () => {
               </tbody>
             </table>
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Add Agent Modal (Direct Onboarding) */}
       {isAddModalOpen && (

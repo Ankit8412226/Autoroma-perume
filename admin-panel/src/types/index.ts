@@ -55,6 +55,10 @@ export interface Project {
   status: 'UPCOMING' | 'ACTIVE' | 'COMPLETED';
   basePricePerSqft: number;
   bannerImage?: string;
+  availableCount?: number;
+  pendingCount?: number;
+  bookedCount?: number;
+  soldCount?: number;
 }
 
 export interface Plot {

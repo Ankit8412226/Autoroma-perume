@@ -4,7 +4,11 @@ import { Plot, Project, Employee } from '../types';
 import { PlotMapCanvas } from '../components/plots/PlotMapCanvas';
 import { PlotDetailModal } from '../components/plots/PlotDetailModal';
 import { UploadNaksaModal } from '../components/plots/UploadNaksaModal';
-import { LayoutGrid, Table, Download, Upload, Search, RefreshCw, ScanText } from 'lucide-react';
+import { TableSkeleton } from '../components/common/Skeleton';
+import { EmptyState } from '../components/common/EmptyState';
+import { ErrorState } from '../components/common/ErrorState';
+import { formatCurrency, formatArea } from '../utils/formatters';
+import { LayoutGrid, Table, Download, Upload, Search, RefreshCw, ScanText, MapPin } from 'lucide-react';
 import { useToast } from '../context/ToastContext';
 
 export const PlotManagementPage: React.FC = () => {
@@ -17,6 +21,7 @@ export const PlotManagementPage: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
   const [isImporting, setIsImporting] = useState<boolean>(false);
   const [isNaksaModalOpen, setIsNaksaModalOpen] = useState<boolean>(false);
 
@@ -27,23 +32,25 @@ export const PlotManagementPage: React.FC = () => {
   }, []);
 
   const fetchProjectsAndPlots = async () => {
+    setIsLoading(true);
+    setError(null);
     try {
-      setIsLoading(true);
       const [projRes, plotRes, empRes] = await Promise.all([
         api.get('/projects'),
         api.get('/plots'),
         api.get('/employees')
       ]);
 
-      setProjects(projRes.data);
-      setPlots(plotRes.data);
-      setEmployees(empRes.data);
+      setProjects(projRes.data || []);
+      setPlots(plotRes.data || []);
+      setEmployees(empRes.data || []);
 
-      if (projRes.data.length > 0 && !selectedProjectId) {
+      if (projRes.data?.length > 0 && !selectedProjectId) {
         setSelectedProjectId(projRes.data[0]._id);
       }
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
+      setError(e?.friendlyMessage || 'Failed to fetch plot inventory data from backend.');
     } finally {
       setIsLoading(false);
     }
@@ -61,9 +68,9 @@ export const PlotManagementPage: React.FC = () => {
       link.remove();
       window.URL.revokeObjectURL(url);
       toast.success('Plot Inventory Report CSV downloaded successfully.');
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      toast.error('Failed to export Plot CSV report.');
+      toast.error(err?.friendlyMessage || 'Failed to export Plot CSV report.');
     }
   };
 
@@ -78,18 +85,46 @@ export const PlotManagementPage: React.FC = () => {
 
     try {
       setIsImporting(true);
-      const formData = new FormData();
-      formData.append('file', file);
 
-      const response = await api.post(`/projects/${selectedProjectId}/plots/import-csv`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
+      const text = await file.text();
+      const lines = text.split(/\r?\n/).filter((l) => l.trim());
+      if (lines.length < 2) {
+        toast.error('CSV file appears empty or has no data rows.');
+        return;
+      }
+
+      const headers = lines[0].split(',').map((h) => h.replace(/^"|"$/g, '').trim());
+      const plotsData = lines.slice(1).map((line) => {
+        const values: string[] = [];
+        let inQuote = false;
+        let cell = '';
+        for (const ch of line) {
+          if (ch === '"') { inQuote = !inQuote; }
+          else if (ch === ',' && !inQuote) { values.push(cell.trim()); cell = ''; }
+          else { cell += ch; }
+        }
+        values.push(cell.trim());
+
+        const row: Record<string, string> = {};
+        headers.forEach((h, idx) => { row[h] = values[idx] ?? ''; });
+        return row;
+      }).filter((r) => r['Plot No'] || r['plotNo']);
+
+      if (plotsData.length === 0) {
+        toast.error('No valid plot rows found in CSV. Check header row matches expected format.');
+        return;
+      }
+
+      const response = await api.post('/plots/import-csv', {
+        projectId: selectedProjectId,
+        plotsData
       });
 
       toast.success(`Successfully imported ${response.data.importedCount || 0} plots!`);
       fetchProjectsAndPlots();
     } catch (err: any) {
       console.error(err);
-      toast.error(err.friendlyMessage || 'Failed to import CSV file. Please verify CSV format.');
+      toast.error(err?.friendlyMessage || 'Failed to import CSV file. Please verify CSV format.');
     } finally {
       setIsImporting(false);
       e.target.value = '';
@@ -104,7 +139,7 @@ export const PlotManagementPage: React.FC = () => {
     );
     const matchesStatus = statusFilter === 'ALL' || plot.status === statusFilter;
     const matchesSearch =
-      plot.plotNo.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (plot.plotNo && plot.plotNo.toLowerCase().includes(searchQuery.toLowerCase())) ||
       (plot.ownerName && plot.ownerName.toLowerCase().includes(searchQuery.toLowerCase()));
 
     return matchesProject && matchesStatus && matchesSearch;
@@ -177,8 +212,9 @@ export const PlotManagementPage: React.FC = () => {
           <button
             onClick={fetchProjectsAndPlots}
             className="p-2 rounded-xl bg-[#EAF3EF] border border-[#0B4F3C]/20 text-[#0B4F3C] hover:bg-[#0B4F3C] hover:text-white transition-colors cursor-pointer"
+            title="Refresh Inventory"
           >
-            <RefreshCw className="w-4 h-4" />
+            <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
           </button>
         </div>
       </div>
@@ -235,9 +271,18 @@ export const PlotManagementPage: React.FC = () => {
 
       {/* Main View Area */}
       {isLoading ? (
-        <div className="flex justify-center p-12">
-          <div className="w-8 h-8 border-4 border-[#0B4F3C] border-t-transparent rounded-full animate-spin"></div>
-        </div>
+        viewMode === 'MAP' ? (
+          <div className="bg-white rounded-2xl border border-[#0B4F3C]/15 h-96 flex items-center justify-center animate-pulse">
+            <div className="text-center space-y-2">
+              <div className="w-8 h-8 border-4 border-[#0B4F3C] border-t-transparent rounded-full animate-spin mx-auto"></div>
+              <p className="text-xs text-[#171A18]/60 font-bold">Rendering Vector Map Canvas...</p>
+            </div>
+          </div>
+        ) : (
+          <TableSkeleton rows={8} columns={8} />
+        )
+      ) : error ? (
+        <ErrorState title="Inventory Fetch Error" message={error} onRetry={fetchProjectsAndPlots} />
       ) : viewMode === 'MAP' ? (
         <PlotMapCanvas
           projects={projects}
@@ -246,6 +291,25 @@ export const PlotManagementPage: React.FC = () => {
           plots={plots}
           onSelectPlot={(plot) => setSelectedPlot(plot)}
           onOpenNaksaModal={() => setIsNaksaModalOpen(true)}
+        />
+      ) : filteredPlots.length === 0 ? (
+        <EmptyState
+          title="No Plots Found"
+          description={
+            searchQuery || statusFilter !== 'ALL'
+              ? 'No plots match your active filter criteria. Try clearing search query or changing plot status filter.'
+              : 'No plots have been created for this project yet. Use "Upload Gov. Naksa" or "Import Plots CSV" to seed inventory.'
+          }
+          icon={MapPin}
+          actionLabel={searchQuery || statusFilter !== 'ALL' ? 'Clear Filters' : 'Upload Naksa'}
+          onAction={() => {
+            if (searchQuery || statusFilter !== 'ALL') {
+              setSearchQuery('');
+              setStatusFilter('ALL');
+            } else {
+              setIsNaksaModalOpen(true);
+            }
+          }}
         />
       ) : (
         /* Client Report Format Table View */
@@ -256,16 +320,16 @@ export const PlotManagementPage: React.FC = () => {
                 <tr>
                   <th className="p-3">S.No</th>
                   <th className="p-3 font-extrabold text-[#0B4F3C]">Plot No</th>
-                  <th className="p-3">Sellable Sq Yrd</th>
-                  <th className="p-3">Carpet Sq Yrd</th>
-                  <th className="p-3">12mtr</th>
-                  <th className="p-3">9Mtr</th>
-                  <th className="p-3">Corner</th>
+                  <th className="p-3">Sellable Area</th>
+                  <th className="p-3">Carpet Area</th>
+                  <th className="p-3">12M Road</th>
+                  <th className="p-3">9M Road</th>
+                  <th className="p-3">Corner PLC</th>
                   <th className="p-3">Park Facing</th>
                   <th className="p-3 font-bold text-[#0B4F3C]">Total PLC</th>
                   <th className="p-3 text-amber-700">Discounted PLC</th>
                   <th className="p-3">OTMC</th>
-                  <th className="p-3">GST on other charges</th>
+                  <th className="p-3">GST on Charges</th>
                   <th className="p-3 font-extrabold text-[#0B4F3C]">Total Cost</th>
                   <th className="p-3">Status</th>
                   <th className="p-3">Owner / Remarks</th>
@@ -273,9 +337,9 @@ export const PlotManagementPage: React.FC = () => {
               </thead>
               <tbody className="divide-y divide-[#0B4F3C]/10">
                 {filteredPlots.map((p, idx) => {
-                  const sellable = p.sellableSqYrd || (p.sizeSqft ? (p.sizeSqft / 9).toFixed(2) : '201.28');
-                  const carpet = p.carpetSqYrd || (p.sizeSqft ? (p.sizeSqft / 18).toFixed(2) : '104.48');
-                  const totalCost = p.totalCost || p.price || 1367510;
+                  const sellable = p.sellableSqYrd || (p.sizeSqft ? (p.sizeSqft / 9).toFixed(2) : null);
+                  const carpet = p.carpetSqYrd || (p.sizeSqft ? (p.sizeSqft / 18).toFixed(2) : null);
+                  const totalCost = p.totalCost || p.price || 0;
 
                   return (
                     <tr
@@ -285,23 +349,25 @@ export const PlotManagementPage: React.FC = () => {
                     >
                       <td className="p-3 text-[#171A18]/70">{idx + 1}</td>
                       <td className="p-3 font-bold text-[#0B4F3C]">{p.plotNo}</td>
-                      <td className="p-3">{sellable}</td>
-                      <td className="p-3">{carpet}</td>
-                      <td className="p-3 text-center">{p.plc12mtr || '-'}</td>
-                      <td className="p-3 text-center">{p.plc9mtr || '-'}</td>
-                      <td className="p-3 text-center">{p.plcCorner || '-'}</td>
-                      <td className="p-3 text-center">{p.plcParkFacing || '-'}</td>
-                      <td className="p-3 font-bold text-[#0B4F3C]">₹{(p.totalPlc || 0).toLocaleString('en-IN')}</td>
-                      <td className="p-3 text-amber-700 font-bold">₹{(p.discountedPlc || 0).toLocaleString('en-IN')}</td>
-                      <td className="p-3">₹{(p.otmc || 250).toLocaleString('en-IN')}</td>
-                      <td className="p-3">₹{(p.gstOnOtherCharges || 9057.69).toLocaleString('en-IN')}</td>
-                      <td className="p-3 font-extrabold text-[#0B4F3C]">₹{totalCost.toLocaleString('en-IN')}</td>
+                      <td className="p-3">{sellable ? `${sellable} Sq Yrd` : '—'}</td>
+                      <td className="p-3">{carpet ? `${carpet} Sq Yrd` : '—'}</td>
+                      <td className="p-3 text-center">{p.plc12mtr ? formatCurrency(p.plc12mtr, { allowZero: true }) : '-'}</td>
+                      <td className="p-3 text-center">{p.plc9mtr ? formatCurrency(p.plc9mtr, { allowZero: true }) : '-'}</td>
+                      <td className="p-3 text-center">{p.plcCorner ? 'Yes' : '-'}</td>
+                      <td className="p-3 text-center">{p.plcParkFacing ? 'Yes' : '-'}</td>
+                      <td className="p-3 font-bold text-[#0B4F3C]">{formatCurrency(p.totalPlc, { allowZero: true })}</td>
+                      <td className="p-3 text-amber-700 font-bold">{formatCurrency(p.discountedPlc, { allowZero: true })}</td>
+                      <td className="p-3">{formatCurrency(p.otmc, { allowZero: true })}</td>
+                      <td className="p-3">{formatCurrency(p.gstOnOtherCharges, { allowZero: true })}</td>
+                      <td className="p-3 font-extrabold text-[#0B4F3C]">
+                        {formatCurrency(totalCost)}
+                      </td>
                       <td className="p-3 font-sans">
                         <span className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold border ${
                           p.status === 'AVAILABLE' ? 'bg-emerald-500/20 text-emerald-800 border-emerald-500/30' :
                           p.status === 'BOOKED' ? 'bg-sky-500/20 text-sky-800 border-sky-500/30' :
                           p.status === 'PENDING' ? 'bg-amber-500/20 text-amber-800 border-amber-500/30' :
-                          'bg-red-500/20 text-red-800 border-red-500/30'
+                          'bg-red-500/20 text-red-800 border-red-800/30'
                         }`}>
                           {p.status}
                         </span>

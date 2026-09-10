@@ -28,8 +28,15 @@ async function processMapImageOCR({ projectId, mapName, fileBuffer, fileName }) 
 
   // 2. Extract via Google Gemini Vision (best for architectural blueprints / Naksa).
   if (process.env.GEMINI_API_KEY && fileBuffer) {
-    const preferredModel = process.env.GEMINI_VISION_MODEL || 'gemini-1.5-pro';
-    const fallbackModels = [preferredModel, 'gemini-1.5-flash', 'gemini-2.0-flash-exp'];
+    const preferredModel = process.env.GEMINI_VISION_MODEL || 'gemini-3.6-flash';
+    const fallbackModels = Array.from(new Set([
+      preferredModel,
+      'gemini-3.6-flash',
+      'gemini-3.1-pro-preview',
+      'gemini-2.5-flash',
+      'gemini-1.5-pro',
+      'gemini-1.5-flash'
+    ]));
 
     for (const modelName of fallbackModels) {
       try {

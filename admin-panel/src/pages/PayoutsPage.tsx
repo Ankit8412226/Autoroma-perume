@@ -2,7 +2,11 @@ import React, { useEffect, useState } from 'react';
 import api from '../services/api';
 import { Payout, Employee } from '../types';
 import { RequestPayoutModal } from '../components/commissions/RequestPayoutModal';
-import { Plus, RefreshCw, CheckCircle2 } from 'lucide-react';
+import { TableSkeleton } from '../components/common/Skeleton';
+import { EmptyState } from '../components/common/EmptyState';
+import { ErrorState } from '../components/common/ErrorState';
+import { formatCurrency, formatDate } from '../utils/formatters';
+import { Plus, RefreshCw, CheckCircle2, CreditCard } from 'lucide-react';
 import { useToast } from '../context/ToastContext';
 
 export const PayoutsPage: React.FC = () => {
@@ -10,6 +14,7 @@ export const PayoutsPage: React.FC = () => {
   const [payouts, setPayouts] = useState<Payout[]>([]);
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
   const [isRequestModalOpen, setIsRequestModalOpen] = useState<boolean>(false);
 
   useEffect(() => {
@@ -17,16 +22,18 @@ export const PayoutsPage: React.FC = () => {
   }, []);
 
   const fetchPayoutsAndAgents = async () => {
+    setIsLoading(true);
+    setError(null);
     try {
-      setIsLoading(true);
       const [payRes, empRes] = await Promise.all([
         api.get('/payouts'),
         api.get('/employees')
       ]);
-      setPayouts(payRes.data);
-      setEmployees(empRes.data);
-    } catch (e) {
+      setPayouts(payRes.data || []);
+      setEmployees(empRes.data || []);
+    } catch (e: any) {
       console.error(e);
+      setError(e?.friendlyMessage || 'Failed to fetch payouts list.');
     } finally {
       setIsLoading(false);
     }
@@ -35,11 +42,11 @@ export const PayoutsPage: React.FC = () => {
   const handleApprove = async (id: string) => {
     try {
       await api.post(`/payouts/${id}/approve`);
-      toast.success('Payout approved & processed! Multi-channel WhatsApp notification sent to agent.');
+      toast.success('Payout approved & processed! Multi-channel notification dispatched to agent.');
       fetchPayoutsAndAgents();
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
-      toast.error('Failed to approve payout');
+      toast.error(e?.friendlyMessage || 'Failed to approve payout');
     }
   };
 
@@ -55,8 +62,9 @@ export const PayoutsPage: React.FC = () => {
           <button
             onClick={fetchPayoutsAndAgents}
             className="p-2.5 rounded-xl bg-[#EAF3EF] border border-[#0B4F3C]/20 text-[#0B4F3C] hover:bg-[#0B4F3C] hover:text-white transition-colors cursor-pointer"
+            title="Refresh Payouts"
           >
-            <RefreshCw className="w-4 h-4" />
+            <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
           </button>
           <button
             onClick={() => setIsRequestModalOpen(true)}
@@ -68,12 +76,20 @@ export const PayoutsPage: React.FC = () => {
       </div>
 
       {/* Payouts Directory Table */}
-      <div className="bg-white p-6 rounded-2xl border border-[#0B4F3C]/15 shadow-sm">
-        {isLoading ? (
-          <div className="flex justify-center p-8">
-            <div className="w-8 h-8 border-4 border-[#0B4F3C] border-t-transparent rounded-full animate-spin"></div>
-          </div>
-        ) : (
+      {isLoading ? (
+        <TableSkeleton rows={5} columns={6} />
+      ) : error ? (
+        <ErrorState title="Payouts Ledger Load Failed" message={error} onRetry={fetchPayoutsAndAgents} />
+      ) : payouts.length === 0 ? (
+        <EmptyState
+          title="No Payouts Requested Yet"
+          description="Click 'Request Payout' to submit a disbursement request for an active agent."
+          icon={CreditCard}
+          actionLabel="Request First Payout"
+          onAction={() => setIsRequestModalOpen(true)}
+        />
+      ) : (
+        <div className="bg-white p-6 rounded-2xl border border-[#0B4F3C]/15 shadow-sm">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs text-[#171A18]">
               <thead className="bg-[#EAF3EF] text-[#0B4F3C] uppercase text-[10px] font-bold border-b border-[#0B4F3C]/15">
@@ -89,10 +105,10 @@ export const PayoutsPage: React.FC = () => {
               <tbody className="divide-y divide-[#0B4F3C]/10">
                 {payouts.map((p) => (
                   <tr key={p._id} className="hover:bg-[#EAF3EF]/40 transition-colors">
-                    <td className="p-3 font-mono font-bold text-[#0B4F3C]">{p.referenceNo}</td>
+                    <td className="p-3 font-mono font-bold text-[#0B4F3C]">{p.referenceNo || 'PAY-REF'}</td>
                     <td className="p-3 font-bold text-[#171A18]">{p.employeeId?.userId?.fullName || 'Agent'}</td>
-                    <td className="p-3 font-extrabold text-[#0B4F3C]">₹{p.amount.toLocaleString()}</td>
-                    <td className="p-3 text-[#171A18]/70">{new Date(p.payoutDate).toLocaleDateString()}</td>
+                    <td className="p-3 font-extrabold text-[#0B4F3C]">{formatCurrency(p.amount)}</td>
+                    <td className="p-3 text-[#171A18]/70">{formatDate(p.payoutDate)}</td>
                     <td className="p-3">
                       <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
                         p.status === 'COMPLETED' ? 'bg-emerald-500/20 text-emerald-800 border-emerald-500/30' : 'bg-amber-500/20 text-amber-800 border-amber-500/30'
@@ -117,8 +133,8 @@ export const PayoutsPage: React.FC = () => {
               </tbody>
             </table>
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Request Payout Modal */}
       {isRequestModalOpen && (

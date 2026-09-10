@@ -182,15 +182,27 @@ exports.computePricePreview = async (req, res, next) => {
   }
 };
 
+const { uploadToS3 } = require('../services/s3Service');
+
 exports.uploadPlotDocument = async (req, res, next) => {
   try {
     const { plotId } = req.params;
-    const { documentType, title, fileUrl } = req.body;
+    const { documentType, title } = req.body;
+    let fileUrl = req.body.fileUrl;
+
+    if (req.file) {
+      fileUrl = await uploadToS3(
+        req.file.buffer,
+        req.file.originalname,
+        req.file.mimetype,
+        'plot_documents'
+      );
+    }
 
     const doc = await PlotDocument.create({
       plotId,
-      documentType,
-      title,
+      documentType: documentType || 'AGREEMENT',
+      title: title || (req.file ? req.file.originalname : 'Document'),
       fileUrl: fileUrl || 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
       uploadedBy: req.user ? req.user._id : null
     });

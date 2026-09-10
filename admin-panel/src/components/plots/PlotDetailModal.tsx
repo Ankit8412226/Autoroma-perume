@@ -46,9 +46,11 @@ export const PlotDetailModal: React.FC<PlotDetailModalProps> = ({
   const [plcCorner, setPlcCorner] = useState<number>(plot.plcCorner || 0);
   const [plcParkFacing, setPlcParkFacing] = useState<number>(plot.plcParkFacing || 0);
 
-  const basePrice = (typeof plot.projectId === 'object' ? (plot.projectId as any).basePricePerSqft || 4000 : 4000) * plot.sizeSqft;
-  const totalPlc = plc12mtr + plcCorner + plcParkFacing;
-  const totalCost = basePrice + totalPlc;
+  // IMPORTANT: plot.totalCost is already authoritative — computed by the
+  // pricingEngine and persisted by the Mongoose pre-save hook. We must NOT
+  // recalculate it client-side (different units: engine uses per-sq-yard rates,
+  // not basePricePerSqft × sizeSqft). Just read from the DB field.
+  const totalCost = plot.totalCost || plot.price || 0;
   const dueBalance = Math.max(0, totalCost - paidAmount);
 
   const handleAddMilestone = () => {
@@ -86,7 +88,7 @@ export const PlotDetailModal: React.FC<PlotDetailModalProps> = ({
   const handleUpdateStatus = async () => {
     try {
       setIsSubmitting(true);
-      await api.patch(`/plots/${plot._id}/status`, {
+      await api.put(`/plots/${plot._id}/status`, {
         status,
         ownerName,
         ownerPhone,
@@ -96,12 +98,7 @@ export const PlotDetailModal: React.FC<PlotDetailModalProps> = ({
         registryDate: registryDate ? new Date(registryDate) : undefined,
         paymentMilestones,
         sellerEmployeeId: sellerEmployeeId === 'DIRECT' ? null : (sellerEmployeeId || null),
-        paymentMode,
-        plc12mtr,
-        plcCorner,
-        plcParkFacing,
-        totalPlc,
-        totalCost
+        paymentMode
       });
 
       toast.success(`Plot ${plot.plotNo} status updated successfully!`);

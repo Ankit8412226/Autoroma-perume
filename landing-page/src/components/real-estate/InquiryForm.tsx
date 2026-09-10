@@ -35,16 +35,19 @@ export function InquiryForm({
     setIsSubmitting(true)
     setStatusMessage('')
 
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1';
+
     if (isAgentApplication) {
       try {
-        const res = await fetch('http://localhost:5000/api/auth/register-public-agent', {
+        const res = await fetch(`${baseUrl}/public/agent-application`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             fullName: formData.fullName,
             email: formData.email,
             phone: formData.phone,
-            password: formData.password || 'Password123!'
+            password: formData.password || 'Password123!',
+            message: formData.message
           })
         })
 
@@ -65,10 +68,36 @@ export function InquiryForm({
         setIsSubmitting(false)
       }
     } else {
-      setTimeout(() => {
-        setIsSubmitting(false)
+      try {
+        const res = await fetch(`${baseUrl}/public/inquiries`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: formData.fullName,
+            email: formData.email,
+            phone: formData.phone,
+            inquiryType: 'SITE_VISIT',
+            plotNo: propertyTitle || '',
+            message: `Preferred Window: ${formData.preferredTime} | Date: ${formData.preferredDate || 'Anytime'} | Notes: ${formData.message}`
+          })
+        })
+
+        const data = await res.json()
+
+        if (!res.ok) {
+          alert(data.message || 'Failed to submit viewing inquiry.')
+          setIsSubmitting(false)
+          return
+        }
+
+        setStatusMessage(data.message || '🎉 Viewing request submitted! Our senior advisor will contact you shortly.')
         setSubmitted(true)
-      }, 600)
+      } catch (err) {
+        console.error(err)
+        alert('Failed to connect to backend server. Please try again.')
+      } finally {
+        setIsSubmitting(false)
+      }
     }
   }
 

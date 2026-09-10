@@ -15,6 +15,9 @@ const dashboardController = require('../controllers/dashboardController');
 const notificationController = require('../controllers/notificationController');
 const reportController = require('../controllers/reportController');
 
+const inquiryController = require('../controllers/inquiryController');
+const uploadController = require('../controllers/uploadController');
+
 const { protect, authorize } = require('../middleware/auth');
 const { rateLimit } = require('../middleware/rateLimit');
 const { validate } = require('../middleware/validate');
@@ -24,8 +27,28 @@ const upload = multer({ storage: multer.memoryStorage() });
 const ROLES = ['ADMIN', 'MANAGER', 'EMPLOYEE', 'AGENT', 'DIRECTOR'];
 const PLOT_STATUSES = ['AVAILABLE', 'BOOKED', 'PENDING', 'SOLD'];
 
-// Throttle auth endpoints to blunt brute-force / credential stuffing.
+// Rate limiters for public submissions
 const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 10, message: 'Too many attempts, please try again later.' });
+const inquiryLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 20, message: 'Too many inquiries submitted. Please wait a few minutes before trying again.' });
+
+// --- S3 UPLOAD ROUTES ---
+router.post('/upload', protect, upload.single('file'), uploadController.uploadFile);
+router.post('/public/upload', upload.single('file'), uploadController.uploadFile);
+
+// --- PUBLIC DISCOVERY & LANDING PAGE ROUTES (No Auth Required) ---
+router.get('/public/projects', inquiryController.getPublicProjects);
+router.get('/public/projects/:id', inquiryController.getPublicProjectById);
+router.get('/public/plots', inquiryController.getPublicPlots);
+router.post('/public/inquiries', inquiryLimiter, validate({
+  name: { required: true, type: 'string', minLength: 2, maxLength: 80 },
+  email: { required: true, type: 'email' },
+  phone: { required: true, type: 'string', minLength: 5, maxLength: 20 }
+}), inquiryController.createPublicInquiry);
+router.post('/public/agent-application', inquiryLimiter, validate({
+  fullName: { required: true, type: 'string', minLength: 2, maxLength: 80 },
+  email: { required: true, type: 'email' },
+  phone: { required: true, type: 'string', minLength: 5, maxLength: 20 }
+}), inquiryController.createPublicAgentApplication);
 
 // --- Auth Routes ---
 router.post('/auth/register', authLimiter, validate({
@@ -118,10 +141,12 @@ router.get('/plots/:id', protect, plotController.getPlotById);
 router.put('/plots/:id/status', protect, validate({
   status: { required: true, type: 'string', enum: PLOT_STATUSES },
   ownerEmail: { type: 'email' },
-  sellerEmployeeId: { type: 'objectId' },
+  // sellerEmployeeId intentionally excluded from objectId validation:
+  // the controller accepts both a valid ObjectId (employee) and the
+  // sentinel strings 'DIRECT' / 'NONE' (no-agent direct sale).
   paidAmount: { type: 'number', min: 0 }
 }), plotController.updatePlotStatus);
-router.post('/plots/:plotId/documents', protect, plotController.uploadPlotDocument);
+router.post('/plots/:plotId/documents', protect, upload.single('file'), plotController.uploadPlotDocument);
 
 // --- Plot Map & OCR Pipeline Routes ---
 router.get('/plot-maps', protect, plotMapController.getPlotMaps);
@@ -132,7 +157,7 @@ router.post('/ocr/reject/:mapId', protect, authorize('ADMIN', 'DIRECTOR'), ocrCo
 
 // --- Commission & Payout Routes ---
 router.get('/commissions', protect, commissionController.getCommissions);
-router.get('/commissions/summary', protect, authorize('ADMIN', 'DIRECTOR'), commissionController.getCommissionSummary);
+router.get('/commissions/summary', protect, authorize('ADMIN', 'DIRECTOR', 'MANAGER'), commissionController.getCommissionSummary);
 
 router.get('/payouts', protect, payoutController.getPayouts);
 router.post('/payouts/request', protect, validate({
@@ -146,6 +171,10 @@ router.get('/reports/revenue', protect, authorize('ADMIN', 'DIRECTOR'), reportCo
 router.get('/reports/mlm-performance', protect, authorize('ADMIN', 'DIRECTOR'), reportController.mlmPerformanceReport);
 router.get('/reports/payout-summary', protect, authorize('ADMIN', 'DIRECTOR'), reportController.payoutSummaryReport);
 router.get('/reports/plot-ledger', protect, authorize('ADMIN', 'DIRECTOR'), reportController.plotLedgerReport);
+
+// --- Inquiries & Customer Leads (Admin / Manager) ---
+router.get('/inquiries', protect, authorize('ADMIN', 'MANAGER', 'DIRECTOR'), inquiryController.getInquiries);
+router.put('/inquiries/:id/status', protect, authorize('ADMIN', 'MANAGER', 'DIRECTOR'), inquiryController.updateInquiryStatus);
 
 // --- Executive Dashboard & Notifications ---
 router.get('/dashboard/stats', protect, authorize('ADMIN', 'DIRECTOR'), dashboardController.getDashboardStats);

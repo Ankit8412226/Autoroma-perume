@@ -4,8 +4,34 @@ const Plot = require('../models/Plot');
 
 exports.getProjects = async (req, res, next) => {
   try {
-    const projects = await Project.find().sort({ createdAt: -1 });
-    res.json(projects);
+    const projects = await Project.find().sort({ createdAt: -1 }).lean();
+    const projectsWithStats = await Promise.all(
+      projects.map(async (p) => {
+        const plotCounts = await Plot.aggregate([
+          { $match: { projectId: p._id } },
+          { $group: { _id: "$status", count: { $sum: 1 } } }
+        ]);
+
+        const statsMap = { AVAILABLE: 0, BOOKED: 0, PENDING: 0, SOLD: 0 };
+        plotCounts.forEach(item => {
+          if (item._id && statsMap[item._id] !== undefined) {
+            statsMap[item._id] = item.count;
+          }
+        });
+
+        const totalPlotsInDB = Object.values(statsMap).reduce((a, b) => a + b, 0);
+
+        return {
+          ...p,
+          totalPlots: Math.max(p.totalPlots || 0, totalPlotsInDB),
+          availableCount: statsMap.AVAILABLE,
+          bookedCount: statsMap.BOOKED,
+          pendingCount: statsMap.PENDING,
+          soldCount: statsMap.SOLD
+        };
+      })
+    );
+    res.json(projectsWithStats);
   } catch (error) {
     next(error);
   }
