@@ -10,31 +10,36 @@ interface AgentCardProps {
 }
 
 export function AgentCard({ agent, className = '' }: AgentCardProps) {
+  const nameParts = (agent.name || 'Sales Executive').trim().split(/\s+/);
+  const initials = (agent as any).initials || (
+    nameParts.length >= 2
+      ? `${nameParts[0][0]}${nameParts[nameParts.length - 1][0]}`.toUpperCase()
+      : (agent.name || 'AG').slice(0, 2).toUpperCase()
+  );
+
   return (
-    <div className={`group bg-white border border-brand-green/15 rounded-lg p-6 flex flex-col justify-between hover:border-brand-green/40 transition-all duration-300 shadow-sm ${className}`}>
+    <div className={`group bg-white border border-brand-green/15 rounded-2xl p-6 flex flex-col justify-between hover:border-brand-green/40 transition-all duration-300 shadow-sm ${className}`}>
       <div className="space-y-5">
-        {/* Agent Avatar & Badge */}
+        {/* Agent Initials Badge */}
         <div className="flex items-center gap-4">
-          <div className="relative w-16 h-16 sm:w-20 sm:h-20 shrink-0 border border-brand-green/20 rounded-full overflow-hidden">
-            <Image
-              src={agent.avatar}
-              alt={agent.name}
-              fill
-              className="object-cover transition-transform duration-500 group-hover:scale-105"
-            />
+          <div className="w-16 h-16 sm:w-20 sm:h-20 shrink-0 rounded-2xl bg-gradient-to-br from-[#0B4F3C] via-[#0B241C] to-[#063B2D] border-2 border-amber-400/40 flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform duration-300">
+            <span className="font-serif font-bold text-xl sm:text-2xl text-amber-300 tracking-wider">
+              {initials}
+            </span>
           </div>
           <div className="space-y-1">
-            <span className="text-[10px] uppercase tracking-[0.18em] font-bold text-brand-green block">
-              {agent.location}
+            <span className="text-[10px] uppercase tracking-[0.18em] font-extrabold text-brand-green block">
+              {agent.location || 'Executive Desk'}
             </span>
             <Link href={`/agents/${agent.slug}`}>
               <h3 className="font-serif text-lg sm:text-xl text-brand-charcoal font-bold group-hover:text-brand-green transition-colors">
                 {agent.name}
               </h3>
             </Link>
-            <p className="text-xs text-brand-charcoal/70 font-light">{agent.title}</p>
+            <p className="text-xs text-brand-charcoal/70 font-semibold">{agent.title}</p>
           </div>
         </div>
+
 
         {/* Stats */}
         <div className="grid grid-cols-2 gap-2 py-3 border-y border-brand-green/10 text-center font-mono">

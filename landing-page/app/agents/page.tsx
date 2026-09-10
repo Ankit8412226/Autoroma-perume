@@ -1,27 +1,73 @@
+'use client'
+
 import * as React from 'react'
 import { AGENTS } from '@/data/agents'
 import { AgentCard } from '@/components/real-estate/AgentCard'
 import { SectionHeading } from '@/components/real-estate/SectionHeading'
-
-export const metadata = {
-  title: 'Senior Estate Advisors & Partners — Aura Véloce',
-  description: 'Meet our senior partners specializing in ultra-prime residential real estate across Mumbai, Goa, Delhi NCR, and Bangalore.',
-}
+import { RefreshCw, Users } from 'lucide-react'
 
 export default function AgentsPage() {
+  const [agentsList, setAgentsList] = React.useState<any[]>([])
+  const [isLoading, setIsLoading] = React.useState(true)
+
+  React.useEffect(() => {
+    fetchLiveAgents()
+  }, [])
+
+  const fetchLiveAgents = async () => {
+    try {
+      setIsLoading(true)
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1'
+      const res = await fetch(`${baseUrl}/public/agents`)
+      if (res.ok) {
+        const data = await res.json()
+        if (Array.isArray(data)) {
+          setAgentsList(data)
+          return
+        }
+      }
+      setAgentsList([])
+    } catch (e) {
+      console.error('Failed to fetch agents:', e)
+      setAgentsList([])
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-12">
-      <SectionHeading
-        eyebrow="ADVISORY TEAM"
-        title="Private Real Estate Advisors"
-        subtitle="Our senior partners bring unmatched market intelligence, discretion, and architectural knowledge to every client engagement."
-      />
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-        {AGENTS.map((agent) => (
-          <AgentCard key={agent.id} agent={agent} />
-        ))}
+      <div className="flex items-center justify-between">
+        <SectionHeading
+          eyebrow="ADVISORY TEAM"
+          title="Private Real Estate Advisors"
+          subtitle="Our senior partners bring unmatched market intelligence, discretion, and architectural knowledge to every client engagement."
+        />
+        <button
+          onClick={fetchLiveAgents}
+          className="p-2.5 bg-brand-soft border border-brand-green/20 text-brand-green rounded-xl hover:bg-brand-green hover:text-white transition-all cursor-pointer shadow-sm"
+          title="Refresh live advisory team"
+        >
+          <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+        </button>
       </div>
+
+      {isLoading ? (
+        <div className="flex justify-center p-16">
+          <div className="w-8 h-8 border-4 border-brand-green border-t-transparent rounded-full animate-spin"></div>
+        </div>
+      ) : agentsList.length === 0 ? (
+        <div className="bg-white border border-brand-green/15 rounded-2xl p-12 text-center space-y-3 shadow-sm">
+          <Users className="w-12 h-12 text-brand-green mx-auto" />
+          <h3 className="font-serif text-xl text-brand-charcoal font-bold">No Advisors Found</h3>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          {agentsList.map((agent) => (
+            <AgentCard key={agent.id || agent._id} agent={agent} />
+          ))}
+        </div>
+      )}
     </div>
   )
 }

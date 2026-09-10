@@ -29,6 +29,75 @@ function PropertiesContent() {
   const [searchQuery, setSearchQuery] = React.useState('')
   const [viewMode, setViewMode] = React.useState<'grid' | 'list' | 'map'>('grid')
 
+  const [allProperties, setAllProperties] = React.useState<Property[]>(PROPERTIES)
+
+  React.useEffect(() => {
+    fetchLivePlots()
+  }, [])
+
+  const fetchLivePlots = async () => {
+    try {
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1'
+      const res = await fetch(`${baseUrl}/public/plots`)
+      if (res.ok) {
+        const plots = await res.json()
+        if (Array.isArray(plots) && plots.length > 0) {
+          const liveProps: Property[] = plots.map((plot: any) => ({
+            id: plot._id,
+            slug: `plot-${(plot.plotNo || '001').toLowerCase()}`,
+            title: `Plot ${plot.plotNo} (${plot.projectId?.name || 'Executive Township'})`,
+            tagline: `Demarcated land plot in ${plot.projectId?.location || 'Noida Township'}`,
+            description: `Demarcated plot unit ${plot.plotNo} in ${plot.projectId?.name || 'Township'}. Total Area: ${plot.sizeSqft || (plot.sellableSqYrd ? plot.sellableSqYrd * 9 : 1800)} sq ft.`,
+            price: plot.totalCost || plot.price || 1500000,
+            formattedPrice: `₹${((plot.totalCost || plot.price || 1500000) / 100000).toFixed(2)} Lakh`,
+            pricePerSqFt: plot.projectId?.basePricePerSqft || 4500,
+            formattedPricePerSqFt: `₹${plot.projectId?.basePricePerSqft || 4500} / sq ft`,
+            propertyType: 'Estate',
+            listingType: 'Buy',
+            location: {
+              city: plot.projectId?.location ? plot.projectId.location.split(',')[1]?.trim() || plot.projectId.location : 'Noida',
+              area: plot.block ? `Block ${plot.block}` : 'Main Sector',
+              address: `${plot.block ? `Block ${plot.block}` : 'Block E5'}, ${plot.projectId?.location || 'Sector 150, Noida'}`,
+              coordinates: { lat: 28.5355, lng: 77.3910 },
+            },
+            specs: {
+              bedrooms: 0,
+              bathrooms: 0,
+              areaSqFt: plot.sizeSqft || (plot.sellableSqYrd ? plot.sellableSqYrd * 9 : 1800),
+              parkingSpaces: 2,
+              yearBuilt: 2026,
+            },
+            amenities: [
+              { icon: 'ShieldCheck', name: 'Demarcated Boundary' },
+              { icon: 'Zap', name: 'Smart Infrastructure' }
+            ],
+            features: [
+              '20m Wide Road Access',
+              'Demarcated surveyed boundary',
+              'Instant legal title conveyance',
+            ],
+            images: {
+              hero: plot.projectId?.bannerImage || 'https://images.unsplash.com/photo-1524813686514-a57563d77965?w=1600&q=85&auto=format&fit=crop',
+              gallery: [
+                plot.projectId?.bannerImage || 'https://images.unsplash.com/photo-1524813686514-a57563d77965?w=1600&q=85&auto=format&fit=crop'
+              ],
+            },
+            floorPlanUrl: 'https://images.unsplash.com/photo-1600585154526-990dced4db0d?w=1000&q=80&auto=format&fit=crop',
+            agentId: 'agent-1',
+            isFeatured: true,
+            isSpotlight: true,
+            isNew: true,
+            status: plot.status === 'AVAILABLE' ? 'Available' : 'Sold',
+            createdAt: plot.createdAt || '2026-09-10',
+          }))
+          setAllProperties([...liveProps, ...PROPERTIES])
+        }
+      }
+    } catch (e) {
+      console.error('Failed to fetch live plots for properties directory:', e)
+    }
+  }
+
   const handleResetFilters = () => {
     setFilters({
       listingType: '',
@@ -44,7 +113,7 @@ function PropertiesContent() {
 
   // Filter Logic
   const filteredProperties = React.useMemo(() => {
-    return PROPERTIES.filter((prop) => {
+    return allProperties.filter((prop) => {
       // Search Query
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase()
@@ -209,7 +278,7 @@ function PropertiesContent() {
         {/* Right Results Grid / List / Map */}
         <div className="lg:col-span-9 space-y-6">
           <div className="flex items-center justify-between text-xs text-brand-charcoal/70 font-mono pb-2 border-b border-brand-green/10">
-            <span>Showing {filteredProperties.length} of {PROPERTIES.length} Properties</span>
+            <span>Showing {filteredProperties.length} of {allProperties.length} Properties</span>
             {(filters.listingType || filters.location || filters.propertyType || filters.priceRange || searchQuery) && (
               <button
                 type="button"

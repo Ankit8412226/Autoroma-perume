@@ -6,7 +6,7 @@ import { TableSkeleton } from '../components/common/Skeleton';
 import { EmptyState } from '../components/common/EmptyState';
 import { ErrorState } from '../components/common/ErrorState';
 import { formatCurrency, formatDate } from '../utils/formatters';
-import { Plus, RefreshCw, CheckCircle2, CreditCard } from 'lucide-react';
+import { Plus, RefreshCw, CheckCircle2, CreditCard, Search, DollarSign, Clock, Filter } from 'lucide-react';
 import { useToast } from '../context/ToastContext';
 
 export const PayoutsPage: React.FC = () => {
@@ -16,6 +16,8 @@ export const PayoutsPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [isRequestModalOpen, setIsRequestModalOpen] = useState<boolean>(false);
+  const [statusFilter, setStatusFilter] = useState<string>('ALL');
+  const [searchQuery, setSearchQuery] = useState<string>('');
 
   useEffect(() => {
     fetchPayoutsAndAgents();
@@ -50,10 +52,32 @@ export const PayoutsPage: React.FC = () => {
     }
   };
 
+  const filteredPayouts = payouts.filter((p) => {
+    const matchesStatus = statusFilter === 'ALL' || p.status === statusFilter;
+    const agentName = p.employeeId?.userId?.fullName || '';
+    const refNo = p.referenceNo || '';
+    const matchesSearch =
+      agentName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      refNo.toLowerCase().includes(searchQuery.toLowerCase());
+
+    return matchesStatus && matchesSearch;
+  });
+
+  const totalDisbursed = payouts
+    .filter((p) => p.status === 'COMPLETED' || p.status === 'PROCESSING')
+    .reduce((sum, p) => sum + (p.amount || 0), 0);
+
+
+  const totalPending = payouts
+    .filter((p) => p.status === 'PENDING')
+    .reduce((sum, p) => sum + (p.amount || 0), 0);
+
+  const pendingCount = payouts.filter((p) => p.status === 'PENDING').length;
+
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
       {/* Page Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-serif font-bold text-[#171A18]">Agent Earnings Payouts & Disbursements</h2>
           <p className="text-xs text-[#171A18]/70 mt-1">Disburse calculated commissions and send multi-channel notifications</p>
@@ -75,17 +99,89 @@ export const PayoutsPage: React.FC = () => {
         </div>
       </div>
 
+      {/* KPI Cards Ribbon */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="bg-white p-4 rounded-2xl border border-[#0B4F3C]/15 shadow-sm flex items-center justify-between">
+          <div>
+            <p className="text-[10px] font-bold text-[#0B4F3C] uppercase tracking-wider">Total Disbursed</p>
+            <h3 className="text-2xl font-serif font-bold text-[#0B4F3C] mt-0.5">{formatCurrency(totalDisbursed, { compact: true })}</h3>
+            <p className="text-[10px] text-[#171A18]/60 mt-0.5">Approved & paid to bank</p>
+          </div>
+          <div className="w-10 h-10 rounded-xl bg-[#0B4F3C] text-white flex items-center justify-center font-bold shadow-md">
+            <DollarSign className="w-5 h-5" />
+          </div>
+        </div>
+
+        <div className="bg-white p-4 rounded-2xl border border-[#0B4F3C]/15 shadow-sm flex items-center justify-between">
+          <div>
+            <p className="text-[10px] font-bold text-[#0B4F3C] uppercase tracking-wider">Pending Disbursal</p>
+            <h3 className="text-2xl font-serif font-bold text-amber-700 mt-0.5">{formatCurrency(totalPending, { compact: true })}</h3>
+            <p className="text-[10px] text-[#171A18]/60 mt-0.5">{pendingCount} requests awaiting approval</p>
+          </div>
+          <div className="w-10 h-10 rounded-xl bg-amber-600 text-white flex items-center justify-center font-bold shadow-md">
+            <Clock className="w-5 h-5" />
+          </div>
+        </div>
+
+        <div className="bg-white p-4 rounded-2xl border border-[#0B4F3C]/15 shadow-sm flex items-center justify-between">
+          <div>
+            <p className="text-[10px] font-bold text-[#0B4F3C] uppercase tracking-wider">Total Requests</p>
+            <h3 className="text-2xl font-serif font-bold text-[#171A18] mt-0.5">{payouts.length} Requests</h3>
+            <p className="text-[10px] text-[#171A18]/60 mt-0.5">Across active downlines</p>
+          </div>
+          <div className="w-10 h-10 rounded-xl bg-[#0B4F3C] text-white flex items-center justify-center font-bold shadow-md">
+            <CreditCard className="w-5 h-5" />
+          </div>
+        </div>
+      </div>
+
+      {/* Filter Toolbar */}
+      <div className="bg-white p-4 rounded-2xl border border-[#0B4F3C]/15 flex flex-wrap items-center justify-between gap-4 shadow-sm">
+        <div className="flex items-center gap-2">
+          <Filter className="w-4 h-4 text-[#0B4F3C]" />
+          <span className="text-xs font-bold text-[#171A18]/70">Status:</span>
+          {['ALL', 'PENDING', 'COMPLETED'].map((st) => (
+            <button
+              key={st}
+              onClick={() => setStatusFilter(st)}
+              className={`px-3 py-1 text-xs font-bold rounded-lg border transition-all cursor-pointer ${
+                statusFilter === st
+                  ? 'bg-[#0B4F3C] text-white border-[#0B4F3C]'
+                  : 'bg-[#FAF9F6] text-[#0B4F3C] border-[#0B4F3C]/20 hover:bg-[#EAF3EF]'
+              }`}
+            >
+              {st}
+            </button>
+          ))}
+        </div>
+
+        <div className="relative">
+          <Search className="w-4 h-4 text-[#0B4F3C] absolute left-3 top-2.5" />
+          <input
+            type="text"
+            placeholder="Search by Agent name or Ref No..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-9 pr-4 py-2 bg-[#FAF9F6] border border-[#0B4F3C]/20 rounded-xl text-xs text-[#171A18] font-bold focus:outline-none focus:border-[#0B4F3C] w-64"
+          />
+        </div>
+      </div>
+
       {/* Payouts Directory Table */}
       {isLoading ? (
         <TableSkeleton rows={5} columns={6} />
       ) : error ? (
         <ErrorState title="Payouts Ledger Load Failed" message={error} onRetry={fetchPayoutsAndAgents} />
-      ) : payouts.length === 0 ? (
+      ) : filteredPayouts.length === 0 ? (
         <EmptyState
-          title="No Payouts Requested Yet"
-          description="Click 'Request Payout' to submit a disbursement request for an active agent."
+          title="No Payouts Found"
+          description={
+            searchQuery || statusFilter !== 'ALL'
+              ? 'No payout requests match your filter criteria.'
+              : 'Click "Request Payout" to submit a disbursement request for an active agent.'
+          }
           icon={CreditCard}
-          actionLabel="Request First Payout"
+          actionLabel="Request Payout"
           onAction={() => setIsRequestModalOpen(true)}
         />
       ) : (
@@ -103,7 +199,7 @@ export const PayoutsPage: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#0B4F3C]/10">
-                {payouts.map((p) => (
+                {filteredPayouts.map((p) => (
                   <tr key={p._id} className="hover:bg-[#EAF3EF]/40 transition-colors">
                     <td className="p-3 font-mono font-bold text-[#0B4F3C]">{p.referenceNo || 'PAY-REF'}</td>
                     <td className="p-3 font-bold text-[#171A18]">{p.employeeId?.userId?.fullName || 'Agent'}</td>

@@ -17,7 +17,9 @@ import {
   Building,
   Bot,
   MessageSquare,
-  ShieldCheck
+  ShieldCheck,
+  ChevronRight,
+  X
 } from 'lucide-react';
 
 const ALL_ROLES = ['ADMIN', 'DIRECTOR', 'MANAGER', 'EMPLOYEE', 'AGENT'];
@@ -29,75 +31,174 @@ interface NavItem {
   path: string;
   icon: any;
   allowedRoles: string[];
+  badge?: string;
 }
 
-const navigationItems: NavItem[] = [
-  { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard, allowedRoles: ADMIN_DIRECTOR },
-  { name: 'Customer Inquiries', path: '/inquiries', icon: MessageSquare, allowedRoles: ALL_ROLES },
-  { name: 'Employees & Agents', path: '/employees', icon: Users, allowedRoles: ALL_ROLES },
-  { name: 'MLM Network Tree', path: '/mlm-tree', icon: GitMerge, allowedRoles: ALL_ROLES },
-  { name: 'Projects', path: '/projects', icon: Building2, allowedRoles: ADMIN_DIRECTOR },
-  { name: 'Plot Management', path: '/plots', icon: MapPin, allowedRoles: ALL_ROLES },
-  { name: 'Plot Maps', path: '/plot-maps', icon: Map, allowedRoles: ADMIN_DIRECTOR_MANAGER },
-  { name: 'Commissions', path: '/commissions', icon: DollarSign, allowedRoles: ALL_ROLES },
-  { name: 'Payouts', path: '/payouts', icon: CreditCard, allowedRoles: ALL_ROLES },
-  { name: 'AI Knowledge Base', path: '/ai-knowledge', icon: Bot, allowedRoles: ADMIN_DIRECTOR },
-  { name: 'OCR Analyzer', path: '/ocr-analyzer', icon: ScanText, allowedRoles: ADMIN_DIRECTOR },
-  { name: 'Reports', path: '/reports', icon: FileBarChart, allowedRoles: ADMIN_DIRECTOR },
-  { name: 'Notifications', path: '/notifications', icon: Bell, allowedRoles: ALL_ROLES },
-  { name: 'Settings', path: '/settings', icon: Settings, allowedRoles: ADMIN_DIRECTOR },
+interface NavSection {
+  title: string;
+  items: NavItem[];
+}
+
+const navSections: NavSection[] = [
+  {
+    title: 'OVERVIEW & LEADS',
+    items: [
+      { name: 'Executive Dashboard', path: '/dashboard', icon: LayoutDashboard, allowedRoles: ADMIN_DIRECTOR },
+      { name: 'Customer Inquiries', path: '/inquiries', icon: MessageSquare, allowedRoles: ALL_ROLES },
+    ]
+  },
+  {
+    title: 'INVENTORY & NAKSA MAPS',
+    items: [
+      { name: 'Real Estate Projects', path: '/projects', icon: Building2, allowedRoles: ADMIN_DIRECTOR },
+      { name: 'Plot Inventory', path: '/plots', icon: MapPin, allowedRoles: ALL_ROLES },
+      { name: 'Plot Map Canvas', path: '/plot-maps', icon: Map, allowedRoles: ADMIN_DIRECTOR_MANAGER },
+      { name: 'Naksa Vision OCR', path: '/ocr-analyzer', icon: ScanText, allowedRoles: ADMIN_DIRECTOR, badge: 'AI' },
+    ]
+  },
+  {
+    title: 'MLM AGENT NETWORK',
+    items: [
+      { name: 'Employees & Agents', path: '/employees', icon: Users, allowedRoles: ALL_ROLES },
+      { name: 'Downline MLM Tree', path: '/mlm-tree', icon: GitMerge, allowedRoles: ALL_ROLES },
+    ]
+  },
+  {
+    title: 'FINANCIALS & PAYOUTS',
+    items: [
+      { name: 'Commissions Ledger', path: '/commissions', icon: DollarSign, allowedRoles: ALL_ROLES },
+      { name: 'Payout Requests', path: '/payouts', icon: CreditCard, allowedRoles: ALL_ROLES },
+      { name: 'Financial Reports', path: '/reports', icon: FileBarChart, allowedRoles: ADMIN_DIRECTOR },
+    ]
+  },
+  {
+    title: 'AI & SYSTEM',
+    items: [
+      { name: 'AI Knowledge Base', path: '/ai-knowledge', icon: Bot, allowedRoles: ADMIN_DIRECTOR },
+      { name: 'Notifications', path: '/notifications', icon: Bell, allowedRoles: ALL_ROLES },
+      { name: 'Settings', path: '/settings', icon: Settings, allowedRoles: ADMIN_DIRECTOR },
+    ]
+  }
 ];
 
-export const Sidebar: React.FC = () => {
+interface SidebarProps {
+  isMobileOpen?: boolean;
+  onClose?: () => void;
+}
+
+export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen = false, onClose }) => {
   const { user } = useAuth();
   const userRole = user?.role || 'AGENT';
-  const visibleItems = navigationItems.filter((item) => item.allowedRoles.includes(userRole));
 
   return (
-    <aside className="w-64 bg-white border-r border-[#0B4F3C]/15 flex flex-col h-screen sticky top-0 z-30 select-none shadow-sm">
-      {/* Brand Header */}
-      <div className="p-5 border-b border-[#0B4F3C]/15 flex items-center gap-3">
-        <div className="w-10 h-10 rounded-xl bg-[#0B4F3C] flex items-center justify-center shadow-md">
-          <Building className="w-5 h-5 text-white" />
+    <>
+      {/* Mobile Backdrop */}
+      {isMobileOpen && (
+        <div
+          onClick={onClose}
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 md:hidden transition-opacity"
+        />
+      )}
+
+      <aside
+        className={`w-64 bg-[#0A1612] text-white flex flex-col h-screen fixed md:sticky top-0 z-50 md:z-30 select-none shadow-2xl border-r border-[#0B4F3C]/30 transition-transform duration-300 ${
+          isMobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
+        }`}
+      >
+        {/* Brand Header */}
+        <div className="p-4 border-b border-white/10 flex items-center justify-between bg-[#0B241C]">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-[#0B4F3C] flex items-center justify-center shadow-lg border border-emerald-400/30">
+              <Building className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h1 className="font-serif font-bold text-lg text-white tracking-tight leading-none">
+                House & <span className="text-emerald-400 italic font-serif">Sky</span>
+              </h1>
+              <span className="text-[9px] text-emerald-400 font-extrabold tracking-widest uppercase block mt-1">
+                Enterprise Admin Portal
+              </span>
+            </div>
+          </div>
+          {onClose && (
+            <button
+              onClick={onClose}
+              className="p-1.5 rounded-lg text-white/70 hover:text-white hover:bg-white/10 md:hidden cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          )}
         </div>
-        <div>
-          <h1 className="font-serif font-bold text-lg text-[#171A18] tracking-tight leading-none">
-            House & <span className="text-[#0B4F3C] italic font-serif">Sky</span>
-          </h1>
-          <p className="text-[9px] text-[#0B4F3C] font-bold tracking-widest uppercase mt-1">Enterprise Advisory & CRM</p>
+
+      {/* User Role Badge */}
+      <div className="px-5 py-3 bg-white/5 border-b border-white/10 flex items-center justify-between text-xs">
+        <div className="flex items-center gap-2">
+          <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></div>
+          <span className="font-mono text-white/80 text-[11px] font-bold">{user?.fullName || 'Logged User'}</span>
         </div>
+        <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-extrabold text-[10px] uppercase border border-emerald-500/30">
+          {userRole}
+        </span>
       </div>
 
-      {/* Navigation List */}
-      <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1">
-        {visibleItems.map((item) => {
-          const Icon = item.icon;
+      {/* Navigation Groups */}
+      <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-6 scrollbar-thin scrollbar-thumb-white/10">
+        {navSections.map((section) => {
+          const visibleItems = section.items.filter((item) => item.allowedRoles.includes(userRole));
+          if (visibleItems.length === 0) return null;
+
           return (
-            <NavLink
-              key={item.path}
-              to={item.path}
-              className={({ isActive }) =>
-                `flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-200 ${
-                  isActive
-                    ? 'bg-[#0B4F3C] text-white shadow-md'
-                    : 'text-[#171A18]/70 hover:bg-[#EAF3EF] hover:text-[#0B4F3C]'
-                }`
-              }
-            >
-              <Icon className="w-4 h-4 flex-shrink-0" />
-              <span>{item.name}</span>
-            </NavLink>
+            <div key={section.title} className="space-y-1">
+              <span className="px-3 text-[10px] font-extrabold tracking-[0.2em] text-emerald-400/80 uppercase block mb-2">
+                {section.title}
+              </span>
+
+              {visibleItems.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <NavLink
+                    key={item.path}
+                    to={item.path}
+                    className={({ isActive }) =>
+                      `flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 ${
+                        isActive
+                          ? 'bg-gradient-to-r from-[#0B4F3C] to-emerald-600 text-white shadow-lg border border-emerald-400/30'
+                          : 'text-white/70 hover:bg-white/10 hover:text-white'
+                      }`
+                    }
+                  >
+                    <div className="flex items-center gap-3">
+                      <Icon className="w-4 h-4 flex-shrink-0" />
+                      <span>{item.name}</span>
+                    </div>
+
+                    {item.badge ? (
+                      <span className="px-1.5 py-0.5 bg-amber-400/20 text-amber-300 rounded text-[9px] font-extrabold border border-amber-400/30">
+                        {item.badge}
+                      </span>
+                    ) : (
+                      <ChevronRight className="w-3.5 h-3.5 opacity-40" />
+                    )}
+                  </NavLink>
+                );
+              })}
+            </div>
           );
         })}
       </nav>
 
       {/* Enterprise Footer */}
-      <div className="p-4 border-t border-[#0B4F3C]/15 bg-[#EAF3EF]/50">
-        <div className="flex items-center gap-2 text-xs text-[#0B4F3C] font-bold">
-          <ShieldCheck className="w-4 h-4 text-[#0B4F3C]" />
-          <span>House & Sky Network v1.0</span>
+      <div className="p-4 border-t border-white/10 bg-[#0B241C] text-xs">
+        <div className="flex items-center justify-between text-[#0B4F3C]">
+          <div className="flex items-center gap-2 text-emerald-400 font-bold">
+            <ShieldCheck className="w-4 h-4 text-emerald-400" />
+            <span>Admin Suite v1.0</span>
+          </div>
+          <span className="text-[10px] text-white/50 font-mono">Live Sync</span>
         </div>
       </div>
     </aside>
-  );
+  </>
+);
 };
+

@@ -11,7 +11,12 @@ import {
   Phone,
   Mail,
   RefreshCw,
-  Inbox
+  Inbox,
+  Eye,
+  CheckCircle2,
+  Clock,
+  UserCheck,
+  X
 } from 'lucide-react'
 
 export function LeadsInquiriesPage() {
@@ -20,6 +25,7 @@ export function LeadsInquiriesPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [inquiries, setInquiries] = useState<any[]>([])
+  const [selectedInquiry, setSelectedInquiry] = useState<any | null>(null)
 
   useEffect(() => {
     fetchInquiries()
@@ -58,6 +64,9 @@ export function LeadsInquiriesPage() {
   const handleStatusChange = async (rawId: string, newStatus: string) => {
     try {
       await inquiriesService.updateInquiryStatus(rawId, { status: newStatus })
+      if (selectedInquiry && selectedInquiry.rawId === rawId) {
+        setSelectedInquiry({ ...selectedInquiry, status: newStatus })
+      }
       fetchInquiries()
     } catch (e: any) {
       console.error('Failed to update status', e)
@@ -73,26 +82,66 @@ export function LeadsInquiriesPage() {
     return matchesSearch && matchesStatus
   })
 
+  const countNew = inquiries.filter(i => i.status === 'NEW').length;
+  const countInProgress = inquiries.filter(i => i.status === 'IN_PROGRESS' || i.status === 'CONTACTED').length;
+  const countConverted = inquiries.filter(i => i.status === 'CONVERTED').length;
+
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-serif font-bold text-[#171A18]">Customer Contact & Plot Inquiries</h1>
-          <p className="text-xs text-[#171A18]/70">Central CRM inbox for landing page contacts, site tour requests & price inquiries</p>
+          <p className="text-xs text-[#171A18]/70 mt-1">Central CRM inbox for landing page contacts, site tour requests & price inquiries</p>
         </div>
 
         <div className="flex items-center gap-3">
           <button
             onClick={fetchInquiries}
-            className="p-2 text-[#0B4F3C] bg-[#EAF3EF] border border-[#0B4F3C]/20 rounded-xl hover:bg-[#0B4F3C] hover:text-white transition-colors cursor-pointer"
+            className="p-2.5 text-[#0B4F3C] bg-[#EAF3EF] border border-[#0B4F3C]/20 rounded-xl hover:bg-[#0B4F3C] hover:text-white transition-colors cursor-pointer"
             title="Refresh Inquiries"
           >
             <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
           </button>
-          <span className="px-3.5 py-1.5 bg-[#0B4F3C] text-white font-bold text-xs rounded-xl shadow-md flex items-center gap-1.5">
+          <span className="px-3.5 py-2 bg-[#0B4F3C] text-white font-bold text-xs rounded-xl shadow-md flex items-center gap-1.5 border border-[#0B4F3C]">
             <MessageSquare className="w-4 h-4" /> {inquiries.length} Active Leads
           </span>
+        </div>
+      </div>
+
+      {/* Metric Cards Banner */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="bg-white p-4 rounded-2xl border border-[#0B4F3C]/15 shadow-sm flex items-center justify-between">
+          <div>
+            <p className="text-[10px] font-bold text-[#0B4F3C] uppercase tracking-wider">New Unprocessed</p>
+            <h3 className="text-2xl font-serif font-bold text-amber-700 mt-0.5">{countNew} Leads</h3>
+            <p className="text-[10px] text-[#171A18]/60 mt-0.5">Awaiting agent callback</p>
+          </div>
+          <div className="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center font-bold shadow-md">
+            <Clock className="w-5 h-5" />
+          </div>
+        </div>
+
+        <div className="bg-white p-4 rounded-2xl border border-[#0B4F3C]/15 shadow-sm flex items-center justify-between">
+          <div>
+            <p className="text-[10px] font-bold text-[#0B4F3C] uppercase tracking-wider">In Progress / Contacted</p>
+            <h3 className="text-2xl font-serif font-bold text-sky-700 mt-0.5">{countInProgress} Leads</h3>
+            <p className="text-[10px] text-[#171A18]/60 mt-0.5">Site visits & negotiations</p>
+          </div>
+          <div className="w-10 h-10 rounded-xl bg-sky-600 text-white flex items-center justify-center font-bold shadow-md">
+            <UserCheck className="w-5 h-5" />
+          </div>
+        </div>
+
+        <div className="bg-white p-4 rounded-2xl border border-[#0B4F3C]/15 shadow-sm flex items-center justify-between">
+          <div>
+            <p className="text-[10px] font-bold text-[#0B4F3C] uppercase tracking-wider">Successfully Converted</p>
+            <h3 className="text-2xl font-serif font-bold text-emerald-800 mt-0.5">{countConverted} Plot Sales</h3>
+            <p className="text-[10px] text-[#171A18]/60 mt-0.5">Converted to plot bookings</p>
+          </div>
+          <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-bold shadow-md">
+            <CheckCircle2 className="w-5 h-5" />
+          </div>
         </div>
       </div>
 
@@ -155,12 +204,16 @@ export function LeadsInquiriesPage() {
                   <th className="py-3.5 px-4">Inquiry Type</th>
                   <th className="py-3.5 px-4">Assigned Agent</th>
                   <th className="py-3.5 px-4">Status</th>
-                  <th className="py-3.5 px-4">Submitted Date</th>
+                  <th className="py-3.5 px-4 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#0B4F3C]/10">
                 {filteredInquiries.map((inq) => (
-                  <tr key={inq.id} className="hover:bg-[#EAF3EF]/40 transition-colors">
+                  <tr
+                    key={inq.id}
+                    onClick={() => setSelectedInquiry(inq)}
+                    className="hover:bg-[#EAF3EF]/40 transition-colors cursor-pointer"
+                  >
                     <td className="py-4 px-4 font-mono font-bold text-[#0B4F3C]">{inq.id}</td>
                     <td className="py-4 px-4 space-y-0.5">
                       <h4 className="font-bold text-[#171A18] text-sm">{inq.customerName}</h4>
@@ -183,7 +236,7 @@ export function LeadsInquiriesPage() {
                       </span>
                     </td>
                     <td className="py-4 px-4 font-bold text-xs text-[#171A18]/80">{inq.assignedAgent}</td>
-                    <td className="py-4 px-4">
+                    <td className="py-4 px-4" onClick={(e) => e.stopPropagation()}>
                       <select
                         value={inq.status}
                         onChange={(e) => inq.rawId && handleStatusChange(inq.rawId, e.target.value)}
@@ -202,7 +255,14 @@ export function LeadsInquiriesPage() {
                         <option value="REJECTED">REJECTED</option>
                       </select>
                     </td>
-                    <td className="py-4 px-4 font-mono text-[11px] text-[#171A18]/70">{inq.date}</td>
+                    <td className="py-4 px-4 text-right">
+                      <button
+                        onClick={() => setSelectedInquiry(inq)}
+                        className="px-3 py-1.5 bg-[#EAF3EF] text-[#0B4F3C] hover:bg-[#0B4F3C] hover:text-white transition-colors rounded-xl font-bold text-xs flex items-center gap-1.5 ml-auto cursor-pointer border border-[#0B4F3C]/20"
+                      >
+                        <Eye className="w-3.5 h-3.5" /> View Details
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -210,7 +270,79 @@ export function LeadsInquiriesPage() {
           </div>
         </div>
       )}
+
+      {/* Customer Lead Modal View */}
+      {selectedInquiry && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl border border-[#0B4F3C]/20 shadow-2xl max-w-lg w-full p-6 space-y-5 animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between pb-3 border-b border-[#0B4F3C]/15">
+              <div>
+                <span className="font-mono text-[10px] text-[#0B4F3C] font-bold uppercase">{selectedInquiry.id}</span>
+                <h3 className="text-xl font-serif font-bold text-[#171A18]">{selectedInquiry.customerName}</h3>
+              </div>
+              <button
+                onClick={() => setSelectedInquiry(null)}
+                className="p-1.5 rounded-full text-[#171A18]/50 hover:bg-[#EAF3EF] hover:text-[#171A18] cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 text-xs">
+              <div className="bg-[#FAF9F6] p-3 rounded-2xl border border-[#0B4F3C]/15">
+                <p className="text-[10px] text-[#171A18]/60 font-semibold uppercase">Email Address</p>
+                <p className="font-bold text-[#171A18] mt-0.5 flex items-center gap-1">
+                  <Mail className="w-3.5 h-3.5 text-[#0B4F3C]" /> {selectedInquiry.email}
+                </p>
+              </div>
+
+              <div className="bg-[#FAF9F6] p-3 rounded-2xl border border-[#0B4F3C]/15">
+                <p className="text-[10px] text-[#171A18]/60 font-semibold uppercase">Phone Number</p>
+                <p className="font-bold text-[#171A18] mt-0.5 flex items-center gap-1">
+                  <Phone className="w-3.5 h-3.5 text-[#0B4F3C]" /> {selectedInquiry.phone}
+                </p>
+              </div>
+
+              <div className="bg-[#FAF9F6] p-3 rounded-2xl border border-[#0B4F3C]/15">
+                <p className="text-[10px] text-[#171A18]/60 font-semibold uppercase">Project Name</p>
+                <p className="font-bold text-[#171A18] mt-0.5">{selectedInquiry.project}</p>
+              </div>
+
+              <div className="bg-[#FAF9F6] p-3 rounded-2xl border border-[#0B4F3C]/15">
+                <p className="text-[10px] text-[#171A18]/60 font-semibold uppercase">Plot / Unit</p>
+                <p className="font-bold text-[#0B4F3C] mt-0.5">Plot {selectedInquiry.plotNo}</p>
+              </div>
+            </div>
+
+            {selectedInquiry.message && (
+              <div className="bg-[#EAF3EF]/50 p-4 rounded-2xl border border-[#0B4F3C]/15 space-y-1">
+                <p className="text-[10px] text-[#0B4F3C] font-bold uppercase">Customer Message / Special Requirements</p>
+                <p className="text-xs text-[#171A18] leading-relaxed italic">{selectedInquiry.message}</p>
+              </div>
+            )}
+
+            <div className="flex items-center justify-between pt-2 border-t border-[#0B4F3C]/15 text-xs">
+              <span className="text-[#171A18]/60 font-mono text-[11px]">Date: {selectedInquiry.date}</span>
+              <div className="flex items-center gap-2">
+                <span className="font-bold text-[#171A18]">Update Status:</span>
+                <select
+                  value={selectedInquiry.status}
+                  onChange={(e) => selectedInquiry.rawId && handleStatusChange(selectedInquiry.rawId, e.target.value)}
+                  className="px-3 py-1.5 rounded-xl text-xs font-bold border border-[#0B4F3C]/30 bg-white cursor-pointer focus:outline-none"
+                >
+                  <option value="NEW">NEW</option>
+                  <option value="IN_PROGRESS">IN_PROGRESS</option>
+                  <option value="CONTACTED">CONTACTED</option>
+                  <option value="CONVERTED">CONVERTED</option>
+                  <option value="REJECTED">REJECTED</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
 export default LeadsInquiriesPage
+

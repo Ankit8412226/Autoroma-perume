@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { DashboardStats } from '../types';
 import { StatCard } from '../components/dashboard/StatCard';
@@ -7,9 +8,10 @@ import { PlotStatusDistribution } from '../components/dashboard/PlotStatusDistri
 import { StatsCardSkeleton, ChartSkeleton, TableSkeleton } from '../components/common/Skeleton';
 import { ErrorState } from '../components/common/ErrorState';
 import { formatCurrency, formatNumber } from '../utils/formatters';
-import { DollarSign, Users, MapPin, TrendingUp } from 'lucide-react';
+import { DollarSign, Users, MapPin, TrendingUp, Building2, ScanText, CreditCard, MessageSquare, Plus, Sparkles, ChevronRight } from 'lucide-react';
 
 export const DashboardPage: React.FC = () => {
+  const navigate = useNavigate();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -27,7 +29,7 @@ export const DashboardPage: React.FC = () => {
     } catch (err: any) {
       console.error('Failed to fetch dashboard stats', err);
       setError(err?.friendlyMessage || 'Failed to fetch executive dashboard metrics. Please check connection.');
-    } flex: {
+    } finally {
       setIsLoading(false);
     }
   };
@@ -70,16 +72,84 @@ export const DashboardPage: React.FC = () => {
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
       {/* Page Title */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-serif font-bold text-[#171A18]">Executive CRM Dashboard</h2>
           <p className="text-xs text-[#171A18]/70 mt-1">Real-time financial performance, plot inventory & MLM downline metrics</p>
         </div>
         <div className="flex items-center gap-2">
-          <span className="px-3 py-1 rounded-full bg-[#EAF3EF] border border-[#0B4F3C]/30 text-[#0B4F3C] text-xs font-bold">
-            ● System Active
+          <span className="px-3.5 py-1.5 rounded-full bg-[#EAF3EF] border border-[#0B4F3C]/30 text-[#0B4F3C] text-xs font-extrabold shadow-sm flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            Live System Active
           </span>
         </div>
+      </div>
+
+      {/* Quick Launchpad Shortcuts */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <button
+          onClick={() => navigate('/plots')}
+          className="p-3 bg-white rounded-2xl border border-[#0B4F3C]/15 hover:border-[#0B4F3C] hover:shadow-md transition-all text-left group flex items-center justify-between cursor-pointer"
+        >
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl bg-[#EAF3EF] text-[#0B4F3C] flex items-center justify-center font-bold group-hover:bg-[#0B4F3C] group-hover:text-white transition-colors">
+              <MapPin className="w-4 h-4" />
+            </div>
+            <div>
+              <p className="text-xs font-bold text-[#171A18] leading-tight">Plot Inventory</p>
+              <p className="text-[10px] text-[#171A18]/60 font-medium">Naksa Canvas</p>
+            </div>
+          </div>
+          <ChevronRight className="w-4 h-4 text-[#171A18]/40 group-hover:text-[#0B4F3C] transition-colors" />
+        </button>
+
+        <button
+          onClick={() => navigate('/employees')}
+          className="p-3 bg-white rounded-2xl border border-[#0B4F3C]/15 hover:border-[#0B4F3C] hover:shadow-md transition-all text-left group flex items-center justify-between cursor-pointer"
+        >
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl bg-[#EAF3EF] text-[#0B4F3C] flex items-center justify-center font-bold group-hover:bg-[#0B4F3C] group-hover:text-white transition-colors">
+              <Users className="w-4 h-4" />
+            </div>
+            <div>
+              <p className="text-xs font-bold text-[#171A18] leading-tight">Onboard Agent</p>
+              <p className="text-[10px] text-[#171A18]/60 font-medium">MLM Directory</p>
+            </div>
+          </div>
+          <ChevronRight className="w-4 h-4 text-[#171A18]/40 group-hover:text-[#0B4F3C] transition-colors" />
+        </button>
+
+        <button
+          onClick={() => navigate('/ocr-analyzer')}
+          className="p-3 bg-white rounded-2xl border border-[#0B4F3C]/15 hover:border-[#0B4F3C] hover:shadow-md transition-all text-left group flex items-center justify-between cursor-pointer"
+        >
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center font-bold group-hover:bg-amber-600 group-hover:text-white transition-colors border border-amber-200">
+              <ScanText className="w-4 h-4" />
+            </div>
+            <div>
+              <p className="text-xs font-bold text-[#171A18] leading-tight">Naksa AI OCR</p>
+              <p className="text-[10px] text-amber-700 font-bold">Gov. Blueprint</p>
+            </div>
+          </div>
+          <ChevronRight className="w-4 h-4 text-[#171A18]/40 group-hover:text-[#0B4F3C] transition-colors" />
+        </button>
+
+        <button
+          onClick={() => navigate('/payouts')}
+          className="p-3 bg-white rounded-2xl border border-[#0B4F3C]/15 hover:border-[#0B4F3C] hover:shadow-md transition-all text-left group flex items-center justify-between cursor-pointer"
+        >
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl bg-[#EAF3EF] text-[#0B4F3C] flex items-center justify-center font-bold group-hover:bg-[#0B4F3C] group-hover:text-white transition-colors">
+              <CreditCard className="w-4 h-4" />
+            </div>
+            <div>
+              <p className="text-xs font-bold text-[#171A18] leading-tight">Payout Requests</p>
+              <p className="text-[10px] text-[#171A18]/60 font-medium">Commissions</p>
+            </div>
+          </div>
+          <ChevronRight className="w-4 h-4 text-[#171A18]/40 group-hover:text-[#0B4F3C] transition-colors" />
+        </button>
       </div>
 
       {/* KPI Stat Cards Grid */}

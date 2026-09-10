@@ -240,9 +240,102 @@ exports.updateInquiryStatus = async (req, res, next) => {
     if (assignedAgentId !== undefined) inquiry.assignedAgentId = assignedAgentId || null;
 
     await inquiry.save();
-
-    res.json(inquiry);
+    res.json({ message: 'Inquiry status updated successfully', inquiry });
   } catch (error) {
     next(error);
   }
 };
+
+// 7. Public Agents Listing
+exports.getPublicAgents = async (req, res, next) => {
+  try {
+    const employees = await Employee.find()
+      .populate('userId', 'fullName email phone avatar role')
+      .sort({ selfSalesCount: -1 })
+      .lean();
+
+    const formattedAgents = employees
+      .filter((emp) => emp.userId)
+      .map((emp) => {
+        const name = emp.userId.fullName || 'Sales Executive';
+        const nameParts = name.trim().split(/\s+/);
+        const initials = nameParts.length >= 2
+          ? `${nameParts[0][0]}${nameParts[nameParts.length - 1][0]}`.toUpperCase()
+          : name.slice(0, 2).toUpperCase();
+
+        return {
+          id: emp._id.toString(),
+          slug: emp.employeeCode.toLowerCase(),
+          name,
+          initials,
+          title: emp.currentRank || 'Senior Advisory Executive',
+          location: 'Executive Desk',
+          email: emp.userId.email || '',
+          phone: emp.userId.phone || '+91 98765 43210',
+          avatar: emp.userId.avatar || null,
+          employeeCode: emp.employeeCode,
+          totalSalesVolume: `${emp.selfSalesCount || 0} Plots Sold`,
+          activeListingsCount: emp.teamSalesCount || 0,
+          bio: `${name} is an active ${emp.currentRank || 'Business Executive'} managing downline plot inquiries, direct buyer consultations, and site tours for luxury township masterplans.`,
+          rank: emp.currentRank
+        };
+      });
+
+    res.json(formattedAgents);
+  } catch (error) {
+    next(error);
+  }
+};
+
+// 8. Public Locations Listing (Aggregated dynamically from DB projects)
+exports.getPublicLocations = async (req, res, next) => {
+  try {
+    const projects = await Project.find({ status: { $ne: 'DELETED' } }).lean();
+    const plotCounts = await Plot.aggregate([
+      { $match: { status: { $ne: 'DELETED' } } },
+      { $group: { _id: "$projectId", totalPlots: { $sum: 1 }, availablePlots: { $sum: { $cond: [{ $eq: ["$status", "AVAILABLE"] }, 1, 0] } } } }
+    ]);
+
+    const projectStatsMap = {};
+    plotCounts.forEach(pc => {
+      if (pc._id) projectStatsMap[pc._id.toString()] = pc;
+    });
+
+    const locationsMap = {};
+
+    projects.forEach((proj) => {
+      const locName = proj.location || 'Prime Destination';
+      const slug = locName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+      const pStats = projectStatsMap[proj._id.toString()] || { totalPlots: proj.totalPlots || 0, availablePlots: proj.totalPlots || 0 };
+
+      if (!locationsMap[slug]) {
+        locationsMap[slug] = {
+          id: slug,
+          slug,
+          name: locName,
+          state: 'India',
+          tagline: `Prime Real Estate & Township Developments in ${locName}`,
+          description: `Discover verified plots, masterplanned layouts, and high-appreciation land investments in ${locName}.`,
+          cardImage: proj.bannerImage || 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=1200&q=80',
+          heroImage: proj.bannerImage || 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=1200&q=80',
+          activeListingsCount: pStats.availablePlots || proj.totalPlots || 0,
+          totalProjectsCount: 1,
+          avgPricePerSqft: `₹${proj.basePricePerSqft || 4500}/sq.ft`,
+          yoyGrowth: '+18.5%',
+          keyHighPoints: ['High Appreciation Zone', 'Clear Title Government Approved', 'Direct Highway & Metro Access'],
+          projects: [proj]
+        };
+      } else {
+        locationsMap[slug].activeListingsCount += (pStats.availablePlots || proj.totalPlots || 0);
+        locationsMap[slug].totalProjectsCount += 1;
+        locationsMap[slug].projects.push(proj);
+      }
+    });
+
+    res.json(Object.values(locationsMap));
+  } catch (error) {
+    next(error);
+  }
+};
+
+

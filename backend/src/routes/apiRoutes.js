@@ -39,6 +39,9 @@ router.post('/public/upload', upload.single('file'), uploadController.uploadFile
 router.get('/public/projects', inquiryController.getPublicProjects);
 router.get('/public/projects/:id', inquiryController.getPublicProjectById);
 router.get('/public/plots', inquiryController.getPublicPlots);
+router.get('/public/agents', inquiryController.getPublicAgents);
+router.get('/public/locations', inquiryController.getPublicLocations);
+
 router.post('/public/inquiries', inquiryLimiter, validate({
   name: { required: true, type: 'string', minLength: 2, maxLength: 80 },
   email: { required: true, type: 'email' },

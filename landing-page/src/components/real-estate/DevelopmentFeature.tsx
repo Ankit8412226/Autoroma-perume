@@ -1,23 +1,59 @@
+'use client'
+
 import * as React from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { ArrowUpRight } from 'lucide-react'
+import { ArrowUpRight, MapPin } from 'lucide-react'
 
 export function DevelopmentFeature() {
+  const [featuredProject, setFeaturedProject] = React.useState<any>(null)
+  const [isLoading, setIsLoading] = React.useState(true)
+
+  React.useEffect(() => {
+    fetchFeaturedProject()
+  }, [])
+
+  const fetchFeaturedProject = async () => {
+    try {
+      setIsLoading(true)
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1'
+      const res = await fetch(`${baseUrl}/public/projects`)
+      if (res.ok) {
+        const projects = await res.json()
+        if (Array.isArray(projects) && projects.length > 0) {
+          setFeaturedProject(projects[0])
+          return
+        }
+      }
+    } catch (e) {
+      console.error('Featured project error:', e)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const name = featuredProject?.name || 'Royal Palms Executive City'
+  const location = featuredProject?.location || 'Sector 150, Noida'
+  const baseRate = featuredProject?.basePricePerSqft ? `₹${featuredProject.basePricePerSqft.toLocaleString('en-IN')}` : '₹4,500'
+  const banner = featuredProject?.bannerImage || 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1600&q=85&auto=format&fit=crop'
+  const totalPlots = featuredProject?.totalPlots || 20
+  const availablePlots = featuredProject?.availableCount !== undefined ? featuredProject.availableCount : totalPlots
+  const linkHref = featuredProject?._id ? `/projects/${featuredProject._id}` : '/projects'
+
   return (
     <div className="relative bg-white border border-brand-green/15 rounded-lg overflow-hidden shadow-sm">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
         {/* Left Image */}
-        <div className="lg:col-span-7 relative aspect-[16/10] w-full overflow-hidden">
+        <div className="lg:col-span-7 relative aspect-[16/10] w-full overflow-hidden bg-brand-charcoal">
           <Image
-            src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1600&q=85&auto=format&fit=crop"
-            alt="The Horizon Reserve Development"
+            src={banner}
+            alt={name}
             fill
             className="object-cover"
           />
           <div className="absolute top-4 left-4 z-10">
-            <span className="px-3 py-1 bg-brand-green text-white text-[10px] uppercase tracking-[0.2em] font-bold rounded">
-              Flagship New Development
+            <span className="px-3 py-1 bg-brand-green text-white text-[10px] uppercase tracking-[0.2em] font-bold rounded shadow-sm">
+              Flagship Masterplan Township
             </span>
           </div>
         </div>
@@ -26,32 +62,32 @@ export function DevelopmentFeature() {
         <div className="lg:col-span-5 p-8 sm:p-10 space-y-6">
           <div className="space-y-2">
             <span className="text-xs uppercase tracking-[0.2em] font-bold text-brand-green block">
-              THE NEW STANDARD OF CITY LIVING
+              FEATURED LAND DEVELOPMENT
             </span>
             <h3 className="font-serif text-3xl sm:text-4xl text-brand-charcoal font-normal leading-tight">
-              The Horizon Reserve — Worli Sea Face
+              {name}
             </h3>
-            <p className="text-xs sm:text-sm text-brand-charcoal/70 font-light leading-relaxed">
-              A private enclave of 18 limited-edition triplex sky mansions with private infinity decks and dedicated concierge lobbies.
+            <p className="text-xs sm:text-sm text-brand-charcoal/70 font-light leading-relaxed flex items-center gap-1">
+              <MapPin className="w-4 h-4 text-brand-green shrink-0" /> {location}
             </p>
           </div>
 
           <div className="grid grid-cols-2 gap-4 py-4 border-y border-brand-green/10 text-xs font-mono text-brand-charcoal/80">
             <div>
-              <span className="block text-[10px] text-brand-charcoal/60 uppercase">STARTING FROM</span>
-              <span className="text-sm font-bold text-brand-charcoal font-sans">₹38.00 Cr</span>
+              <span className="block text-[10px] text-brand-charcoal/60 uppercase">BASE RATE</span>
+              <span className="text-sm font-bold text-brand-charcoal font-sans">{baseRate} / sqft</span>
             </div>
             <div>
-              <span className="block text-[10px] text-brand-charcoal/60 uppercase">POSSESSION</span>
-              <span className="text-sm font-bold text-brand-charcoal font-sans">Q4 2027</span>
+              <span className="block text-[10px] text-brand-charcoal/60 uppercase">AVAILABILITY</span>
+              <span className="text-sm font-bold text-brand-green font-sans">{availablePlots} / {totalPlots} Plots</span>
             </div>
           </div>
 
           <Link
-            href="/properties/the-solitaire-sky-villa-bandra"
-            className="inline-flex items-center gap-2 px-6 py-3.5 bg-brand-green text-white font-bold text-xs uppercase tracking-[0.18em] rounded-md hover:bg-brand-dark transition-all shadow-md"
+            href={linkHref}
+            className="inline-flex items-center gap-2 px-6 py-3.5 bg-brand-green text-white font-bold text-xs uppercase tracking-[0.18em] rounded-md hover:bg-brand-dark transition-all shadow-md cursor-pointer"
           >
-            <span className="text-white">Explore Development</span>
+            <span className="text-white">Explore Project Plots</span>
             <ArrowUpRight className="w-4 h-4 text-white" />
           </Link>
         </div>
