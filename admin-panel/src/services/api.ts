@@ -1,7 +1,8 @@
 import axios from 'axios';
 
 const envUrl = (import.meta as any).env?.VITE_API_URL;
-const API_BASE_URL = envUrl || (window.location.hostname === 'localhost' ? 'http://localhost:5000/api/v1' : 'https://hippo-crm-rho.vercel.app/api/v1');
+const API_BASE_URL = envUrl || (window.location.hostname === 'localhost' ? 'http://localhost:5000/api/v1' : 'https://api.houseandsky.com/api/v1');
+
 
 const api = axios.create({
   baseURL: API_BASE_URL,
