@@ -93,58 +93,90 @@ export const ProjectsPage: React.FC = () => {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {projects.map((p) => (
-            <div key={p._id} className="bg-white p-6 rounded-2xl border border-[#0B4F3C]/15 hover:border-[#0B4F3C]/40 transition-all space-y-4 relative group shadow-sm">
-              <div className="flex items-center justify-between">
-                <span className="px-2.5 py-0.5 rounded-full bg-[#EAF3EF] text-[#0B4F3C] text-[10px] font-bold border border-[#0B4F3C]/20">
+            <div key={p._id} className="bg-white rounded-2xl border border-[#0B4F3C]/15 hover:border-[#0B4F3C]/40 transition-all relative group shadow-sm overflow-hidden">
+              {/* Project Banner Image */}
+              <div className="relative aspect-[16/9] w-full bg-gradient-to-br from-[#EAF3EF] to-[#D0E8DC] overflow-hidden">
+                {p.bannerImage ? (
+                  <img
+                    src={p.bannerImage}
+                    alt={p.name || 'Project'}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).style.display = 'none';
+                    }}
+                  />
+                ) : (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 text-[#0B4F3C]/30">
+                    <Building2 className="w-10 h-10" />
+                    <span className="text-[10px] font-bold uppercase tracking-wider">No Image Uploaded</span>
+                  </div>
+                )}
+                {/* Status Badge */}
+                <span className="absolute top-3 left-3 px-2.5 py-0.5 rounded-full bg-[#EAF3EF]/90 backdrop-blur-sm text-[#0B4F3C] text-[10px] font-bold border border-[#0B4F3C]/20">
                   {p.status || 'ACTIVE'}
                 </span>
-                <div className="flex items-center gap-1">
-                  <span className="font-mono text-xs text-[#171A18]/60 mr-2">{p.code || 'PRJ'}</span>
+                {/* Code Badge */}
+                <span className="absolute top-3 right-3 font-mono text-xs bg-black/50 text-white px-2 py-0.5 rounded-md backdrop-blur-sm">
+                  {p.code || 'PRJ'}
+                </span>
+                {/* Action Buttons */}
+                <div className="absolute bottom-3 right-3 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                   <button
                     onClick={() => setEditingProject(p)}
-                    className="p-1.5 rounded-lg text-[#0B4F3C] hover:bg-[#EAF3EF] transition-colors cursor-pointer"
+                    className="p-1.5 rounded-lg bg-white/90 backdrop-blur-sm text-[#0B4F3C] hover:bg-[#0B4F3C] hover:text-white transition-colors cursor-pointer shadow-sm"
                     title="Edit Project"
                   >
-                    <Edit className="w-4 h-4" />
+                    <Edit className="w-3.5 h-3.5" />
                   </button>
                   <button
                     onClick={() => handleDelete(p._id)}
-                    className="p-1.5 rounded-lg text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
+                    className="p-1.5 rounded-lg bg-white/90 backdrop-blur-sm text-red-600 hover:bg-red-600 hover:text-white transition-colors cursor-pointer shadow-sm"
                     title="Delete Project"
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Trash2 className="w-3.5 h-3.5" />
                   </button>
                 </div>
               </div>
 
-              <div>
-                <h3 className="text-lg font-serif font-bold text-[#171A18]">{p.name || 'Unnamed Project'}</h3>
-                <p className="text-xs text-[#171A18]/70 flex items-center gap-1 mt-1">
-                  <MapPin className="w-3.5 h-3.5 text-[#0B4F3C]" /> {p.location || 'Location Not Specified'}
-                </p>
-              </div>
+              {/* Card Body */}
+              <div className="p-5 space-y-4">
+                <div>
+                  <h3 className="text-base font-serif font-bold text-[#171A18] group-hover:text-[#0B4F3C] transition-colors">{p.name || 'Unnamed Project'}</h3>
+                  <p className="text-xs text-[#171A18]/70 flex items-center gap-1 mt-1">
+                    <MapPin className="w-3.5 h-3.5 text-[#0B4F3C] shrink-0" /> {p.location || 'Location Not Specified'}
+                  </p>
+                </div>
 
-              <div className="grid grid-cols-2 gap-2 pt-3 border-t border-[#0B4F3C]/15 text-xs">
-                <div className="bg-[#EAF3EF] p-2 rounded-xl border border-[#0B4F3C]/20">
-                  <p className="text-[#171A18]/70 font-semibold text-[10px]">Total Plots</p>
-                  <p className="font-bold text-[#171A18] text-sm mt-0.5">{formatNumber(p.totalPlots)}</p>
+                <div className="grid grid-cols-2 gap-2 pt-3 border-t border-[#0B4F3C]/15 text-xs">
+                  <div className="bg-[#EAF3EF] p-2 rounded-xl border border-[#0B4F3C]/20">
+                    <p className="text-[#171A18]/70 font-semibold text-[10px]">Total Plots</p>
+                    <p className="font-bold text-[#171A18] text-sm mt-0.5">{formatNumber(p.totalPlots)}</p>
+                  </div>
+                  <div className="bg-emerald-50 p-2 rounded-xl border border-emerald-200">
+                    <p className="text-emerald-800 font-semibold text-[10px]">Available</p>
+                    <p className="font-bold text-emerald-900 text-sm mt-0.5">{formatNumber(p.availableCount ?? 0)}</p>
+                  </div>
+                  <div className="bg-amber-50 p-2 rounded-xl border border-amber-200">
+                    <p className="text-amber-800 font-semibold text-[10px]">Pending</p>
+                    <p className="font-bold text-amber-900 text-sm mt-0.5">{formatNumber(p.pendingCount ?? 0)}</p>
+                  </div>
+                  <div className="bg-red-50 p-2 rounded-xl border border-red-200">
+                    <p className="text-red-800 font-semibold text-[10px]">Booked / Sold</p>
+                    <p className="font-bold text-red-900 text-sm mt-0.5">{formatNumber((p.bookedCount ?? 0) + (p.soldCount ?? 0))}</p>
+                  </div>
                 </div>
-                <div className="bg-emerald-50 p-2 rounded-xl border border-emerald-200">
-                  <p className="text-emerald-800 font-semibold text-[10px]">Available</p>
-                  <p className="font-bold text-emerald-900 text-sm mt-0.5">{formatNumber(p.availableCount ?? 0)}</p>
-                </div>
-                <div className="bg-amber-50 p-2 rounded-xl border border-amber-200">
-                  <p className="text-amber-800 font-semibold text-[10px]">Pending Approval</p>
-                  <p className="font-bold text-amber-900 text-sm mt-0.5">{formatNumber(p.pendingCount ?? 0)}</p>
-                </div>
-                <div className="bg-red-50 p-2 rounded-xl border border-red-200">
-                  <p className="text-red-800 font-semibold text-[10px]">Booked / Sold</p>
-                  <p className="font-bold text-red-900 text-sm mt-0.5">{formatNumber((p.bookedCount ?? 0) + (p.soldCount ?? 0))}</p>
-                </div>
+
+                {/* Base Rate */}
+                {p.basePricePerSqft && (
+                  <div className="text-xs text-[#0B4F3C] font-bold bg-[#EAF3EF] px-3 py-1.5 rounded-lg text-center border border-[#0B4F3C]/15">
+                    ₹{p.basePricePerSqft?.toLocaleString('en-IN')} / sqft base rate
+                  </div>
+                )}
               </div>
             </div>
           ))}
         </div>
+
       )}
 
       {/* Add Project Modal */}

@@ -2,6 +2,7 @@ const { uploadToS3 } = require('../services/s3Service');
 
 /**
  * Handle generic file/image upload to AWS S3
+ * Returns a pre-signed URL valid for 7 days (works with private buckets)
  * POST /api/v1/upload
  */
 exports.uploadFile = async (req, res, next) => {
@@ -11,16 +12,23 @@ exports.uploadFile = async (req, res, next) => {
     }
 
     const folder = req.body.folder || 'general';
-    const s3Url = await uploadToS3(
+
+    // uploadToS3 now returns { url, key } where url is a pre-signed URL
+    const result = await uploadToS3(
       req.file.buffer,
       req.file.originalname,
       req.file.mimetype,
       folder
     );
 
+    // Support both old string return and new { url, key } object
+    const url = typeof result === 'string' ? result : result.url;
+    const s3Key = typeof result === 'string' ? null : result.key;
+
     res.json({
       success: true,
-      url: s3Url,
+      url,
+      s3Key,
       fileName: req.file.originalname,
       mimeType: req.file.mimetype,
       size: req.file.size

@@ -1,24 +1,37 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import api from '../services/api';
 import { OcrValidationViewer } from '../components/ocr/OcrValidationViewer';
 import { useAuth } from '../context/AuthContext';
-import { UploadCloud, ScanText, Lock } from 'lucide-react';
+import {
+  UploadCloud,
+  ScanText,
+  Lock,
+  CheckCircle2,
+  Cpu,
+  FileImage,
+  ChevronRight,
+  X,
+  Sparkles
+} from 'lucide-react';
 import { useToast } from '../context/ToastContext';
+
+const STEPS = ['Upload Naksha', 'AI Scanning', 'Review & Approve'];
 
 export const OCRAnalyzerPage: React.FC = () => {
   const { user } = useAuth();
   const toast = useToast();
   const isAdmin = user?.role === 'ADMIN' || user?.role === 'DIRECTOR';
-  const [file, setFile] = useState<File | null>(null);
-  const [mapName, setMapName] = useState<string>('Sector 82 Masterplan');
-  const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
-  const [ocrResult, setOcrResult] = useState<any>(null);
 
-  // ISSUE #6 FIX: Fetch projects so admin can choose which project to link the
-  // extracted map to. Previously a fake hardcoded projectId was used, which
-  // caused all OCR-extracted plots to be orphaned under a non-existent project.
+  const [step, setStep] = useState<0 | 1 | 2>(0);
   const [projects, setProjects] = useState<any[]>([]);
   const [selectedProjectId, setSelectedProjectId] = useState<string>('');
+  const [mapName, setMapName] = useState<string>('');
+  const [file, setFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [ocrResult, setOcrResult] = useState<any>(null);
+  const [statusMsg, setStatusMsg] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (isAdmin) {
@@ -26,136 +39,314 @@ export const OCRAnalyzerPage: React.FC = () => {
         .then((r) => {
           const data = r.data || [];
           setProjects(data);
-          if (data.length > 0) setSelectedProjectId(data[0]._id);
+          if (data.length > 0) {
+            setSelectedProjectId(data[0]._id);
+            setMapName(`${data[0].name} — Naksha Layout`);
+          }
         })
         .catch(() => {});
     }
   }, [isAdmin]);
 
-  const handleAnalyze = async () => {
+  const handleFileSelect = (f: File) => {
+    setFile(f);
+    if (f.type.startsWith('image/')) {
+      const url = URL.createObjectURL(f);
+      setPreviewUrl(url);
+    } else {
+      setPreviewUrl(null);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const f = e.dataTransfer.files[0];
+    if (f) handleFileSelect(f);
+  };
+
+  const handleAnalyze = async (useSample = false) => {
     if (!selectedProjectId) {
-      toast.error('Please select a project before running the OCR analysis.');
+      toast.error('Please select a project first.');
       return;
     }
+    if (!useSample && !file) {
+      toast.error('Please upload a Naksha image or PDF first.');
+      return;
+    }
+
+    setStep(1);
+    const messages = [
+      'Uploading image to secure storage...',
+      'Running AI vision analysis on the Naksha...',
+      'Detecting plot boundaries and numbers...',
+      'Extracting dimensions and pricing data...',
+      'Finalizing results...'
+    ];
+    let i = 0;
+    setStatusMsg(messages[0]);
+    const interval = setInterval(() => {
+      i++;
+      if (i < messages.length) setStatusMsg(messages[i]);
+    }, 1800);
+
     try {
-      setIsAnalyzing(true);
       const formData = new FormData();
-      if (file) formData.append('file', file);
-      formData.append('mapName', mapName);
-      // CRITICAL FIX: projectId is now included so extracted plots are linked
-      // to the correct project in the database.
+      if (file && !useSample) formData.append('file', file);
       formData.append('projectId', selectedProjectId);
+      formData.append('mapName', mapName || 'Naksha Layout');
 
       const response = await api.post('/ocr/analyze', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
 
-      toast.success('Site map analyzed successfully!');
+      clearInterval(interval);
       setOcrResult(response.data);
-    } catch (error) {
-      console.error(error);
-      toast.error('Failed to analyze site map layout');
-    } finally {
-      setIsAnalyzing(false);
+      setStep(2);
+      toast.success(`Extracted ${response.data?.extractedPlots?.length || 0} plots from the Naksha!`);
+    } catch (error: any) {
+      clearInterval(interval);
+      setStep(0);
+      toast.error(error?.response?.data?.message || 'AI analysis failed. Please try again.');
     }
   };
 
-  return (
-    <div className="space-y-6 animate-in fade-in duration-300">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-serif font-bold text-[#171A18]">AI Plot Map &amp; Document Analyzer</h2>
-          <p className="text-xs text-[#171A18]/70 mt-1">PyMuPDF + OpenCV + Google Gemini 1.5 Pro Vision OCR layout extraction pipeline</p>
-        </div>
-      </div>
+  const handleReset = () => {
+    setStep(0);
+    setFile(null);
+    setPreviewUrl(null);
+    setOcrResult(null);
+    setStatusMsg('');
+  };
 
-      {!isAdmin ? (
-        <div className="bg-white p-12 rounded-3xl border border-[#0B4F3C]/15 max-w-xl mx-auto text-center space-y-4 shadow-sm">
-          <div className="w-16 h-16 rounded-2xl bg-amber-500/20 border border-amber-500/40 text-amber-700 flex items-center justify-center mx-auto">
+  if (!isAdmin) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="bg-white p-12 rounded-3xl border border-amber-200 max-w-md text-center space-y-4 shadow-sm">
+          <div className="w-16 h-16 rounded-2xl bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center mx-auto">
             <Lock className="w-8 h-8" />
           </div>
-          <h3 className="text-lg font-serif font-bold text-[#171A18]">Administrator Access Required</h3>
+          <h3 className="text-lg font-serif font-bold text-[#171A18]">Admin Access Only</h3>
           <p className="text-xs text-[#171A18]/70">
-            Architectural Naksa map upload &amp; Vision AI OCR analysis is restricted to Administrators and Directors.
+            Naksha OCR analysis is restricted to Administrators and Directors only.
           </p>
         </div>
-      ) : !ocrResult ? (
-        <div className="bg-white p-8 rounded-3xl border border-[#0B4F3C]/15 max-w-2xl mx-auto space-y-6 text-center shadow-sm">
-          <div className="w-16 h-16 rounded-2xl bg-[#0B4F3C] text-white flex items-center justify-center mx-auto shadow-md">
-            <ScanText className="w-8 h-8" />
-          </div>
+      </div>
+    );
+  }
 
-          <div>
-            <h3 className="text-lg font-serif font-bold text-[#171A18]">Upload Architectural Site Plan / Layout</h3>
-            <p className="text-xs text-[#171A18]/70 mt-1">Supports PDF, PNG, and JPG layout blueprints up to 50MB</p>
-          </div>
+  return (
+    <div className="space-y-6 animate-in fade-in duration-300 max-w-4xl mx-auto">
+      {/* Page Header */}
+      <div>
+        <h2 className="text-2xl font-serif font-bold text-[#171A18]">Naksha AI Analyzer</h2>
+        <p className="text-xs text-[#171A18]/60 mt-1">
+          Upload any site layout image — AI will extract all plot numbers, sizes and boundaries automatically.
+        </p>
+      </div>
 
-          <div className="space-y-4 text-left">
-            {/* Project Selector (required to prevent orphan plots) */}
+      {/* Step Indicator */}
+      <div className="flex items-center gap-0">
+        {STEPS.map((label, idx) => (
+          <React.Fragment key={idx}>
+            <div className="flex items-center gap-2">
+              <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold border-2 transition-all ${
+                idx < step
+                  ? 'bg-[#0B4F3C] border-[#0B4F3C] text-white'
+                  : idx === step
+                  ? 'bg-white border-[#0B4F3C] text-[#0B4F3C]'
+                  : 'bg-white border-[#0B4F3C]/20 text-[#171A18]/40'
+              }`}>
+                {idx < step ? <CheckCircle2 className="w-4 h-4" /> : idx + 1}
+              </div>
+              <span className={`text-xs font-bold hidden sm:block ${
+                idx === step ? 'text-[#0B4F3C]' : idx < step ? 'text-[#0B4F3C]/70' : 'text-[#171A18]/40'
+              }`}>{label}</span>
+            </div>
+            {idx < STEPS.length - 1 && (
+              <div className={`flex-1 h-0.5 mx-3 transition-all ${idx < step ? 'bg-[#0B4F3C]' : 'bg-[#0B4F3C]/15'}`} />
+            )}
+          </React.Fragment>
+        ))}
+      </div>
+
+      {/* STEP 0 — Upload */}
+      {step === 0 && (
+        <div className="bg-white rounded-3xl border border-[#0B4F3C]/15 p-8 space-y-6 shadow-sm">
+
+          {/* Project + Map Name */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="text-xs text-[#171A18]/70 font-semibold">
-                Target Project <span className="text-red-500">*</span>
+              <label className="text-xs font-bold text-[#171A18]/70 block mb-1.5">
+                Project <span className="text-red-500">*</span>
               </label>
               <select
                 value={selectedProjectId}
-                onChange={(e) => setSelectedProjectId(e.target.value)}
-                className="w-full mt-1 bg-[#FAF9F6] border border-[#0B4F3C]/20 rounded-xl px-4 py-2 text-xs text-[#171A18] font-bold focus:outline-none focus:border-[#0B4F3C]"
+                onChange={(e) => {
+                  setSelectedProjectId(e.target.value);
+                  const proj = projects.find(p => p._id === e.target.value);
+                  if (proj) setMapName(`${proj.name} — Naksha Layout`);
+                }}
+                className="w-full bg-[#FAF9F6] border border-[#0B4F3C]/20 rounded-xl px-3 py-2.5 text-xs text-[#171A18] font-bold focus:outline-none focus:border-[#0B4F3C] focus:ring-1 focus:ring-[#0B4F3C]/20"
               >
-                <option value="">— Select a Project to link extracted plots —</option>
+                <option value="">— Select Project —</option>
                 {projects.map((p) => (
                   <option key={p._id} value={p._id}>{p.name} ({p.code})</option>
                 ))}
               </select>
             </div>
-
             <div>
-              <label className="text-xs text-[#171A18]/70 font-semibold">Layout Map Title</label>
+              <label className="text-xs font-bold text-[#171A18]/70 block mb-1.5">Map / Layout Title</label>
               <input
                 type="text"
                 value={mapName}
                 onChange={(e) => setMapName(e.target.value)}
-                className="w-full mt-1 bg-[#FAF9F6] border border-[#0B4F3C]/20 rounded-xl px-4 py-2 text-xs text-[#171A18] font-bold focus:outline-none focus:border-[#0B4F3C]"
+                placeholder="e.g. Sector 5 — Phase 2 Layout"
+                className="w-full bg-[#FAF9F6] border border-[#0B4F3C]/20 rounded-xl px-3 py-2.5 text-xs text-[#171A18] font-bold focus:outline-none focus:border-[#0B4F3C] focus:ring-1 focus:ring-[#0B4F3C]/20"
               />
-            </div>
-
-            <div className="border-2 border-dashed border-[#0B4F3C]/20 hover:border-[#0B4F3C] bg-[#FAF9F6] rounded-2xl p-8 text-center cursor-pointer transition-colors">
-              <input
-                type="file"
-                accept=".pdf,.png,.jpg,.jpeg"
-                onChange={(e) => setFile(e.target.files ? e.target.files[0] : null)}
-                className="hidden"
-                id="file-upload"
-              />
-              <label htmlFor="file-upload" className="cursor-pointer flex flex-col items-center">
-                <UploadCloud className="w-8 h-8 text-[#0B4F3C] mb-2" />
-                <span className="text-xs font-bold text-[#171A18]">
-                  {file ? file.name : 'Click to select or drag blueprint file here'}
-                </span>
-                <span className="text-[10px] text-[#171A18]/70 mt-1">Automated Plot No, Dimension &amp; Status Detection</span>
-              </label>
             </div>
           </div>
 
-          <button
-            onClick={handleAnalyze}
-            disabled={isAnalyzing || !selectedProjectId}
-            className="w-full py-3 rounded-xl bg-[#0B4F3C] hover:bg-[#063B2D] text-white font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer border border-[#0B4F3C] disabled:opacity-60 disabled:cursor-not-allowed"
+          {/* Drop Zone */}
+          <div
+            onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+            onDragLeave={() => setIsDragging(false)}
+            onDrop={handleDrop}
+            onClick={() => fileInputRef.current?.click()}
+            className={`relative border-2 border-dashed rounded-2xl cursor-pointer transition-all ${
+              isDragging
+                ? 'border-[#0B4F3C] bg-[#EAF3EF] scale-[1.01]'
+                : file
+                ? 'border-[#0B4F3C]/60 bg-[#EAF3EF]/40'
+                : 'border-[#0B4F3C]/20 bg-[#FAF9F6] hover:border-[#0B4F3C]/50 hover:bg-[#EAF3EF]/30'
+            }`}
           >
-            {isAnalyzing ? (
-              <>
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                Analyzing Layout OCR &amp; Vector Geometry...
-              </>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".pdf,.png,.jpg,.jpeg"
+              className="hidden"
+              onChange={(e) => e.target.files?.[0] && handleFileSelect(e.target.files[0])}
+            />
+
+            {file && previewUrl ? (
+              /* Image Preview inside drop zone */
+              <div className="p-4">
+                <div className="relative rounded-xl overflow-hidden max-h-64">
+                  <img src={previewUrl} alt="Preview" className="w-full object-contain max-h-64" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                  <div className="absolute bottom-3 left-3 flex items-center gap-2">
+                    <span className="bg-emerald-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+                      ✅ Ready to Analyze
+                    </span>
+                    <span className="bg-black/60 text-white text-[10px] px-2 py-0.5 rounded-full">
+                      {file.name}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); setFile(null); setPreviewUrl(null); }}
+                    className="absolute top-2 right-2 w-7 h-7 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors shadow-md"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            ) : file ? (
+              /* PDF or non-image */
+              <div className="p-10 text-center">
+                <FileImage className="w-12 h-12 text-[#0B4F3C] mx-auto mb-3" />
+                <p className="text-sm font-bold text-[#171A18]">✅ {file.name}</p>
+                <p className="text-xs text-[#171A18]/60 mt-1">PDF selected — AI will extract all plot data</p>
+                <button
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); setFile(null); }}
+                  className="mt-3 text-xs text-red-500 hover:text-red-700 font-semibold"
+                >
+                  Remove
+                </button>
+              </div>
             ) : (
-              'Run AI OCR Extraction Pipeline'
+              /* Empty State */
+              <div className="p-12 text-center">
+                <UploadCloud className="w-12 h-12 text-[#0B4F3C]/50 mx-auto mb-3" />
+                <p className="text-sm font-bold text-[#171A18]">Drop your Naksha image here</p>
+                <p className="text-xs text-[#171A18]/50 mt-1">or click to browse — PNG, JPG, PDF supported</p>
+              </div>
             )}
-          </button>
+          </div>
+
+          {/* Actions */}
+          <div className="flex flex-col sm:flex-row gap-3">
+            <button
+              onClick={() => handleAnalyze(false)}
+              disabled={!file || !selectedProjectId}
+              className="flex-1 py-3 rounded-xl bg-[#0B4F3C] hover:bg-[#063B2D] text-white font-bold text-sm shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer border border-[#0B4F3C] disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              <ScanText className="w-4 h-4" />
+              Analyze with AI
+              <ChevronRight className="w-4 h-4" />
+            </button>
+
+            <button
+              onClick={() => handleAnalyze(true)}
+              disabled={!selectedProjectId}
+              className="px-5 py-3 rounded-xl bg-[#EAF3EF] hover:bg-[#D0E8DC] text-[#0B4F3C] font-bold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer border border-[#0B4F3C]/20 disabled:opacity-40"
+            >
+              <Sparkles className="w-4 h-4" />
+              Try Demo Naksha
+            </button>
+          </div>
         </div>
-      ) : (
+      )}
+
+      {/* STEP 1 — AI Scanning */}
+      {step === 1 && (
+        <div className="bg-white rounded-3xl border border-[#0B4F3C]/15 p-12 shadow-sm flex flex-col items-center justify-center gap-6 min-h-[380px]">
+          {/* Animated Scanner */}
+          <div className="relative w-24 h-24">
+            <div className="w-24 h-24 rounded-3xl bg-[#0B4F3C]/10 flex items-center justify-center">
+              <Cpu className="w-12 h-12 text-[#0B4F3C]" />
+            </div>
+            <div className="absolute inset-0 rounded-3xl border-2 border-[#0B4F3C]/30 animate-ping" />
+            <div className="absolute inset-0 rounded-3xl border-2 border-[#0B4F3C]/20 animate-ping" style={{ animationDelay: '0.5s' }} />
+          </div>
+
+          {/* Image preview while analyzing */}
+          {previewUrl && (
+            <div className="relative w-full max-w-xs rounded-xl overflow-hidden border-2 border-[#0B4F3C]/20">
+              <img src={previewUrl} alt="Analyzing" className="w-full object-cover max-h-40 opacity-60" />
+              {/* Scanning line animation */}
+              <div className="absolute inset-0 overflow-hidden">
+                <div className="absolute w-full h-1 bg-gradient-to-r from-transparent via-emerald-400 to-transparent animate-bounce opacity-80" style={{ top: '40%' }} />
+              </div>
+              <div className="absolute inset-0 bg-gradient-to-t from-[#0B4F3C]/30 to-transparent" />
+            </div>
+          )}
+
+          <div className="text-center space-y-2">
+            <p className="text-base font-bold text-[#171A18]">AI is reading your Naksha...</p>
+            <p className="text-xs text-[#171A18]/60 min-h-[1.2rem] transition-all">{statusMsg}</p>
+          </div>
+
+          <div className="flex gap-1.5">
+            {[0,1,2].map(i => (
+              <div
+                key={i}
+                className="w-2 h-2 rounded-full bg-[#0B4F3C] animate-bounce"
+                style={{ animationDelay: `${i * 0.2}s` }}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* STEP 2 — Review Results */}
+      {step === 2 && ocrResult && (
         <OcrValidationViewer
           mapData={ocrResult}
-          onComplete={() => setOcrResult(null)}
+          uploadedPreviewUrl={previewUrl}
+          onComplete={handleReset}
         />
       )}
     </div>

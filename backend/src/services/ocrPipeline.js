@@ -3,23 +3,14 @@ const Plot = require('../models/Plot');
 const { uploadToS3 } = require('./s3Service');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 
-/**
- * Naksa (site layout map) parser.
- *
- * When GEMINI_API_KEY is configured, the uploaded map image is sent to Google
- * Gemini Vision to extract plot numbers, geometry and (where legible) pricing.
- * When AWS credentials are configured, the original file is stored to S3.
- *
- * If neither the key nor a real extraction is available, a clearly-labelled
- * SAMPLE dataset is returned with low confidence so the human-in-the-loop
- * review flow is always triggered (nothing is silently trusted).
- */
+
 async function processMapImageOCR({ projectId, mapName, fileBuffer, fileName }) {
   let s3ImageUrl = 'https://images.unsplash.com/photo-1524813686514-a57563d77965?auto=format&fit=crop&w=1200&q=80';
 
-  // 1. Store the uploaded Naksa file (no-op fake URL if AWS creds absent).
+  // 1. Store the uploaded Naksa file — uploadToS3 returns { url, key } with a pre-signed URL
   if (fileBuffer) {
-    s3ImageUrl = await uploadToS3(fileBuffer, fileName, 'image/png', 'naksa_layouts');
+    const uploadResult = await uploadToS3(fileBuffer, fileName, 'image/png', 'naksa_layouts');
+    s3ImageUrl = typeof uploadResult === 'string' ? uploadResult : (uploadResult?.url || s3ImageUrl);
   }
 
   let extractedPlots = [];
@@ -28,14 +19,13 @@ async function processMapImageOCR({ projectId, mapName, fileBuffer, fileName }) 
 
   // 2. Extract via Google Gemini Vision (best for architectural blueprints / Naksa).
   if (process.env.GEMINI_API_KEY && fileBuffer) {
-    const preferredModel = process.env.GEMINI_VISION_MODEL || 'gemini-3.6-flash';
+    const preferredModel = process.env.GEMINI_VISION_MODEL || 'gemini-2.5-flash';
     const fallbackModels = Array.from(new Set([
       preferredModel,
-      'gemini-3.6-flash',
-      'gemini-3.1-pro-preview',
       'gemini-2.5-flash',
       'gemini-1.5-pro',
-      'gemini-1.5-flash'
+      'gemini-1.5-flash',
+      'gemini-2.0-flash'
     ]));
 
     for (const modelName of fallbackModels) {
@@ -50,29 +40,46 @@ async function processMapImageOCR({ projectId, mapName, fileBuffer, fileName }) 
           }
         };
 
-        const prompt = `You are a high-precision real estate site layout map (Naksa) parser. Analyze this site plan image and extract EVERY visible plot unit.
-Return ONLY a raw JSON array (no markdown). Each object must have these keys:
-- plotNo (string, e.g. "E5-83")
-- status: one of AVAILABLE, BOOKED, PENDING, SOLD (infer from colour/legend; default AVAILABLE)
-- sellableSqYrd, carpetSqYrd (numbers, 0 if unknown)
-- plc12mtr, plc9mtr, plcCorner, plcParkFacing, totalPlc, discountedPlc, otmc, gstOnOtherCharges, totalCost (numbers, 0 if not printed on the map)
-- polygonPoints: array of {x, y} pixel coordinates tracing the plot boundary in this image (clockwise). REQUIRED so the plot can be drawn on a canvas.
-- confidence: number 0-1 for this plot.
-Return ONLY the JSON array.`;
+        const prompt = `You are a real estate site layout (Naksha) reader. Look at this site plan image carefully and extract information about every visible plot unit.
+
+Return a JSON array only — no markdown, no explanations. Each item should have:
+- plotNo: the plot number shown on the map (string, e.g. "A-12" or "Plot 5"). Required.
+- status: one of "AVAILABLE", "BOOKED", "SOLD", "PENDING". Use color coding if visible, otherwise "AVAILABLE".
+- sellableSqYrd: sellable area in sq yards (number, 0 if not visible)
+- carpetSqYrd: carpet area in sq yards (number, 0 if not visible)
+- dimensions: size as string like "30x60" (empty string if not visible)
+- sizeSqft: size in sq feet (number, 0 if not visible)
+- plc12mtr, plc9mtr, plcCorner, plcParkFacing: PLC charges (numbers, 0 if not applicable)
+- totalPlc, discountedPlc, otmc, gstOnOtherCharges, totalCost: cost fields (numbers, 0 if not visible)
+- polygonPoints: array of {x, y} pixel coordinates tracing the plot boundary clockwise
+- confidence: your confidence 0 to 1
+
+Rules:
+1. Extract ALL visible plots — do not skip any.
+2. Use 0 for missing numbers, empty string for missing text. Never use null.
+3. Return ONLY the JSON array.`;
 
         const result = await model.generateContent([prompt, imagePart]);
         const responseText = result.response.text();
-        const cleanJson = responseText.replace(/```json/g, '').replace(/```/g, '').trim();
+
+        // Parse JSON — handle markdown code fences
+        let cleanJson = responseText.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim();
+        const arrayStart = cleanJson.indexOf('[');
+        const arrayEnd = cleanJson.lastIndexOf(']');
+        if (arrayStart !== -1 && arrayEnd !== -1) {
+          cleanJson = cleanJson.substring(arrayStart, arrayEnd + 1);
+        }
+
         const parsed = JSON.parse(cleanJson);
         if (Array.isArray(parsed) && parsed.length > 0) {
           extractedPlots = parsed;
-          overallConfidence = 0.96;
+          overallConfidence = 0.93;
           usedAI = true;
+          console.log(`[OCR] ✅ Gemini (${modelName}) extracted ${parsed.length} plots`);
           break;
         }
       } catch (aiError) {
-        console.warn(`Gemini Vision AI (${modelName}) parsing attempt note:`, aiError.message);
-      }
+        console.warn(`[OCR] Gemini (${modelName}) attempt failed:`, aiError.message);
     }
   }
 

@@ -169,44 +169,80 @@ export const AddProjectModal: React.FC<AddProjectModalProps> = ({ onClose, onSuc
             </div>
           </div>
 
-          {/* Project Site Map File Upload Box */}
+          {/* Project Site Map / Banner Image Upload Box */}
           <div className="p-4 bg-[#EAF3EF] rounded-xl border border-[#0B4F3C]/20 space-y-3">
             <label className="font-bold text-[#0B4F3C] flex items-center gap-1.5 text-[11px]">
-              <UploadCloud className="w-4 h-4 text-[#0B4F3C]" /> Upload Plot Map Blueprint / Image File
+              <UploadCloud className="w-4 h-4 text-[#0B4F3C]" /> Project Banner Image
             </label>
-            
-            <div className="border-2 border-dashed border-[#0B4F3C]/20 hover:border-[#0B4F3C] rounded-xl p-4 text-center cursor-pointer transition-colors bg-white">
+
+            {/* Upload Zone */}
+            <div className={`border-2 border-dashed rounded-xl p-4 text-center cursor-pointer transition-all bg-white ${isUploading ? 'border-[#0B4F3C] bg-[#EAF3EF]/50' : 'border-[#0B4F3C]/20 hover:border-[#0B4F3C]'}`}>
               <input
                 type="file"
                 accept="image/*,.pdf"
                 onChange={handleFileUpload}
                 className="hidden"
                 id="project-map-upload"
+                disabled={isUploading}
               />
-              <label htmlFor="project-map-upload" className="cursor-pointer flex flex-col items-center">
-                <UploadCloud className="w-6 h-6 text-[#0B4F3C] mb-1" />
-                <span className="text-xs font-bold text-[#171A18]">
-                  {fileName ? `Selected: ${fileName}` : 'Click to Upload Map Blueprint (PNG, JPG, PDF)'}
-                </span>
-                <span className="text-[10px] text-[#171A18]/70 mt-0.5">Will render directly on Plot Map Canvas</span>
+              <label htmlFor="project-map-upload" className={`flex flex-col items-center gap-1 ${isUploading ? 'cursor-wait' : 'cursor-pointer'}`}>
+                {isUploading ? (
+                  <>
+                    <div className="w-6 h-6 border-2 border-[#0B4F3C] border-t-transparent rounded-full animate-spin mb-1" />
+                    <span className="text-xs font-bold text-[#0B4F3C]">Uploading to S3...</span>
+                    <span className="text-[10px] text-[#171A18]/70">Please wait</span>
+                  </>
+                ) : (
+                  <>
+                    <UploadCloud className="w-7 h-7 text-[#0B4F3C] mb-1" />
+                    <span className="text-xs font-bold text-[#171A18]">
+                      {fileName ? `✅ ${fileName}` : 'Click to Upload Banner Image (PNG, JPG, PDF)'}
+                    </span>
+                    <span className="text-[10px] text-[#171A18]/70 mt-0.5">Image will appear on project card & landing page</span>
+                  </>
+                )}
               </label>
             </div>
 
-            <div className="pt-2 border-t border-[#0B4F3C]/15">
-              <label className="text-[10px] text-[#171A18]/70 block mb-1">Or paste Image URL:</label>
+            {/* URL Input */}
+            <div className="border-t border-[#0B4F3C]/15 pt-2">
+              <label className="text-[10px] text-[#171A18]/70 block mb-1 font-semibold">Or paste Image URL directly:</label>
               <input
                 type="text"
                 placeholder="https://..."
                 value={mapImageUrl}
                 onChange={(e) => setMapImageUrl(e.target.value)}
-                className="w-full bg-white border border-[#0B4F3C]/20 rounded-lg px-3 py-1.5 text-[#171A18] font-mono text-[11px]"
+                className="w-full bg-white border border-[#0B4F3C]/20 rounded-lg px-3 py-1.5 text-[#171A18] font-mono text-[11px] focus:outline-none focus:border-[#0B4F3C]"
               />
             </div>
 
+            {/* Image Preview */}
             {mapImageUrl && (
-              <div className="relative rounded-lg overflow-hidden border border-[#0B4F3C]/20 h-28 mt-2">
-                <img src={mapImageUrl} alt="Preview" className="w-full h-full object-cover" />
-                <span className="absolute bottom-1 right-1 bg-black/60 px-2 py-0.5 rounded text-[9px] text-white">Preview</span>
+              <div className="relative rounded-xl overflow-hidden border-2 border-[#0B4F3C]/20 mt-2">
+                <img
+                  src={mapImageUrl}
+                  alt="Preview"
+                  className="w-full h-36 object-cover"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).style.opacity = '0.3';
+                  }}
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                <div className="absolute bottom-2 left-2 flex items-center gap-1.5">
+                  {mapImageUrl.includes('amazonaws.com') && (
+                    <span className="bg-emerald-500 text-white text-[9px] font-bold px-2 py-0.5 rounded-full">
+                      ✅ AWS S3
+                    </span>
+                  )}
+                  <span className="bg-black/60 text-white text-[9px] px-2 py-0.5 rounded-full">Preview</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => { setMapImageUrl(''); setFileName(''); }}
+                  className="absolute top-2 right-2 w-6 h-6 bg-red-500 text-white rounded-full text-xs flex items-center justify-center hover:bg-red-600 transition-colors font-bold"
+                >
+                  ×
+                </button>
               </div>
             )}
           </div>

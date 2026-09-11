@@ -191,12 +191,14 @@ exports.uploadPlotDocument = async (req, res, next) => {
     let fileUrl = req.body.fileUrl;
 
     if (req.file) {
-      fileUrl = await uploadToS3(
+      const uploadResult = await uploadToS3(
         req.file.buffer,
         req.file.originalname,
         req.file.mimetype,
         'plot_documents'
       );
+      // uploadToS3 returns { url, key } with pre-signed URL
+      fileUrl = typeof uploadResult === 'string' ? uploadResult : uploadResult?.url;
     }
 
     const doc = await PlotDocument.create({

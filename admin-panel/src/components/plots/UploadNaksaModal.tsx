@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { X, UploadCloud, ScanText, Sparkles } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { X, UploadCloud, ScanText, Sparkles, FileImage } from 'lucide-react';
 import api from '../../services/api';
 import { Project } from '../../types';
 import { OcrValidationViewer } from '../ocr/OcrValidationViewer';
@@ -19,70 +19,75 @@ export const UploadNaksaModal: React.FC<UploadNaksaModalProps> = ({
   onSuccess
 }) => {
   const toast = useToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [projectId, setProjectId] = useState<string>(selectedProjectId || (projects[0]?._id || ''));
-  const [mapName, setMapName] = useState<string>('Official Government Layout Blueprint');
+  const [mapName, setMapName] = useState<string>(() => {
+    const p = projects.find(x => x._id === (selectedProjectId || projects[0]?._id));
+    return p ? `${p.name} — Naksha Layout` : 'Naksha Layout';
+  });
   const [file, setFile] = useState<File | null>(null);
-  const [fileName, setFileName] = useState<string>('');
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
   const [ocrResult, setOcrResult] = useState<any>(null);
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selected = e.target.files?.[0];
-    if (selected) {
-      setFile(selected);
-      setFileName(selected.name);
+  const handleFileSelect = (f: File) => {
+    setFile(f);
+    if (f.type.startsWith('image/')) {
+      setPreviewUrl(URL.createObjectURL(f));
+    } else {
+      setPreviewUrl(null);
     }
   };
 
-  const handleRunOcr = async (e?: React.FormEvent, isSample: boolean = false) => {
-    if (e) e.preventDefault();
-
-    if (!isSample && !file) {
-      toast.error('Please select a Government Naksa PDF or Image blueprint file, or click "Try Sample Naksa Blueprint".');
+  const handleRunOcr = async (useSample = false) => {
+    if (!projectId) {
+      toast.error('Please select a project first.');
+      return;
+    }
+    if (!useSample && !file) {
+      toast.error('Please upload a Naksha image or PDF first.');
       return;
     }
 
     try {
       setIsAnalyzing(true);
       const formData = new FormData();
-      if (file && !isSample) {
-        formData.append('file', file);
-      }
+      if (file && !useSample) formData.append('file', file);
       formData.append('projectId', projectId);
-      formData.append('mapName', mapName);
+      formData.append('mapName', mapName || 'Naksha Layout');
 
       const res = await api.post('/ocr/analyze', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
 
-      toast.success('Vision AI extracted plot geometry successfully!');
+      toast.success(`Extracted ${res.data?.extractedPlots?.length || 0} plots!`);
       setOcrResult(res.data);
     } catch (err: any) {
-      console.error(err);
-      toast.error(err.response?.data?.message || 'Failed to analyze Government Naksa file.');
+      toast.error(err.response?.data?.message || 'AI analysis failed. Please try again.');
     } finally {
       setIsAnalyzing(false);
     }
   };
 
   const handleApproveComplete = () => {
-    toast.success('🎉 Government Naksa layout successfully converted & synchronized to Plot Map Canvas!');
+    toast.success('Plots saved to database successfully!');
     onSuccess();
     onClose();
   };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-      <div className="bg-white border border-[#0B4F3C]/20 w-full max-w-4xl rounded-3xl p-6 space-y-6 shadow-2xl overflow-y-auto max-h-[90vh]">
+      <div className="bg-white border border-[#0B4F3C]/20 w-full max-w-4xl rounded-3xl shadow-2xl overflow-y-auto max-h-[92vh]">
+
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-[#0B4F3C]/15 pb-4">
+        <div className="flex items-center justify-between p-6 border-b border-[#0B4F3C]/10">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[#0B4F3C] text-white flex items-center justify-center shadow-md">
+            <div className="w-10 h-10 rounded-xl bg-[#0B4F3C] text-white flex items-center justify-center">
               <ScanText className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-lg font-serif font-bold text-[#171A18]">Upload Government Naksa & AI Canvas Generator</h3>
-              <p className="text-xs text-[#171A18]/70">PyMuPDF + Vision AI vector geometry extraction & plot canvas overlay</p>
+              <h3 className="text-base font-serif font-bold text-[#171A18]">Naksha AI Analyzer</h3>
+              <p className="text-xs text-[#171A18]/60">Upload a site layout — AI extracts all plot data automatically</p>
             </div>
           </div>
           <button onClick={onClose} className="p-2 rounded-xl bg-[#EAF3EF] text-[#0B4F3C] hover:bg-[#0B4F3C] hover:text-white transition-colors cursor-pointer">
@@ -90,121 +95,129 @@ export const UploadNaksaModal: React.FC<UploadNaksaModalProps> = ({
           </button>
         </div>
 
-        {/* Visual Step Guide */}
-        <div className="grid grid-cols-3 gap-2 text-center text-xs">
-          <div className={`p-2.5 rounded-xl border flex items-center justify-center gap-1.5 font-bold ${
-            !ocrResult ? 'bg-[#0B4F3C] text-white border-[#0B4F3C]' : 'bg-[#EAF3EF] text-[#0B4F3C] border-[#0B4F3C]/20'
-          }`}>
-            <span>1. Select Naksa Image/PDF</span>
-          </div>
-          <div className={`p-2.5 rounded-xl border flex items-center justify-center gap-1.5 font-bold ${
-            ocrResult ? 'bg-[#0B4F3C] text-white border-[#0B4F3C]' : 'bg-[#FAF9F6] text-[#171A18]/70 border-[#0B4F3C]/15'
-          }`}>
-            <span>2. Vision AI Extract & Verify</span>
-          </div>
-          <div className="p-2.5 rounded-xl border border-[#0B4F3C]/15 bg-[#FAF9F6] text-[#171A18]/70 font-bold flex items-center justify-center gap-1.5">
-            <span>3. Render Plot Canvas</span>
-          </div>
-        </div>
-
-        {!ocrResult ? (
-          <form onSubmit={(e) => handleRunOcr(e, false)} className="space-y-5 text-xs">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="text-[#171A18]/70 font-semibold block mb-1">Target Project / Township</label>
-                <select
-                  value={projectId}
-                  onChange={(e) => setProjectId(e.target.value)}
-                  className="w-full bg-[#FAF9F6] border border-[#0B4F3C]/20 rounded-xl px-3 py-2 text-[#171A18] font-bold focus:outline-none focus:border-[#0B4F3C]"
-                >
-                  {projects.map((proj) => (
-                    <option key={proj._id} value={proj._id}>
-                      {proj.name} ({proj.code}) - {proj.location}
-                    </option>
-                  ))}
-                </select>
+        <div className="p-6 space-y-5">
+          {!ocrResult ? (
+            <>
+              {/* Project + Title */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                <div>
+                  <label className="font-bold text-[#171A18]/70 block mb-1.5">
+                    Project <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={projectId}
+                    onChange={(e) => {
+                      setProjectId(e.target.value);
+                      const p = projects.find(x => x._id === e.target.value);
+                      if (p) setMapName(`${p.name} — Naksha Layout`);
+                    }}
+                    className="w-full bg-[#FAF9F6] border border-[#0B4F3C]/20 rounded-xl px-3 py-2.5 text-[#171A18] font-bold focus:outline-none focus:border-[#0B4F3C]"
+                  >
+                    <option value="">— Select Project —</option>
+                    {projects.map((p) => (
+                      <option key={p._id} value={p._id}>{p.name} ({p.code})</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="font-bold text-[#171A18]/70 block mb-1.5">Layout Title</label>
+                  <input
+                    type="text"
+                    value={mapName}
+                    onChange={(e) => setMapName(e.target.value)}
+                    placeholder="e.g. Sector 5 Phase 2 Layout"
+                    className="w-full bg-[#FAF9F6] border border-[#0B4F3C]/20 rounded-xl px-3 py-2.5 text-[#171A18] font-bold focus:outline-none focus:border-[#0B4F3C]"
+                  />
+                </div>
               </div>
 
-              <div>
-                <label className="text-[#171A18]/70 font-semibold block mb-1">Naksa Title / Blueprint Reference</label>
+              {/* Upload Zone */}
+              <div
+                onClick={() => fileInputRef.current?.click()}
+                className={`relative border-2 border-dashed rounded-2xl cursor-pointer transition-all ${
+                  file ? 'border-[#0B4F3C]/60 bg-[#EAF3EF]/30' : 'border-[#0B4F3C]/20 bg-[#FAF9F6] hover:border-[#0B4F3C]/50'
+                }`}
+              >
                 <input
-                  type="text"
-                  required
-                  value={mapName}
-                  onChange={(e) => setMapName(e.target.value)}
-                  className="w-full bg-[#FAF9F6] border border-[#0B4F3C]/20 rounded-xl px-3 py-2 text-[#171A18] font-bold focus:outline-none focus:border-[#0B4F3C]"
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".pdf,.png,.jpg,.jpeg"
+                  className="hidden"
+                  onChange={(e) => e.target.files?.[0] && handleFileSelect(e.target.files[0])}
                 />
-              </div>
-            </div>
 
-            {/* Quick Demo Test Action */}
-            <div className="p-3 bg-[#EAF3EF] rounded-2xl border border-[#0B4F3C]/20 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-[#0B4F3C]" />
-                <span className="font-bold text-[#0B4F3C]">No blueprint file on your laptop?</span>
-              </div>
-              <button
-                type="button"
-                onClick={() => handleRunOcr(undefined, true)}
-                disabled={isAnalyzing}
-                className="px-3.5 py-1.5 rounded-xl bg-[#0B4F3C] hover:bg-[#063B2D] text-white font-bold text-xs shadow-sm flex items-center gap-1 cursor-pointer"
-              >
-                ⚡ Try Sample Government Naksa (1-Click Test)
-              </button>
-            </div>
-
-            {/* File Dropzone */}
-            <div className="border-2 border-dashed border-[#0B4F3C]/20 hover:border-[#0B4F3C] bg-[#FAF9F6] rounded-2xl p-8 text-center cursor-pointer transition-colors">
-              <input
-                type="file"
-                accept=".pdf,.png,.jpg,.jpeg"
-                onChange={handleFileUpload}
-                className="hidden"
-                id="naksa-upload-input"
-              />
-              <label htmlFor="naksa-upload-input" className="cursor-pointer flex flex-col items-center">
-                <UploadCloud className="w-10 h-10 text-[#0B4F3C] mb-2" />
-                <span className="text-sm font-bold text-[#171A18]">
-                  {fileName ? `Selected: ${fileName}` : 'Click to Upload Official Government Naksa (PDF, PNG, JPG)'}
-                </span>
-                <span className="text-[10px] text-[#171A18]/70 mt-1">
-                  PyMuPDF + Vision AI will automatically detect Plot Numbers, Dimensions, Boundaries & PLC details
-                </span>
-              </label>
-            </div>
-
-            <div className="pt-4 border-t border-[#0B4F3C]/15 flex items-center gap-3">
-              <button
-                type="button"
-                onClick={onClose}
-                className="flex-1 py-2.5 rounded-xl bg-[#FAF9F6] border border-[#0B4F3C]/20 font-bold text-xs text-[#171A18]/70 hover:text-[#171A18]"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={isAnalyzing}
-                className="flex-1 py-2.5 rounded-xl bg-[#0B4F3C] hover:bg-[#063B2D] font-bold text-xs text-white shadow-md cursor-pointer border border-[#0B4F3C] flex items-center justify-center gap-2"
-              >
-                {isAnalyzing ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    Running AI Vision OCR & Polygon Extraction...
-                  </>
+                {previewUrl ? (
+                  <div className="p-4">
+                    <div className="relative rounded-xl overflow-hidden max-h-52">
+                      <img src={previewUrl} alt="Preview" className="w-full object-contain max-h-52" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+                      <div className="absolute bottom-2 left-2">
+                        <span className="bg-emerald-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+                          ✅ {file?.name}
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); setFile(null); setPreviewUrl(null); }}
+                        className="absolute top-2 right-2 w-7 h-7 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                ) : file ? (
+                  <div className="p-8 text-center">
+                    <FileImage className="w-10 h-10 text-[#0B4F3C] mx-auto mb-2" />
+                    <p className="text-sm font-bold text-[#171A18]">✅ {file.name}</p>
+                    <p className="text-xs text-[#171A18]/50 mt-1">PDF ready for analysis</p>
+                  </div>
                 ) : (
-                  <>
-                    <ScanText className="w-4 h-4" /> Run AI OCR Naksa Extraction
-                  </>
+                  <div className="p-10 text-center">
+                    <UploadCloud className="w-10 h-10 text-[#0B4F3C]/40 mx-auto mb-2" />
+                    <p className="text-sm font-bold text-[#171A18]">Upload Naksha Image or PDF</p>
+                    <p className="text-xs text-[#171A18]/50 mt-1">PNG, JPG, PDF • AI will extract plot numbers, sizes & boundaries</p>
+                  </div>
                 )}
-              </button>
-            </div>
-          </form>
-        ) : (
-          <OcrValidationViewer
-            mapData={ocrResult}
-            onComplete={handleApproveComplete}
-          />
-        )}
+              </div>
+
+              {/* Buttons */}
+              <div className="flex gap-3">
+                <button
+                  onClick={() => handleRunOcr(false)}
+                  disabled={isAnalyzing || !file || !projectId}
+                  className="flex-1 py-3 rounded-xl bg-[#0B4F3C] hover:bg-[#063B2D] text-white font-bold text-sm shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  {isAnalyzing ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      AI Analyzing...
+                    </>
+                  ) : (
+                    <>
+                      <ScanText className="w-4 h-4" />
+                      Analyze with AI
+                    </>
+                  )}
+                </button>
+
+                <button
+                  onClick={() => handleRunOcr(true)}
+                  disabled={isAnalyzing || !projectId}
+                  className="px-5 py-3 rounded-xl bg-[#EAF3EF] hover:bg-[#D0E8DC] text-[#0B4F3C] font-bold text-xs transition-all flex items-center justify-center gap-2 border border-[#0B4F3C]/20 disabled:opacity-40"
+                >
+                  <Sparkles className="w-4 h-4" />
+                  Try Demo
+                </button>
+              </div>
+            </>
+          ) : (
+            <OcrValidationViewer
+              mapData={ocrResult}
+              uploadedPreviewUrl={previewUrl}
+              onComplete={handleApproveComplete}
+            />
+          )}
+        </div>
       </div>
     </div>
   );
