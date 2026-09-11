@@ -10,7 +10,6 @@ import { EmployeesPage } from './pages/EmployeesPage';
 import { MLMTreePage } from './pages/MLMTreePage';
 import { ProjectsPage } from './pages/ProjectsPage';
 import { PlotManagementPage } from './pages/PlotManagementPage';
-import { PlotMapsPage } from './pages/PlotMapsPage';
 import { CommissionsPage } from './pages/CommissionsPage';
 import { PayoutsPage } from './pages/PayoutsPage';
 import { OCRAnalyzerPage } from './pages/OCRAnalyzerPage';
@@ -57,7 +56,7 @@ export const App: React.FC = () => {
             <Route path="/mlm-tree" element={<ProtectedRoute><MLMTreePage /></ProtectedRoute>} />
             <Route path="/projects" element={<ProtectedRoute adminOnly><ProjectsPage /></ProtectedRoute>} />
             <Route path="/plots" element={<ProtectedRoute><PlotManagementPage /></ProtectedRoute>} />
-            <Route path="/plot-maps" element={<ProtectedRoute adminOnly><PlotMapsPage /></ProtectedRoute>} />
+            <Route path="/plot-maps" element={<Navigate to="/plots" replace />} />
             <Route path="/commissions" element={<ProtectedRoute><CommissionsPage /></ProtectedRoute>} />
             <Route path="/payouts" element={<ProtectedRoute><PayoutsPage /></ProtectedRoute>} />
             <Route path="/ocr-analyzer" element={<ProtectedRoute adminOnly><OCRAnalyzerPage /></ProtectedRoute>} />

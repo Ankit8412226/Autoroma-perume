@@ -51,9 +51,8 @@ const navSections: NavSection[] = [
     title: 'INVENTORY & NAKSA MAPS',
     items: [
       { name: 'Real Estate Projects', path: '/projects', icon: Building2, allowedRoles: ADMIN_DIRECTOR },
-      { name: 'Plot Inventory', path: '/plots', icon: MapPin, allowedRoles: ALL_ROLES },
-      { name: 'Plot Map Canvas', path: '/plot-maps', icon: Map, allowedRoles: ADMIN_DIRECTOR_MANAGER },
-      { name: 'Naksha AI Analyzer', path: '/ocr-analyzer', icon: ScanText, allowedRoles: ADMIN_DIRECTOR, badge: 'AI' },
+      { name: 'Plot Inventory & Canvas', path: '/plots', icon: MapPin, allowedRoles: ALL_ROLES },
+      { name: 'Naksha AI OCR Tool', path: '/ocr-analyzer', icon: ScanText, allowedRoles: ADMIN_DIRECTOR, badge: 'AI' },
     ]
   },
   {
