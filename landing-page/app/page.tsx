@@ -14,6 +14,8 @@ import { HomepageContactSection } from '@/components/real-estate/HomepageContact
 import { LandInvestmentCalculator } from '@/components/real-estate/LandInvestmentCalculator'
 import { InteractiveNakshaPreview } from '@/components/real-estate/InteractiveNakshaPreview'
 import { LandPlotFAQ } from '@/components/real-estate/LandPlotFAQ'
+import { BrandValuesSection } from '@/components/real-estate/BrandValuesSection'
+import { TestimonialsCommunityInsights } from '@/components/real-estate/TestimonialsCommunityInsights'
 import { PropertyCardSkeleton } from '@/components/common/Skeleton'
 import { formatCurrency } from '@/utils/formatters'
 import { AGENTS } from '@/data/agents'
@@ -299,7 +301,17 @@ export default function HomePage() {
         <LandPlotFAQ />
       </section>
 
-      {/* 10. MEET THE ADVISORS */}
+      {/* 13. FAITH • ETHICS • VALUES (GUIDING DECISIONS & LASTING TRUST) */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <BrandValuesSection />
+      </section>
+
+      {/* 14. OUR TESTIMONIALS & COMMUNITY INSIGHTS */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <TestimonialsCommunityInsights />
+      </section>
+
+      {/* 15. MEET THE ADVISORS */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <SectionHeading
           eyebrow="OUR TEAM"
@@ -314,7 +326,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 11. DIRECT CONTACT US & VIP SITE TOUR FORM SECTION */}
+      {/* 16. DIRECT CONTACT US & VIP SITE TOUR FORM SECTION */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <HomepageContactSection />
       </section>

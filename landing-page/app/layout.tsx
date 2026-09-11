@@ -41,8 +41,11 @@ export const metadata: Metadata = {
     'luxury homes India',
   ],
   icons: {
-    icon: '/icon.svg',
-    shortcut: '/favicon.ico',
+    icon: [
+      { url: '/logo.png', type: 'image/png' },
+    ],
+    shortcut: '/logo.png',
+    apple: '/logo.png',
   },
 }
 
