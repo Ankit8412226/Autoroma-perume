@@ -17,6 +17,7 @@ const reportController = require('../controllers/reportController');
 
 const inquiryController = require('../controllers/inquiryController');
 const uploadController = require('../controllers/uploadController');
+const propertyController = require('../controllers/propertyController');
 
 const { protect, authorize } = require('../middleware/auth');
 const { rateLimit } = require('../middleware/rateLimit');
@@ -26,6 +27,9 @@ const upload = multer({ storage: multer.memoryStorage() });
 
 const ROLES = ['ADMIN', 'MANAGER', 'EMPLOYEE', 'AGENT', 'DIRECTOR'];
 const PLOT_STATUSES = ['AVAILABLE', 'BOOKED', 'PENDING', 'SOLD'];
+const PROPERTY_TYPES = ['RESIDENTIAL_PLOT', 'COMMERCIAL', 'VILLA', 'SHOWROOM', 'APARTMENT', 'LAND'];
+const LISTING_TYPES = ['SALE', 'RENT'];
+const PROPERTY_STATUSES = ['AVAILABLE', 'BOOKED', 'SOLD', 'UPCOMING'];
 
 // Rate limiters for public submissions
 const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 10, message: 'Too many attempts, please try again later.' });
@@ -41,6 +45,9 @@ router.get('/public/projects/:id', inquiryController.getPublicProjectById);
 router.get('/public/plots', inquiryController.getPublicPlots);
 router.get('/public/agents', inquiryController.getPublicAgents);
 router.get('/public/locations', inquiryController.getPublicLocations);
+router.get('/public/properties', propertyController.getPublicProperties);
+router.get('/public/properties/:slug', propertyController.getPublicPropertyBySlug);
+router.get('/public/gallery', propertyController.getPublicGallery);
 
 router.post('/public/inquiries', inquiryLimiter, validate({
   name: { required: true, type: 'string', minLength: 2, maxLength: 80 },
@@ -125,6 +132,27 @@ router.put('/projects/:id', protect, authorize('ADMIN', 'DIRECTOR'), validate({
 }), projectController.updateProject);
 router.delete('/projects/:id', protect, authorize('ADMIN'), projectController.deleteProject);
 router.put('/projects/:projectId/settings', protect, authorize('ADMIN'), projectController.updateProjectSettings);
+
+// --- Property Listings (separate from township Projects) ---
+router.get('/properties', protect, propertyController.getProperties);
+router.post('/properties', protect, authorize('ADMIN', 'DIRECTOR'), validate({
+  title: { required: true, type: 'string', minLength: 2, maxLength: 160 },
+  propertyType: { type: 'string', enum: PROPERTY_TYPES },
+  listingType: { type: 'string', enum: LISTING_TYPES },
+  status: { type: 'string', enum: PROPERTY_STATUSES },
+  price: { type: 'number', min: 0 },
+  projectId: { type: 'objectId' }
+}), propertyController.createProperty);
+router.get('/properties/:id', protect, propertyController.getPropertyById);
+router.put('/properties/:id', protect, authorize('ADMIN', 'DIRECTOR'), validate({
+  title: { type: 'string', minLength: 2, maxLength: 160 },
+  propertyType: { type: 'string', enum: PROPERTY_TYPES },
+  listingType: { type: 'string', enum: LISTING_TYPES },
+  status: { type: 'string', enum: PROPERTY_STATUSES },
+  price: { type: 'number', min: 0 },
+  projectId: { type: 'objectId' }
+}), propertyController.updateProperty);
+router.delete('/properties/:id', protect, authorize('ADMIN'), propertyController.deleteProperty);
 
 // --- Plot Management & Sales Routes ---
 router.get('/user/my-properties', (req, res, next) => {

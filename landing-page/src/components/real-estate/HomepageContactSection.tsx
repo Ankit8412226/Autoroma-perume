@@ -13,6 +13,7 @@ import {
   Building2,
   Sparkles
 } from 'lucide-react'
+import { getApiBaseUrl } from '@/utils/api'
 
 export function HomepageContactSection() {
   const [submitted, setSubmitted] = React.useState(false)
@@ -32,7 +33,7 @@ export function HomepageContactSection() {
     setIsSubmitting(true)
 
     try {
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1'
+      const baseUrl = getApiBaseUrl()
       const res = await fetch(`${baseUrl}/public/inquiries`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

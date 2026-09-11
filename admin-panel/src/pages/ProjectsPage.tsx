@@ -103,7 +103,7 @@ export const ProjectsPage: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {paginatedProjects.map((p) => (
               <div key={p._id} className="bg-white rounded-2xl border border-[#0B4F3C]/15 hover:border-[#0B4F3C]/40 transition-all relative group shadow-sm overflow-hidden">
-                {/* Project Banner Image */}
+
                 <div className="relative aspect-[16/9] w-full bg-gradient-to-br from-[#EAF3EF] to-[#D0E8DC] overflow-hidden">
                   {p.bannerImage ? (
                     <img

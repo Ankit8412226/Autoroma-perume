@@ -95,29 +95,19 @@ export function Footer() {
             </h4>
             <ul className="space-y-2.5 text-xs text-white/70 font-medium">
               <li>
-                <Link href="/properties?type=Penthouse" className="hover:text-brand-sky transition-colors">
-                  Penthouses & Sky Villas
-                </Link>
+                <Link href="/" className="hover:text-brand-sky transition-colors">Home</Link>
               </li>
               <li>
-                <Link href="/properties?type=Villa" className="hover:text-brand-sky transition-colors">
-                  Architectural Villas
-                </Link>
+                <Link href="/projects" className="hover:text-brand-sky transition-colors">Projects</Link>
               </li>
               <li>
-                <Link href="/properties?type=Apartment" className="hover:text-brand-sky transition-colors">
-                  Modern Residences
-                </Link>
+                <Link href="/properties" className="hover:text-brand-sky transition-colors">Properties</Link>
               </li>
               <li>
-                <Link href="/properties?type=Waterfront" className="hover:text-brand-sky transition-colors">
-                  Coastal Homes
-                </Link>
+                <Link href="/gallery" className="hover:text-brand-sky transition-colors">Gallery</Link>
               </li>
               <li>
-                <Link href="/properties?type=Commercial" className="hover:text-brand-sky transition-colors">
-                  Commercial Properties
-                </Link>
+                <Link href="/contact" className="hover:text-brand-sky transition-colors">Contact Us</Link>
               </li>
             </ul>
           </div>

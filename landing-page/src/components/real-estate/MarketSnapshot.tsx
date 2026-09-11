@@ -2,6 +2,7 @@
 
 import * as React from 'react'
 import { TrendingUp, BarChart3, Building2 } from 'lucide-react'
+import { getApiBaseUrl } from '@/utils/api'
 
 export function MarketSnapshot() {
   const [marketData, setMarketData] = React.useState<any[]>([])
@@ -14,7 +15,7 @@ export function MarketSnapshot() {
   const fetchMarketSnapshot = async () => {
     try {
       setIsLoading(true)
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1'
+      const baseUrl = getApiBaseUrl()
       const res = await fetch(`${baseUrl}/public/projects`).catch(() => null)
       if (res && res.ok) {
         const projects = await res.json().catch(() => null)

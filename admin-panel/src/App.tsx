@@ -18,6 +18,7 @@ import { NotificationsPage } from './pages/NotificationsPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { AIKnowledgePage } from './pages/AIKnowledgePage';
 import { LeadsInquiriesPage } from './pages/LeadsInquiriesPage';
+import { PropertiesPage } from './pages/PropertiesPage';
 
 const ADMIN_ROLES = ['ADMIN', 'DIRECTOR'];
 
@@ -55,6 +56,7 @@ export const App: React.FC = () => {
             <Route path="/employees" element={<ProtectedRoute><EmployeesPage /></ProtectedRoute>} />
             <Route path="/mlm-tree" element={<ProtectedRoute><MLMTreePage /></ProtectedRoute>} />
             <Route path="/projects" element={<ProtectedRoute adminOnly><ProjectsPage /></ProtectedRoute>} />
+            <Route path="/properties" element={<ProtectedRoute adminOnly><PropertiesPage /></ProtectedRoute>} />
             <Route path="/plots" element={<ProtectedRoute><PlotManagementPage /></ProtectedRoute>} />
             <Route path="/plot-maps" element={<Navigate to="/plots" replace />} />
             <Route path="/commissions" element={<ProtectedRoute><CommissionsPage /></ProtectedRoute>} />

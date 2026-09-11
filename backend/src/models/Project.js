@@ -26,14 +26,31 @@ const projectSchema = new mongoose.Schema({
     type: String,
     default: 'Premium Gated Real Estate Township with 24/7 Security, Wide Roads, and Commercial Zones.'
   },
+  // Key selling points shown as bullet list on detail page
+  highlights: [{ type: String }],
+  // Location proximity advantages e.g. [{distance:'500 MTR', landmark:'Dholera Sir'}]
+  locationAdvantages: [{
+    distance: { type: String, default: '' },
+    landmark: { type: String, default: '' }
+  }],
   amenities: [{ type: String }],
   totalAreaSqft: {
     type: Number,
     required: true
   },
+  // Human readable area (e.g. "25 Bigha" or "3.2 Acres")
+  area: {
+    type: String,
+    default: ''
+  },
   totalPlots: {
     type: Number,
     default: 0
+  },
+  // Price range string for display e.g. "₹18L – ₹45L"
+  priceRange: {
+    type: String,
+    default: ''
   },
   launchDate: {
     type: Date,
@@ -51,6 +68,70 @@ const projectSchema = new mongoose.Schema({
   bannerImage: {
     type: String,
     default: ''
+  },
+  // Layout / Naksha image URL shown on public detail page
+  mapImageUrl: {
+    type: String,
+    default: ''
+  },
+  logoImage: {
+    type: String,
+    default: ''
+  },
+  insetImage: {
+    type: String,
+    default: ''
+  },
+  gallery: [{
+    url: { type: String, required: true },
+    s3Key: { type: String, default: '' },
+    caption: { type: String, default: '' }
+  }],
+  surveyNumber: {
+    type: String,
+    default: ''
+  },
+  village: {
+    type: String,
+    default: ''
+  },
+  googleMapsUrl: {
+    type: String,
+    default: ''
+  },
+  mapEmbedUrl: {
+    type: String,
+    default: ''
+  },
+  legalDocuments: [{
+    title: { type: String, default: '' },
+    url: { type: String, default: '' },
+    s3Key: { type: String, default: '' }
+  }],
+  // Downloadable brochure PDF URL
+  brochureUrl: {
+    type: String,
+    default: ''
+  },
+  // Promo / walkthrough video URL
+  videoUrl: {
+    type: String,
+    default: ''
+  },
+  // Direct contact for this project
+  contactPhone: {
+    type: String,
+    default: ''
+  },
+  contactEmail: {
+    type: String,
+    default: ''
+  },
+  // Legal: RERA number, title type etc.
+  legalInfo: {
+    reraNumber: { type: String, default: '' },
+    titleType: { type: String, default: 'Freehold' },
+    approvalAuthority: { type: String, default: '' }
   },
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,

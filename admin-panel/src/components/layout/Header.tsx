@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { Search, Bell, LogOut, ShieldCheck, Award, Menu, ChevronRight, Plus, Building2, Users, MapPin, ScanText } from 'lucide-react';
+import { Search, Bell, LogOut, Menu, ChevronRight, Plus, Building2, Users, MapPin, ScanText, Home } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 const ROLE_LABEL: Record<string, string> = {
@@ -15,6 +15,7 @@ const ROUTE_NAMES: Record<string, string> = {
   '/dashboard': 'Executive Dashboard',
   '/inquiries': 'Customer Inquiries & Leads',
   '/projects': 'Real Estate Projects',
+  '/properties': 'Property Listings',
   '/plots': 'Plot Inventory',
   '/plot-maps': 'Plot Map Canvas',
   '/ocr-analyzer': 'Naksha AI Analyzer',
@@ -81,6 +82,15 @@ export const Header: React.FC<HeaderProps> = ({ onToggleMobileMenu }) => {
 
       {/* Right Actions Bar */}
       <div className="flex items-center gap-3">
+        <a
+          href={typeof window !== 'undefined' && window.location.hostname === 'localhost' ? 'http://localhost:3000' : '/'}
+          target="_blank"
+          rel="noreferrer"
+          className="p-2 rounded-xl bg-[#EAF3EF] border border-[#0B4F3C]/15 text-[#0B4F3C] hover:bg-[#0B4F3C] hover:text-white transition-colors"
+          title="Open landing page"
+        >
+          <Home className="w-4.5 h-4.5" />
+        </a>
         {/* Quick Action Button Dropdown */}
         <div className="relative">
           <button
@@ -99,6 +109,12 @@ export const Header: React.FC<HeaderProps> = ({ onToggleMobileMenu }) => {
                 className="w-full px-3 py-2 rounded-xl text-xs font-bold text-left flex items-center gap-2 hover:bg-[#EAF3EF] text-[#171A18] cursor-pointer"
               >
                 <Building2 className="w-4 h-4 text-[#0B4F3C]" /> Create New Project
+              </button>
+              <button
+                onClick={() => { navigate('/properties'); setShowQuickActions(false); }}
+                className="w-full px-3 py-2 rounded-xl text-xs font-bold text-left flex items-center gap-2 hover:bg-[#EAF3EF] text-[#171A18] cursor-pointer"
+              >
+                <Home className="w-4 h-4 text-[#0B4F3C]" /> Create Property Listing
               </button>
               <button
                 onClick={() => { navigate('/employees'); setShowQuickActions(false); }}

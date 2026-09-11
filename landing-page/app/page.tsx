@@ -19,10 +19,10 @@ import { TestimonialsCommunityInsights } from '@/components/real-estate/Testimon
 import { PropertyCardSkeleton } from '@/components/common/Skeleton'
 import { formatCurrency } from '@/utils/formatters'
 import { AGENTS } from '@/data/agents'
+import { PropertyCard } from '@/components/real-estate/PropertyCard'
+import { mapBackendProperty } from '@/utils/mapListing'
 import {
-  Sparkles,
   CheckCircle2,
-  UserPlus,
   ArrowUpRight,
   MapPin,
   RefreshCw
@@ -30,6 +30,7 @@ import {
 
 export default function HomePage() {
   const [projects, setProjects] = React.useState<any[]>([])
+  const [listings, setListings] = React.useState<any[]>([])
   const [isLoading, setIsLoading] = React.useState(true)
 
   React.useEffect(() => {
@@ -40,13 +41,20 @@ export default function HomePage() {
     try {
       setIsLoading(true)
       const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1'
-      const res = await fetch(`${baseUrl}/public/projects`).catch(() => null)
-      if (res && res.ok) {
-        const data = await res.json().catch(() => null)
+      const [projectRes, propertyRes] = await Promise.all([
+        fetch(`${baseUrl}/public/projects`).catch(() => null),
+        fetch(`${baseUrl}/public/properties`).catch(() => null)
+      ])
+      if (projectRes && projectRes.ok) {
+        const data = await projectRes.json().catch(() => null)
         setProjects(data || [])
       }
+      if (propertyRes && propertyRes.ok) {
+        const data = await propertyRes.json().catch(() => null)
+        setListings(Array.isArray(data) ? data : [])
+      }
     } catch (e) {
-      console.error('Failed to fetch live projects', e)
+      console.error('Failed to fetch live inventory', e)
     } finally {
       setIsLoading(false)
     }
@@ -155,61 +163,95 @@ export default function HomePage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {projects.slice(0, 3).map((proj) => (
-              <div
+              <Link
                 key={proj._id}
-                className="bg-white border border-brand-green/15 rounded-2xl p-6 space-y-5 shadow-sm hover:border-brand-green/40 transition-all group flex flex-col justify-between"
+                href={`/projects/${proj._id}`}
+                className="group bg-white rounded-3xl overflow-hidden shadow-sm border border-brand-green/10 hover:shadow-xl hover:border-brand-green/30 transition-all duration-300 flex flex-col"
               >
-                <div className="space-y-4">
-                  <div className="relative aspect-[16/10] w-full rounded-xl overflow-hidden border border-brand-green/15 bg-brand-charcoal">
-                    <Image
-                      src={proj.bannerImage || 'https://images.unsplash.com/photo-1524813686514-a57563d77965?w=800&q=80'}
-                      alt={proj.name || 'Project'}
-                      fill
-                      className="object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
-                    <span className="absolute top-3 left-3 px-3 py-1 bg-brand-green text-white text-[10px] uppercase font-bold tracking-wider rounded-md">
+                {/* Image with gradient */}
+                <div className="relative aspect-[4/3] overflow-hidden bg-brand-charcoal">
+                  <Image
+                    src={proj.bannerImage || 'https://images.unsplash.com/photo-1582407947304-fd86f28f3fdc?w=800&q=80'}
+                    alt={proj.name || 'Project'}
+                    fill
+                    className="object-cover group-hover:scale-105 transition-transform duration-700"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+                  <div className="absolute top-4 left-4">
+                    <span className={`px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider ${
+                      proj.status === 'ACTIVE' ? 'bg-emerald-500 text-white' :
+                      proj.status === 'UPCOMING' ? 'bg-amber-400 text-amber-900' :
+                      'bg-sky-500 text-white'
+                    }`}>
                       {proj.status || 'ACTIVE'}
                     </span>
                   </div>
-
-                  <div className="space-y-1">
-                    <span className="text-xs font-bold text-brand-green uppercase tracking-wider block">
-                      Base Rate: {formatCurrency(proj.basePricePerSqft, { fallback: 'Rate on Request' })} / sqft
-                    </span>
-                    <h3 className="font-serif text-xl font-bold text-brand-charcoal group-hover:text-brand-green transition-colors">
+                  <div className="absolute top-4 right-4">
+                    <span className="px-2.5 py-1 bg-black/60 backdrop-blur-sm text-white font-mono text-[10px] rounded-lg">{proj.code}</span>
+                  </div>
+                  <div className="absolute bottom-0 left-0 right-0 p-5">
+                    <p className="text-white/70 text-xs flex items-center gap-1 mb-1">
+                      <MapPin className="w-3.5 h-3.5 text-[#C9A96E] shrink-0" /> {proj.location}
+                    </p>
+                    <h3 className="font-serif text-xl font-bold text-white group-hover:text-[#C9A96E] transition-colors leading-tight">
                       {proj.name}
                     </h3>
-                    <p className="text-xs text-brand-charcoal/70 flex items-center gap-1">
-                      <MapPin className="w-3.5 h-3.5 text-brand-green" /> {proj.location}
-                    </p>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-2 pt-3 border-t border-brand-green/15 text-xs">
-                    <div className="bg-[#EAF3EF] p-2.5 rounded-xl border border-brand-green/20">
-                      <span className="text-[10px] text-brand-charcoal/70 font-semibold block uppercase">Total Plots</span>
-                      <span className="font-extrabold text-brand-charcoal text-base mt-0.5 block">{proj.totalPlots || 0}</span>
-                    </div>
-                    <div className="bg-[#EAF3EF] p-2.5 rounded-xl border border-brand-green/20">
-                      <span className="text-[10px] text-brand-green font-bold block uppercase">Available Plots</span>
-                      <span className="font-extrabold text-brand-green text-base mt-0.5 block">
-                        {proj.availableCount !== undefined ? proj.availableCount : (proj.totalPlots || 0)}
-                      </span>
-                    </div>
                   </div>
                 </div>
 
-                <Link
-                  href={`/projects/${proj._id}`}
-                  className="mt-4 w-full py-3 bg-[#EAF3EF] hover:bg-brand-green hover:text-white text-brand-green font-bold text-xs rounded-xl transition-all flex items-center justify-center gap-1.5 border border-brand-green/20 cursor-pointer shadow-sm"
-                >
-                  <span>Explore Project Plots</span>
-                  <ArrowUpRight className="w-4 h-4" />
-                </Link>
-              </div>
+                {/* Card body */}
+                <div className="p-5 flex-1 flex flex-col gap-3">
+                  <div className="grid grid-cols-3 gap-2 text-center">
+                    <div className="bg-[#EAF3EF] rounded-xl p-2 border border-brand-green/15">
+                      <span className="text-[9px] text-brand-charcoal/60 font-bold uppercase block">Total</span>
+                      <span className="text-sm font-extrabold text-brand-charcoal">{proj.totalPlots || 0}</span>
+                    </div>
+                    <div className="bg-emerald-50 rounded-xl p-2 border border-emerald-200">
+                      <span className="text-[9px] text-emerald-700 font-bold uppercase block">Available</span>
+                      <span className="text-sm font-extrabold text-emerald-700">{proj.availableCount ?? 0}</span>
+                    </div>
+                    <div className="bg-red-50 rounded-xl p-2 border border-red-200">
+                      <span className="text-[9px] text-red-700 font-bold uppercase block">Sold</span>
+                      <span className="text-sm font-extrabold text-red-700">{(proj.bookedCount ?? 0) + (proj.soldCount ?? 0)}</span>
+                    </div>
+                  </div>
+
+                  {(proj.priceRange || proj.basePricePerSqft) && (
+                    <div className="text-xs font-bold text-brand-green bg-[#EAF3EF] px-3 py-1.5 rounded-lg border border-brand-green/15 text-center">
+                      {proj.priceRange || `₹${proj.basePricePerSqft?.toLocaleString('en-IN')} / sq ft`}
+                    </div>
+                  )}
+
+                  <div className="mt-auto flex items-center justify-between pt-2">
+                    <span className="text-xs text-brand-charcoal/50 font-medium">
+                      {proj.area || `${((proj.totalAreaSqft || 0) / 43560).toFixed(1)} Acres`}
+                    </span>
+                    <span className="inline-flex items-center gap-1 text-xs font-bold text-brand-green group-hover:gap-2 transition-all">
+                      Explore Plots <ArrowUpRight className="w-3.5 h-3.5" />
+                    </span>
+                  </div>
+                </div>
+              </Link>
             ))}
           </div>
         )}
       </section>
+
+      {listings.length > 0 && (
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <SectionHeading
+            eyebrow="PREMIUM PROPERTIES"
+            title="Premium properties, separate from townships."
+            subtitle="Residential plots, commercial units, villas and showrooms listed independently of project plot inventory."
+            action={{ label: 'View all properties →', href: '/properties' }}
+          />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {listings.slice(0, 6).map((item) => (
+              <PropertyCard key={item._id} property={mapBackendProperty(item)} variant="B" />
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* 4. DHOLERA SMART CITY ARRIVAL ANNOUNCEMENT SECTION */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -331,33 +373,6 @@ export default function HomePage() {
         <HomepageContactSection />
       </section>
 
-      {/* 12. WORK WITH US / BECOME AN AGENT */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-brand-soft border border-brand-green/20 rounded-2xl p-8 sm:p-12 shadow-sm flex flex-col md:flex-row items-center justify-between gap-8">
-          <div className="space-y-3 max-w-2xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1 bg-white border border-brand-green/15 rounded-md">
-              <UserPlus className="w-4 h-4 text-brand-green" />
-              <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-brand-green">
-                CAREERS & PARTNERSHIPS
-              </span>
-            </div>
-            <h3 className="font-serif text-3xl sm:text-4xl text-brand-charcoal font-normal">
-              Work with Us — Join House & Sky Advisory
-            </h3>
-            <p className="text-xs sm:text-sm text-brand-charcoal/70 font-light leading-relaxed">
-              We empower top-tier real estate agents, estate managers, and plot sales advisors with full multi-level network backing, transparent differential commissions, and pre-qualified leads.
-            </p>
-          </div>
-
-          <Link
-            href="/contact?role=agent"
-            className="px-6 py-3.5 bg-brand-green hover:bg-brand-dark text-white font-bold text-xs uppercase tracking-[0.18em] rounded-xl transition-all shadow-md flex items-center gap-2 shrink-0"
-          >
-            <span>Apply as an Agent</span>
-            <ArrowUpRight className="w-4 h-4 text-white" />
-          </Link>
-        </div>
-      </section>
     </div>
   )
 }

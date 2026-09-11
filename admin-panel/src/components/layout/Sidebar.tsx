@@ -19,7 +19,8 @@ import {
   MessageSquare,
   ShieldCheck,
   ChevronRight,
-  X
+  X,
+  Home
 } from 'lucide-react';
 
 const ALL_ROLES = ['ADMIN', 'DIRECTOR', 'MANAGER', 'EMPLOYEE', 'AGENT'];
@@ -51,6 +52,7 @@ const navSections: NavSection[] = [
     title: 'INVENTORY & NAKSA MAPS',
     items: [
       { name: 'Real Estate Projects', path: '/projects', icon: Building2, allowedRoles: ADMIN_DIRECTOR },
+      { name: 'Property Listings', path: '/properties', icon: Home, allowedRoles: ADMIN_DIRECTOR },
       { name: 'Plot Inventory & Canvas', path: '/plots', icon: MapPin, allowedRoles: ALL_ROLES },
       { name: 'Naksha AI OCR Tool', path: '/ocr-analyzer', icon: ScanText, allowedRoles: ADMIN_DIRECTOR, badge: 'AI' },
     ]

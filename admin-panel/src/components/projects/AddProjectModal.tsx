@@ -15,6 +15,8 @@ import {
 } from 'lucide-react';
 import api from '../../services/api';
 import { useToast } from '../../context/ToastContext';
+import { GalleryUploader } from '../common/GalleryUploader';
+import { GalleryImage } from '../../types';
 
 interface AddProjectModalProps {
   onClose: () => void;
@@ -52,10 +54,34 @@ export const AddProjectModal: React.FC<AddProjectModalProps> = ({ onClose, onSuc
   const [name, setName] = useState('');
   const [code, setCode] = useState('');
   const [location, setLocation] = useState('');
+  const [city, setCity] = useState('');
+  const [state, setState] = useState('Haryana');
+  const [description, setDescription] = useState('');
   const [totalAreaSqft, setTotalAreaSqft] = useState(250000);
+  const [area, setArea] = useState(''); // e.g. "25 Bigha" or "3.2 Acres"
   const [totalPlots, setTotalPlots] = useState(20);
   const [basePricePerSqft, setBasePricePerSqft] = useState(4500);
+  const [priceRange, setPriceRange] = useState(''); // e.g. "₹18L – ₹45L"
+  const [highlights, setHighlights] = useState<string[]>([]);
+  const [amenities, setAmenities] = useState<string[]>([]);
+  const [locationAdvantages, setLocationAdvantages] = useState<{distance: string; landmark: string}[]>([]);
+  const [highlightInput, setHighlightInput] = useState('');
+  const [amenityInput, setAmenityInput] = useState('');
+  const [locAdvDistance, setLocAdvDistance] = useState('');
+  const [locAdvLandmark, setLocAdvLandmark] = useState('');
+  const [contactPhone, setContactPhone] = useState('');
+  const [contactEmail, setContactEmail] = useState('');
+  const [brochureUrl, setBrochureUrl] = useState('');
+  const [videoUrl, setVideoUrl] = useState('');
+  const [reraNumber, setReraNumber] = useState('');
+  const [titleType, setTitleType] = useState('Freehold');
+  const [approvalAuthority, setApprovalAuthority] = useState('');
   const [mapImageUrl, setMapImageUrl] = useState('https://images.unsplash.com/photo-1524813686514-a57563d77965?auto=format&fit=crop&w=1200&q=80');
+  const [gallery, setGallery] = useState<GalleryImage[]>([]);
+  const [surveyNumber, setSurveyNumber] = useState('');
+  const [village, setVillage] = useState('');
+  const [googleMapsUrl, setGoogleMapsUrl] = useState('');
+  const [logoImage, setLogoImage] = useState('');
   const [file, setFile] = useState<File | null>(null);
   const [fileName, setFileName] = useState('');
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -188,10 +214,29 @@ export const AddProjectModal: React.FC<AddProjectModalProps> = ({ onClose, onSuc
         name,
         code,
         location,
+        city,
+        state,
+        description,
+        highlights: highlights.filter(Boolean),
+        locationAdvantages: locationAdvantages.filter(a => a.landmark),
+        amenities: amenities.filter(Boolean),
         totalAreaSqft,
+        area,
         totalPlots: extractedPlots.length > 0 ? extractedPlots.length : totalPlots,
         basePricePerSqft,
+        priceRange,
         bannerImage: mapImageUrl,
+        mapImageUrl: mapImageUrl,
+        brochureUrl,
+        videoUrl,
+        contactPhone,
+        contactEmail,
+        legalInfo: { reraNumber, titleType, approvalAuthority },
+        gallery,
+        surveyNumber,
+        village,
+        googleMapsUrl,
+        logoImage,
         status: 'ACTIVE',
         ocrPlots: extractedPlots.length > 0 ? extractedPlots : undefined
       });
@@ -313,6 +358,175 @@ export const AddProjectModal: React.FC<AddProjectModalProps> = ({ onClose, onSuc
                   onChange={(e) => setBasePricePerSqft(Number(e.target.value))}
                   className="w-full bg-[#FAF9F6] border border-[#0B4F3C]/20 rounded-xl px-3 py-2 text-[#171A18] font-bold focus:outline-none focus:border-[#0B4F3C]"
                 />
+              </div>
+            </div>
+
+            {/* City & State */}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-[#171A18]/70 font-semibold block mb-1">City</label>
+                <input type="text" placeholder="e.g. Gurgaon" value={city} onChange={(e) => setCity(e.target.value)}
+                  className="w-full bg-[#FAF9F6] border border-[#0B4F3C]/20 rounded-xl px-3 py-2 text-[#171A18] font-bold focus:outline-none focus:border-[#0B4F3C]" />
+              </div>
+              <div>
+                <label className="text-[#171A18]/70 font-semibold block mb-1">State</label>
+                <input type="text" placeholder="e.g. Haryana" value={state} onChange={(e) => setState(e.target.value)}
+                  className="w-full bg-[#FAF9F6] border border-[#0B4F3C]/20 rounded-xl px-3 py-2 text-[#171A18] font-bold focus:outline-none focus:border-[#0B4F3C]" />
+              </div>
+            </div>
+
+            {/* Description */}
+            <div>
+              <label className="text-[#171A18]/70 font-semibold block mb-1">Project Description</label>
+              <textarea rows={2} placeholder="Brief township description shown on public page…" value={description} onChange={(e) => setDescription(e.target.value)}
+                className="w-full bg-[#FAF9F6] border border-[#0B4F3C]/20 rounded-xl px-3 py-2 text-[#171A18] font-bold focus:outline-none focus:border-[#0B4F3C] resize-none" />
+            </div>
+
+            {/* Area & Price Range */}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-[#171A18]/70 font-semibold block mb-1">Area (display)</label>
+                <input type="text" placeholder="e.g. 25 Bigha / 3.2 Acres" value={area} onChange={(e) => setArea(e.target.value)}
+                  className="w-full bg-[#FAF9F6] border border-[#0B4F3C]/20 rounded-xl px-3 py-2 text-[#171A18] font-bold focus:outline-none focus:border-[#0B4F3C]" />
+              </div>
+              <div>
+                <label className="text-[#171A18]/70 font-semibold block mb-1">Price Range (display)</label>
+                <input type="text" placeholder="e.g. ₹18L – ₹45L" value={priceRange} onChange={(e) => setPriceRange(e.target.value)}
+                  className="w-full bg-[#FAF9F6] border border-[#0B4F3C]/20 rounded-xl px-3 py-2 text-[#171A18] font-bold focus:outline-none focus:border-[#0B4F3C]" />
+              </div>
+            </div>
+
+            {/* Highlights */}
+            <div>
+              <label className="text-[#171A18]/70 font-semibold block mb-1">Key Highlights</label>
+              <div className="flex gap-2 mb-2">
+                <input type="text" placeholder="Add highlight & press Enter" value={highlightInput} onChange={(e) => setHighlightInput(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === 'Enter' && highlightInput.trim()) { setHighlights([...highlights, highlightInput.trim()]); setHighlightInput(''); e.preventDefault(); }}}
+                  className="flex-1 bg-[#FAF9F6] border border-[#0B4F3C]/20 rounded-xl px-3 py-2 text-[#171A18] font-bold focus:outline-none focus:border-[#0B4F3C]" />
+                <button type="button" onClick={() => { if (highlightInput.trim()) { setHighlights([...highlights, highlightInput.trim()]); setHighlightInput(''); }}}
+                  className="px-3 py-2 bg-[#0B4F3C] text-white rounded-xl font-bold cursor-pointer"><Plus className="w-4 h-4" /></button>
+              </div>
+              {highlights.length > 0 && <div className="flex flex-wrap gap-1.5">{highlights.map((h, i) => (
+                <span key={i} className="inline-flex items-center gap-1 px-2.5 py-1 bg-[#EAF3EF] border border-[#0B4F3C]/20 rounded-lg text-xs font-bold text-[#0B4F3C]">
+                  {h} <button type="button" onClick={() => setHighlights(highlights.filter((_, idx) => idx !== i))} className="text-red-500 cursor-pointer"><X className="w-3 h-3" /></button>
+                </span>
+              ))}</div>}
+            </div>
+
+            {/* Amenities */}
+            <div>
+              <label className="text-[#171A18]/70 font-semibold block mb-1">Amenities</label>
+              <div className="flex gap-2 mb-2">
+                <input type="text" placeholder="e.g. 24/7 Security, Wide Roads" value={amenityInput} onChange={(e) => setAmenityInput(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === 'Enter' && amenityInput.trim()) { setAmenities([...amenities, amenityInput.trim()]); setAmenityInput(''); e.preventDefault(); }}}
+                  className="flex-1 bg-[#FAF9F6] border border-[#0B4F3C]/20 rounded-xl px-3 py-2 text-[#171A18] font-bold focus:outline-none focus:border-[#0B4F3C]" />
+                <button type="button" onClick={() => { if (amenityInput.trim()) { setAmenities([...amenities, amenityInput.trim()]); setAmenityInput(''); }}}
+                  className="px-3 py-2 bg-[#0B4F3C] text-white rounded-xl font-bold cursor-pointer"><Plus className="w-4 h-4" /></button>
+              </div>
+              {amenities.length > 0 && <div className="flex flex-wrap gap-1.5">{amenities.map((a, i) => (
+                <span key={i} className="inline-flex items-center gap-1 px-2.5 py-1 bg-[#EAF3EF] border border-[#0B4F3C]/20 rounded-lg text-xs font-bold text-[#0B4F3C]">
+                  {a} <button type="button" onClick={() => setAmenities(amenities.filter((_, idx) => idx !== i))} className="text-red-500 cursor-pointer"><X className="w-3 h-3" /></button>
+                </span>
+              ))}</div>}
+            </div>
+
+            {/* Location Advantages */}
+            <div>
+              <label className="text-[#171A18]/70 font-semibold block mb-1">Location Advantages</label>
+              <p className="text-[10px] text-[#171A18]/50 mb-2">e.g. "500 MTR" · "Dholera Sir" (shown on detail page)</p>
+              <div className="flex gap-2 mb-2">
+                <input type="text" placeholder="Distance (e.g. 500 MTR)" value={locAdvDistance} onChange={(e) => setLocAdvDistance(e.target.value)}
+                  className="w-28 bg-[#FAF9F6] border border-[#0B4F3C]/20 rounded-xl px-3 py-2 text-[#171A18] font-bold focus:outline-none focus:border-[#0B4F3C]" />
+                <input type="text" placeholder="Landmark name" value={locAdvLandmark} onChange={(e) => setLocAdvLandmark(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === 'Enter' && locAdvLandmark.trim()) { setLocationAdvantages([...locationAdvantages, { distance: locAdvDistance.trim(), landmark: locAdvLandmark.trim() }]); setLocAdvDistance(''); setLocAdvLandmark(''); e.preventDefault(); }}}
+                  className="flex-1 bg-[#FAF9F6] border border-[#0B4F3C]/20 rounded-xl px-3 py-2 text-[#171A18] font-bold focus:outline-none focus:border-[#0B4F3C]" />
+                <button type="button" onClick={() => { if (locAdvLandmark.trim()) { setLocationAdvantages([...locationAdvantages, { distance: locAdvDistance.trim(), landmark: locAdvLandmark.trim() }]); setLocAdvDistance(''); setLocAdvLandmark(''); }}}
+                  className="px-3 py-2 bg-[#0B4F3C] text-white rounded-xl font-bold cursor-pointer"><Plus className="w-4 h-4" /></button>
+              </div>
+              {locationAdvantages.length > 0 && (
+                <div className="space-y-1.5">
+                  {locationAdvantages.map((adv, i) => (
+                    <div key={i} className="flex items-center gap-2 px-3 py-1.5 bg-[#EAF3EF] border border-[#0B4F3C]/20 rounded-lg text-xs">
+                      <span className="font-extrabold text-[#0B4F3C] w-20 shrink-0">{adv.distance}</span>
+                      <span className="flex-1 font-semibold text-[#171A18]">{adv.landmark}</span>
+                      <button type="button" onClick={() => setLocationAdvantages(locationAdvantages.filter((_, idx) => idx !== i))} className="text-red-500 cursor-pointer"><X className="w-3 h-3" /></button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Contact Info */}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-[#171A18]/70 font-semibold block mb-1">Project Contact Phone</label>
+                <input type="tel" placeholder="+91 98765 43210" value={contactPhone} onChange={(e) => setContactPhone(e.target.value)}
+                  className="w-full bg-[#FAF9F6] border border-[#0B4F3C]/20 rounded-xl px-3 py-2 text-[#171A18] font-bold focus:outline-none focus:border-[#0B4F3C]" />
+              </div>
+              <div>
+                <label className="text-[#171A18]/70 font-semibold block mb-1">Project Contact Email</label>
+                <input type="email" placeholder="project@houseandsky.com" value={contactEmail} onChange={(e) => setContactEmail(e.target.value)}
+                  className="w-full bg-[#FAF9F6] border border-[#0B4F3C]/20 rounded-xl px-3 py-2 text-[#171A18] font-bold focus:outline-none focus:border-[#0B4F3C]" />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-[#171A18]/70 font-semibold block mb-1">Survey Number</label>
+                <input type="text" placeholder="e.g. 177" value={surveyNumber} onChange={(e) => setSurveyNumber(e.target.value)}
+                  className="w-full bg-[#FAF9F6] border border-[#0B4F3C]/20 rounded-xl px-3 py-2 text-[#171A18] font-bold focus:outline-none focus:border-[#0B4F3C]" />
+              </div>
+              <div>
+                <label className="text-[#171A18]/70 font-semibold block mb-1">Village</label>
+                <input type="text" placeholder="e.g. Nabhoi" value={village} onChange={(e) => setVillage(e.target.value)}
+                  className="w-full bg-[#FAF9F6] border border-[#0B4F3C]/20 rounded-xl px-3 py-2 text-[#171A18] font-bold focus:outline-none focus:border-[#0B4F3C]" />
+              </div>
+            </div>
+            <div>
+              <label className="text-[#171A18]/70 font-semibold block mb-1">Google Maps URL</label>
+              <input type="url" placeholder="https://maps.google.com/…" value={googleMapsUrl} onChange={(e) => setGoogleMapsUrl(e.target.value)}
+                className="w-full bg-[#FAF9F6] border border-[#0B4F3C]/20 rounded-xl px-3 py-2 text-[#171A18] font-bold focus:outline-none focus:border-[#0B4F3C]" />
+            </div>
+            <GalleryUploader items={gallery} onChange={setGallery} folder="project_gallery" label="Project Photo Gallery (S3)" />
+
+            {/* Brochure & Video URLs */}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-[#171A18]/70 font-semibold block mb-1">Brochure URL (PDF)</label>
+                <input type="url" placeholder="https://…/brochure.pdf" value={brochureUrl} onChange={(e) => setBrochureUrl(e.target.value)}
+                  className="w-full bg-[#FAF9F6] border border-[#0B4F3C]/20 rounded-xl px-3 py-2 text-[#171A18] font-bold focus:outline-none focus:border-[#0B4F3C]" />
+              </div>
+              <div>
+                <label className="text-[#171A18]/70 font-semibold block mb-1">Promo Video URL</label>
+                <input type="url" placeholder="https://youtube.com/…" value={videoUrl} onChange={(e) => setVideoUrl(e.target.value)}
+                  className="w-full bg-[#FAF9F6] border border-[#0B4F3C]/20 rounded-xl px-3 py-2 text-[#171A18] font-bold focus:outline-none focus:border-[#0B4F3C]" />
+              </div>
+            </div>
+
+            {/* Legal Info */}
+            <div className="p-3 bg-[#FAF9F6] border border-[#0B4F3C]/15 rounded-xl space-y-2">
+              <label className="text-[#171A18]/70 font-bold block text-xs uppercase tracking-wider">Legal &amp; Compliance</label>
+              <div className="grid grid-cols-3 gap-2">
+                <div>
+                  <label className="text-[#171A18]/60 font-semibold block mb-1">RERA Number</label>
+                  <input type="text" placeholder="RERA/…" value={reraNumber} onChange={(e) => setReraNumber(e.target.value)}
+                    className="w-full bg-white border border-[#0B4F3C]/20 rounded-lg px-2.5 py-1.5 text-[#171A18] font-bold focus:outline-none focus:border-[#0B4F3C]" />
+                </div>
+                <div>
+                  <label className="text-[#171A18]/60 font-semibold block mb-1">Title Type</label>
+                  <select value={titleType} onChange={(e) => setTitleType(e.target.value)}
+                    className="w-full bg-white border border-[#0B4F3C]/20 rounded-lg px-2.5 py-1.5 text-[#171A18] font-bold focus:outline-none">
+                    <option>Freehold</option>
+                    <option>Leasehold</option>
+                    <option>NA Plot</option>
+                    <option>Agricultural</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-[#171A18]/60 font-semibold block mb-1">Approved By</label>
+                  <input type="text" placeholder="DTCP, DMIC…" value={approvalAuthority} onChange={(e) => setApprovalAuthority(e.target.value)}
+                    className="w-full bg-white border border-[#0B4F3C]/20 rounded-lg px-2.5 py-1.5 text-[#171A18] font-bold focus:outline-none focus:border-[#0B4F3C]" />
+                </div>
               </div>
             </div>
 

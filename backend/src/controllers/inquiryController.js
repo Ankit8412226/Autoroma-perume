@@ -1,6 +1,7 @@
 const Inquiry = require('../models/Inquiry');
 const Project = require('../models/Project');
 const Plot = require('../models/Plot');
+const Property = require('../models/Property');
 const User = require('../models/User');
 const Employee = require('../models/Employee');
 const bcrypt = require('bcryptjs');
@@ -9,7 +10,7 @@ const bcrypt = require('bcryptjs');
 exports.getPublicProjects = async (req, res, next) => {
   try {
     const projects = await Project.find({ status: { $ne: 'DELETED' } })
-      .select('name code location totalAreaSqft totalPlots basePricePerSqft bannerImage launchDate status')
+      .select('name code location city state description highlights locationAdvantages amenities totalAreaSqft area totalPlots priceRange basePricePerSqft bannerImage mapImageUrl logoImage insetImage gallery surveyNumber village googleMapsUrl mapEmbedUrl brochureUrl videoUrl contactPhone contactEmail legalInfo legalDocuments launchDate status')
       .sort({ createdAt: -1 })
       .lean();
 
@@ -72,6 +73,11 @@ exports.getPublicProjectById = async (req, res, next) => {
       .select('block plotNo sizeSqft sellableSqYrd carpetSqYrd price totalCost status coordinates polygon')
       .sort({ plotNo: 1 });
 
+    const properties = await Property.find({
+      projectId: project._id,
+      isPublished: { $ne: false }
+    }).sort({ isFeatured: -1, createdAt: -1 });
+
     res.json({
       project: {
         ...project,
@@ -82,7 +88,8 @@ exports.getPublicProjectById = async (req, res, next) => {
         soldCount: statsMap.SOLD
       },
       stats: statsMap,
-      plots
+      plots,
+      properties
     });
   } catch (error) {
     next(error);

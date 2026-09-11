@@ -47,20 +47,110 @@ export interface MLMTreeNode {
   children: MLMTreeNode[];
 }
 
+export interface GalleryImage {
+  url: string;
+  s3Key?: string;
+  caption?: string;
+}
+
 export interface Project {
   _id: string;
   name: string;
   code: string;
   location: string;
+  city?: string;
+  state?: string;
+  description?: string;
   totalAreaSqft: number;
+  area?: string;
   totalPlots: number;
+  priceRange?: string;
   status: 'UPCOMING' | 'ACTIVE' | 'COMPLETED';
   basePricePerSqft: number;
   bannerImage?: string;
+  mapImageUrl?: string;
+  logoImage?: string;
+  insetImage?: string;
+  gallery?: GalleryImage[];
+  surveyNumber?: string;
+  village?: string;
+  googleMapsUrl?: string;
+  mapEmbedUrl?: string;
+  brochureUrl?: string;
+  videoUrl?: string;
+  contactPhone?: string;
+  contactEmail?: string;
+  highlights?: string[];
+  amenities?: string[];
+  locationAdvantages?: { distance: string; landmark: string }[];
+  legalInfo?: {
+    reraNumber?: string;
+    titleType?: string;
+    approvalAuthority?: string;
+  };
   availableCount?: number;
   pendingCount?: number;
   bookedCount?: number;
   soldCount?: number;
+}
+
+export const PROPERTY_TYPES = [
+  'RESIDENTIAL_PLOT',
+  'COMMERCIAL',
+  'VILLA',
+  'SHOWROOM',
+  'APARTMENT',
+  'LAND'
+] as const;
+
+export type PropertyType = typeof PROPERTY_TYPES[number];
+
+export interface ListingProperty {
+  _id: string;
+  title: string;
+  slug: string;
+  tagline?: string;
+  description?: string;
+  propertyType: PropertyType;
+  listingType: 'SALE' | 'RENT';
+  projectId?: string | Project | null;
+  location?: string;
+  city?: string;
+  state?: string;
+  area?: string;
+  address?: string;
+  village?: string;
+  surveyNumber?: string;
+  price?: number;
+  pricePerSqft?: number;
+  priceRange?: string;
+  areaSqft?: number;
+  areaSqYrd?: number;
+  dimensions?: string;
+  bedrooms?: number;
+  bathrooms?: number;
+  parkingSpaces?: number;
+  highlights?: string[];
+  amenities?: string[];
+  features?: string[];
+  heroImage?: string;
+  gallery?: GalleryImage[];
+  floorPlanUrl?: string;
+  brochureUrl?: string;
+  videoUrl?: string;
+  googleMapsUrl?: string;
+  mapEmbedUrl?: string;
+  contactPhone?: string;
+  contactEmail?: string;
+  status: 'AVAILABLE' | 'BOOKED' | 'SOLD' | 'UPCOMING';
+  isFeatured?: boolean;
+  isPublished?: boolean;
+  legalInfo?: {
+    reraNumber?: string;
+    titleType?: string;
+    approvalAuthority?: string;
+  };
+  createdAt?: string;
 }
 
 export interface Plot {
