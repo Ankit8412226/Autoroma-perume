@@ -266,6 +266,7 @@ async function getMLMTree(rootEmployeeId = null) {
       teamSalesCount: emp.teamSalesCount,
       activeLegsCount: emp.activeLegsCount,
       parentId: emp.parentId ? emp.parentId.toString() : null,
+      position: emp.position || 'LEFT',
       children: childNodes
     };
   }

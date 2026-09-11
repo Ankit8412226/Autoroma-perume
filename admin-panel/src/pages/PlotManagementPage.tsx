@@ -7,6 +7,7 @@ import { UploadNaksaModal } from '../components/plots/UploadNaksaModal';
 import { TableSkeleton } from '../components/common/Skeleton';
 import { EmptyState } from '../components/common/EmptyState';
 import { ErrorState } from '../components/common/ErrorState';
+import { Pagination } from '../components/common/Pagination';
 import { formatCurrency, formatArea } from '../utils/formatters';
 import { LayoutGrid, Table, Download, Upload, Search, RefreshCw, ScanText, MapPin } from 'lucide-react';
 import { useToast } from '../context/ToastContext';
@@ -144,6 +145,12 @@ export const PlotManagementPage: React.FC = () => {
 
     return matchesProject && matchesStatus && matchesSearch;
   });
+
+  // Pagination — resets to page 1 when filters change
+  const [plotPage, setPlotPage] = useState(1);
+  const [plotPageSize, setPlotPageSize] = useState(25);
+  React.useEffect(() => { setPlotPage(1); }, [searchQuery, statusFilter, selectedProjectId, viewMode]);
+  const paginatedPlots = filteredPlots.slice((plotPage - 1) * plotPageSize, plotPage * plotPageSize);
 
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
@@ -336,7 +343,8 @@ export const PlotManagementPage: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#0B4F3C]/10">
-                {filteredPlots.map((p, idx) => {
+                {paginatedPlots.map((p, idx) => {
+                  const globalIdx = (plotPage - 1) * plotPageSize + idx;
                   const sellable = p.sellableSqYrd || (p.sizeSqft ? (p.sizeSqft / 9).toFixed(2) : null);
                   const carpet = p.carpetSqYrd || (p.sizeSqft ? (p.sizeSqft / 18).toFixed(2) : null);
                   const totalCost = p.totalCost || p.price || 0;
@@ -347,7 +355,7 @@ export const PlotManagementPage: React.FC = () => {
                       onClick={() => setSelectedPlot(p)}
                       className="hover:bg-[#EAF3EF]/40 cursor-pointer transition-colors text-[#171A18] font-mono text-[11px]"
                     >
-                      <td className="p-3 text-[#171A18]/70">{idx + 1}</td>
+                    <td className="p-3 text-[#171A18]/70">{globalIdx + 1}</td>
                       <td className="p-3 font-bold text-[#0B4F3C]">{p.plotNo}</td>
                       <td className="p-3">{sellable ? `${sellable} Sq Yrd` : '—'}</td>
                       <td className="p-3">{carpet ? `${carpet} Sq Yrd` : '—'}</td>
@@ -379,6 +387,16 @@ export const PlotManagementPage: React.FC = () => {
               </tbody>
             </table>
           </div>
+
+          <Pagination
+            totalItems={filteredPlots.length}
+            currentPage={plotPage}
+            pageSize={plotPageSize}
+            onPageChange={setPlotPage}
+            onPageSizeChange={(s) => { setPlotPageSize(s); setPlotPage(1); }}
+            pageSizeOptions={[10, 25, 50, 100]}
+            label="plots"
+          />
         </div>
       )}
 

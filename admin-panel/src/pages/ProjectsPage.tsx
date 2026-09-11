@@ -6,6 +6,7 @@ import { EditProjectModal } from '../components/projects/EditProjectModal';
 import { ProjectCardSkeleton } from '../components/common/Skeleton';
 import { EmptyState } from '../components/common/EmptyState';
 import { ErrorState } from '../components/common/ErrorState';
+import { Pagination } from '../components/common/Pagination';
 import { formatNumber } from '../utils/formatters';
 import { MapPin, Plus, Trash2, Edit, RefreshCw, Building2 } from 'lucide-react';
 import { useToast } from '../context/ToastContext';
@@ -18,6 +19,10 @@ export const ProjectsPage: React.FC = () => {
   const [isAddModalOpen, setIsAddModalOpen] = useState<boolean>(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
 
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [pageSize, setPageSize] = useState<number>(6);
+
   useEffect(() => {
     fetchProjects();
   }, []);
@@ -27,7 +32,8 @@ export const ProjectsPage: React.FC = () => {
     setError(null);
     try {
       const res = await api.get('/projects');
-      setProjects(res.data || []);
+      const data = Array.isArray(res.data) ? res.data : (res.data?.data || []);
+      setProjects(data);
     } catch (e: any) {
       console.error('Failed to fetch projects:', e);
       setError(e?.friendlyMessage || 'Failed to connect to projects API.');
@@ -35,6 +41,8 @@ export const ProjectsPage: React.FC = () => {
       setIsLoading(false);
     }
   };
+
+  const paginatedProjects = projects.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   const handleDelete = async (id: string) => {
     if (!window.confirm('Are you sure you want to delete this project and all associated plots?')) return;
@@ -91,91 +99,106 @@ export const ProjectsPage: React.FC = () => {
           onAction={() => setIsAddModalOpen(true)}
         />
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {projects.map((p) => (
-            <div key={p._id} className="bg-white rounded-2xl border border-[#0B4F3C]/15 hover:border-[#0B4F3C]/40 transition-all relative group shadow-sm overflow-hidden">
-              {/* Project Banner Image */}
-              <div className="relative aspect-[16/9] w-full bg-gradient-to-br from-[#EAF3EF] to-[#D0E8DC] overflow-hidden">
-                {p.bannerImage ? (
-                  <img
-                    src={p.bannerImage}
-                    alt={p.name || 'Project'}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).style.display = 'none';
-                    }}
-                  />
-                ) : (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 text-[#0B4F3C]/30">
-                    <Building2 className="w-10 h-10" />
-                    <span className="text-[10px] font-bold uppercase tracking-wider">No Image Uploaded</span>
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {paginatedProjects.map((p) => (
+              <div key={p._id} className="bg-white rounded-2xl border border-[#0B4F3C]/15 hover:border-[#0B4F3C]/40 transition-all relative group shadow-sm overflow-hidden">
+                {/* Project Banner Image */}
+                <div className="relative aspect-[16/9] w-full bg-gradient-to-br from-[#EAF3EF] to-[#D0E8DC] overflow-hidden">
+                  {p.bannerImage ? (
+                    <img
+                      src={p.bannerImage}
+                      alt={p.name || 'Project'}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).style.display = 'none';
+                      }}
+                    />
+                  ) : (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 text-[#0B4F3C]/30">
+                      <Building2 className="w-10 h-10" />
+                      <span className="text-[10px] font-bold uppercase tracking-wider">No Image Uploaded</span>
+                    </div>
+                  )}
+                  {/* Status Badge */}
+                  <span className="absolute top-3 left-3 px-2.5 py-0.5 rounded-full bg-[#EAF3EF]/90 backdrop-blur-sm text-[#0B4F3C] text-[10px] font-bold border border-[#0B4F3C]/20">
+                    {p.status || 'ACTIVE'}
+                  </span>
+                  {/* Code Badge */}
+                  <span className="absolute top-3 right-3 font-mono text-xs bg-black/50 text-white px-2 py-0.5 rounded-md backdrop-blur-sm">
+                    {p.code || 'PRJ'}
+                  </span>
+                  {/* Action Buttons */}
+                  <div className="absolute bottom-3 right-3 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button
+                      onClick={() => setEditingProject(p)}
+                      className="p-1.5 rounded-lg bg-white/90 backdrop-blur-sm text-[#0B4F3C] hover:bg-[#0B4F3C] hover:text-white transition-colors cursor-pointer shadow-sm"
+                      title="Edit Project"
+                    >
+                      <Edit className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(p._id)}
+                      className="p-1.5 rounded-lg bg-white/90 backdrop-blur-sm text-red-600 hover:bg-red-600 hover:text-white transition-colors cursor-pointer shadow-sm"
+                      title="Delete Project"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
                   </div>
-                )}
-                {/* Status Badge */}
-                <span className="absolute top-3 left-3 px-2.5 py-0.5 rounded-full bg-[#EAF3EF]/90 backdrop-blur-sm text-[#0B4F3C] text-[10px] font-bold border border-[#0B4F3C]/20">
-                  {p.status || 'ACTIVE'}
-                </span>
-                {/* Code Badge */}
-                <span className="absolute top-3 right-3 font-mono text-xs bg-black/50 text-white px-2 py-0.5 rounded-md backdrop-blur-sm">
-                  {p.code || 'PRJ'}
-                </span>
-                {/* Action Buttons */}
-                <div className="absolute bottom-3 right-3 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button
-                    onClick={() => setEditingProject(p)}
-                    className="p-1.5 rounded-lg bg-white/90 backdrop-blur-sm text-[#0B4F3C] hover:bg-[#0B4F3C] hover:text-white transition-colors cursor-pointer shadow-sm"
-                    title="Edit Project"
-                  >
-                    <Edit className="w-3.5 h-3.5" />
-                  </button>
-                  <button
-                    onClick={() => handleDelete(p._id)}
-                    className="p-1.5 rounded-lg bg-white/90 backdrop-blur-sm text-red-600 hover:bg-red-600 hover:text-white transition-colors cursor-pointer shadow-sm"
-                    title="Delete Project"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
+                </div>
+
+                {/* Card Body */}
+                <div className="p-5 space-y-4">
+                  <div>
+                    <h3 className="text-base font-serif font-bold text-[#171A18] group-hover:text-[#0B4F3C] transition-colors">{p.name || 'Unnamed Project'}</h3>
+                    <p className="text-xs text-[#171A18]/70 flex items-center gap-1 mt-1">
+                      <MapPin className="w-3.5 h-3.5 text-[#0B4F3C] shrink-0" /> {p.location || 'Location Not Specified'}
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 pt-3 border-t border-[#0B4F3C]/15 text-xs">
+                    <div className="bg-[#EAF3EF] p-2 rounded-xl border border-[#0B4F3C]/20">
+                      <p className="text-[#171A18]/70 font-semibold text-[10px]">Total Plots</p>
+                      <p className="font-bold text-[#171A18] text-sm mt-0.5">{formatNumber(p.totalPlots)}</p>
+                    </div>
+                    <div className="bg-emerald-50 p-2 rounded-xl border border-emerald-200">
+                      <p className="text-emerald-800 font-semibold text-[10px]">Available</p>
+                      <p className="font-bold text-emerald-900 text-sm mt-0.5">{formatNumber(p.availableCount ?? 0)}</p>
+                    </div>
+                    <div className="bg-amber-50 p-2 rounded-xl border border-amber-200">
+                      <p className="text-amber-800 font-semibold text-[10px]">Pending</p>
+                      <p className="font-bold text-amber-900 text-sm mt-0.5">{formatNumber(p.pendingCount ?? 0)}</p>
+                    </div>
+                    <div className="bg-red-50 p-2 rounded-xl border border-red-200">
+                      <p className="text-red-800 font-semibold text-[10px]">Booked / Sold</p>
+                      <p className="font-bold text-red-900 text-sm mt-0.5">{formatNumber((p.bookedCount ?? 0) + (p.soldCount ?? 0))}</p>
+                    </div>
+                  </div>
+
+                  {/* Base Rate */}
+                  {p.basePricePerSqft && (
+                    <div className="text-xs text-[#0B4F3C] font-bold bg-[#EAF3EF] px-3 py-1.5 rounded-lg text-center border border-[#0B4F3C]/15">
+                      ₹{p.basePricePerSqft?.toLocaleString('en-IN')} / sqft base rate
+                    </div>
+                  )}
                 </div>
               </div>
+            ))}
+          </div>
 
-              {/* Card Body */}
-              <div className="p-5 space-y-4">
-                <div>
-                  <h3 className="text-base font-serif font-bold text-[#171A18] group-hover:text-[#0B4F3C] transition-colors">{p.name || 'Unnamed Project'}</h3>
-                  <p className="text-xs text-[#171A18]/70 flex items-center gap-1 mt-1">
-                    <MapPin className="w-3.5 h-3.5 text-[#0B4F3C] shrink-0" /> {p.location || 'Location Not Specified'}
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-2 gap-2 pt-3 border-t border-[#0B4F3C]/15 text-xs">
-                  <div className="bg-[#EAF3EF] p-2 rounded-xl border border-[#0B4F3C]/20">
-                    <p className="text-[#171A18]/70 font-semibold text-[10px]">Total Plots</p>
-                    <p className="font-bold text-[#171A18] text-sm mt-0.5">{formatNumber(p.totalPlots)}</p>
-                  </div>
-                  <div className="bg-emerald-50 p-2 rounded-xl border border-emerald-200">
-                    <p className="text-emerald-800 font-semibold text-[10px]">Available</p>
-                    <p className="font-bold text-emerald-900 text-sm mt-0.5">{formatNumber(p.availableCount ?? 0)}</p>
-                  </div>
-                  <div className="bg-amber-50 p-2 rounded-xl border border-amber-200">
-                    <p className="text-amber-800 font-semibold text-[10px]">Pending</p>
-                    <p className="font-bold text-amber-900 text-sm mt-0.5">{formatNumber(p.pendingCount ?? 0)}</p>
-                  </div>
-                  <div className="bg-red-50 p-2 rounded-xl border border-red-200">
-                    <p className="text-red-800 font-semibold text-[10px]">Booked / Sold</p>
-                    <p className="font-bold text-red-900 text-sm mt-0.5">{formatNumber((p.bookedCount ?? 0) + (p.soldCount ?? 0))}</p>
-                  </div>
-                </div>
-
-                {/* Base Rate */}
-                {p.basePricePerSqft && (
-                  <div className="text-xs text-[#0B4F3C] font-bold bg-[#EAF3EF] px-3 py-1.5 rounded-lg text-center border border-[#0B4F3C]/15">
-                    ₹{p.basePricePerSqft?.toLocaleString('en-IN')} / sqft base rate
-                  </div>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
+          <Pagination
+            currentPage={currentPage}
+            totalItems={projects.length}
+            pageSize={pageSize}
+            onPageChange={setCurrentPage}
+            onPageSizeChange={(newSize) => {
+              setPageSize(newSize);
+              setCurrentPage(1);
+            }}
+            pageSizeOptions={[6, 9, 12, 24]}
+            label="projects"
+          />
+        </>
 
       )}
 

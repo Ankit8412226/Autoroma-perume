@@ -3,6 +3,7 @@ import { inquiriesService } from '../services/inquiriesService'
 import { TableSkeleton } from '../components/common/Skeleton'
 import { EmptyState } from '../components/common/EmptyState'
 import { ErrorState } from '../components/common/ErrorState'
+import { Pagination, usePagination } from '../components/common/Pagination'
 import { formatDate } from '../utils/formatters'
 import {
   MessageSquare,
@@ -26,6 +27,10 @@ export function LeadsInquiriesPage() {
   const [error, setError] = useState<string | null>(null)
   const [inquiries, setInquiries] = useState<any[]>([])
   const [selectedInquiry, setSelectedInquiry] = useState<any | null>(null)
+
+  // Pagination — reset to page 1 when filter/search changes
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
 
   useEffect(() => {
     fetchInquiries()
@@ -81,6 +86,11 @@ export function LeadsInquiriesPage() {
     const matchesStatus = statusFilter === 'ALL' || inq.status === statusFilter
     return matchesSearch && matchesStatus
   })
+
+  // Reset to first page when search/filter changes
+  React.useEffect(() => { setCurrentPage(1) }, [searchTerm, statusFilter])
+
+  const paginatedInquiries = filteredInquiries.slice((currentPage - 1) * pageSize, currentPage * pageSize)
 
   const countNew = inquiries.filter(i => i.status === 'NEW').length;
   const countInProgress = inquiries.filter(i => i.status === 'IN_PROGRESS' || i.status === 'CONTACTED').length;
@@ -208,7 +218,7 @@ export function LeadsInquiriesPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#0B4F3C]/10">
-                {filteredInquiries.map((inq) => (
+                {paginatedInquiries.map((inq) => (
                   <tr
                     key={inq.id}
                     onClick={() => setSelectedInquiry(inq)}
@@ -268,6 +278,15 @@ export function LeadsInquiriesPage() {
               </tbody>
             </table>
           </div>
+
+          <Pagination
+            totalItems={filteredInquiries.length}
+            currentPage={currentPage}
+            pageSize={pageSize}
+            onPageChange={setCurrentPage}
+            onPageSizeChange={(s) => { setPageSize(s); setCurrentPage(1); }}
+            label="leads"
+          />
         </div>
       )}
 

@@ -49,6 +49,11 @@ const employeeSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Employee',
     default: null
+  },
+  position: {
+    type: String,
+    enum: ['LEFT', 'RIGHT'],
+    default: 'LEFT'
   }
 }, { timestamps: true });
 

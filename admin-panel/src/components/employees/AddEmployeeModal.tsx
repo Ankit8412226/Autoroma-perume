@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import { X, UserPlus } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, UserPlus, GitMerge } from 'lucide-react';
 import api from '../../services/api';
-import { RANKS } from '../../types';
+import { RANKS, Employee } from '../../types';
 import { useToast } from '../../context/ToastContext';
 
 interface AddEmployeeModalProps {
@@ -17,29 +17,48 @@ export const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({ onClose, onS
   const [password, setPassword] = useState('Password123!');
   const [role, setRole] = useState('AGENT');
   const [currentRank, setCurrentRank] = useState('Business Executive');
+  const [parentId, setParentId] = useState('');
+  const [position, setPosition] = useState<'LEFT' | 'RIGHT'>('LEFT');
+  const [employeesList, setEmployeesList] = useState<Employee[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+
+  useEffect(() => {
+    fetchExistingEmployees();
+  }, []);
+
+  const fetchExistingEmployees = async () => {
+    try {
+      const res = await api.get('/employees');
+      const data = Array.isArray(res.data) ? res.data : (res.data?.data || []);
+      setEmployeesList(data);
+    } catch (e) {
+      console.warn('Could not load existing employees list for sponsor picker:', e);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg('');
     try {
       setIsSubmitting(true);
-      await api.post('/auth/register', {
+      await api.post('/employees', {
         fullName,
         email,
         phone,
         password,
         role,
-        currentRank
+        currentRank,
+        parentId: parentId || null,
+        position
       });
 
-      toast.success('Agent / Employee onboarded successfully!');
+      toast.success('Agent / Employee onboarded successfully into MLM network!');
       onSuccess();
       onClose();
     } catch (err: any) {
       console.error(err);
-      const msg = err.response?.data?.message || 'Failed to register agent/employee';
+      const msg = err.response?.data?.message || err?.friendlyMessage || 'Failed to register agent/employee';
       setErrorMsg(msg);
       toast.error(msg);
     } finally {
@@ -120,7 +139,7 @@ export const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({ onClose, onS
             />
           </div>
 
-          <div className="p-3 bg-[#EAF3EF] border border-[#0B4F3C]/20 rounded-xl space-y-2">
+          <div className="p-3.5 bg-[#EAF3EF] border border-[#0B4F3C]/20 rounded-xl space-y-3">
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="text-[#171A18]/70 font-semibold block mb-1">System Role</label>
@@ -146,6 +165,60 @@ export const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({ onClose, onS
                     <option key={r} value={r}>{r}</option>
                   ))}
                 </select>
+              </div>
+            </div>
+
+            {/* MLM Hierarchy & Placement Leg */}
+            <div className="border-t border-[#0B4F3C]/15 pt-3 space-y-2">
+              <label className="text-[#0B4F3C] font-bold flex items-center gap-1.5 text-[11px]">
+                <GitMerge className="w-3.5 h-3.5 text-[#0B4F3C]" /> MLM Network Sponsor & Leg Placement
+              </label>
+
+              <div>
+                <label className="text-[#171A18]/70 font-semibold block mb-1">Sponsor / Parent Agent</label>
+                <select
+                  value={parentId}
+                  onChange={(e) => setParentId(e.target.value)}
+                  className="w-full bg-white border border-[#0B4F3C]/20 rounded-xl px-3 py-2 text-[#171A18] font-bold focus:outline-none focus:border-[#0B4F3C]"
+                >
+                  <option value="">-- Direct Under Top Admin (No Parent) --</option>
+                  {employeesList.map((emp) => {
+                    const empName = emp.userId?.fullName || emp.employeeCode;
+                    return (
+                      <option key={emp.id || (emp as any)._id} value={emp.id || (emp as any)._id}>
+                        {empName} ({emp.employeeCode} - {emp.currentRank})
+                      </option>
+                    );
+                  })}
+                </select>
+              </div>
+
+              <div>
+                <label className="text-[#171A18]/70 font-semibold block mb-1">MLM Tree Placement Leg</label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setPosition('LEFT')}
+                    className={`py-2 px-3 rounded-xl text-xs font-bold border transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                      position === 'LEFT'
+                        ? 'bg-[#0B4F3C] text-white border-[#0B4F3C] shadow-md'
+                        : 'bg-white text-[#0B4F3C] border-[#0B4F3C]/20 hover:bg-[#FAF9F6]'
+                    }`}
+                  >
+                    👈 Left Leg
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPosition('RIGHT')}
+                    className={`py-2 px-3 rounded-xl text-xs font-bold border transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                      position === 'RIGHT'
+                        ? 'bg-[#0B4F3C] text-white border-[#0B4F3C] shadow-md'
+                        : 'bg-white text-[#0B4F3C] border-[#0B4F3C]/20 hover:bg-[#FAF9F6]'
+                    }`}
+                  >
+                    👉 Right Leg
+                  </button>
+                </div>
               </div>
             </div>
           </div>

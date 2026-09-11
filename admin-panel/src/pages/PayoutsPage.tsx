@@ -5,6 +5,7 @@ import { RequestPayoutModal } from '../components/commissions/RequestPayoutModal
 import { TableSkeleton } from '../components/common/Skeleton';
 import { EmptyState } from '../components/common/EmptyState';
 import { ErrorState } from '../components/common/ErrorState';
+import { Pagination } from '../components/common/Pagination';
 import { formatCurrency, formatDate } from '../utils/formatters';
 import { Plus, RefreshCw, CheckCircle2, CreditCard, Search, DollarSign, Clock, Filter } from 'lucide-react';
 import { useToast } from '../context/ToastContext';
@@ -18,6 +19,10 @@ export const PayoutsPage: React.FC = () => {
   const [isRequestModalOpen, setIsRequestModalOpen] = useState<boolean>(false);
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');
+
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   useEffect(() => {
     fetchPayoutsAndAgents();
@@ -73,6 +78,11 @@ export const PayoutsPage: React.FC = () => {
     .reduce((sum, p) => sum + (p.amount || 0), 0);
 
   const pendingCount = payouts.filter((p) => p.status === 'PENDING').length;
+
+  // Reset page on filter/search change
+  React.useEffect(() => { setCurrentPage(1); }, [searchQuery, statusFilter]);
+
+  const paginatedPayouts = filteredPayouts.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
@@ -199,7 +209,7 @@ export const PayoutsPage: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#0B4F3C]/10">
-                {filteredPayouts.map((p) => (
+                {paginatedPayouts.map((p) => (
                   <tr key={p._id} className="hover:bg-[#EAF3EF]/40 transition-colors">
                     <td className="p-3 font-mono font-bold text-[#0B4F3C]">{p.referenceNo || 'PAY-REF'}</td>
                     <td className="p-3 font-bold text-[#171A18]">{p.employeeId?.userId?.fullName || 'Agent'}</td>
@@ -229,6 +239,15 @@ export const PayoutsPage: React.FC = () => {
               </tbody>
             </table>
           </div>
+
+          <Pagination
+            totalItems={filteredPayouts.length}
+            currentPage={currentPage}
+            pageSize={pageSize}
+            onPageChange={setCurrentPage}
+            onPageSizeChange={(s) => { setPageSize(s); setCurrentPage(1); }}
+            label="payouts"
+          />
         </div>
       )}
 

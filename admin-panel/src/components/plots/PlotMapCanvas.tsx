@@ -237,8 +237,8 @@ export const PlotMapCanvas: React.FC<PlotMapCanvasProps> = ({
         >
           {/* Project Blueprint Image Background */}
           {showMapBackground && projectMapImage && (
-            <div className="absolute inset-0 z-0 opacity-20 rounded-xl overflow-hidden pointer-events-none">
-              <img src={projectMapImage} alt="Masterplan Blueprint" className="w-full h-full object-cover" />
+            <div className="absolute inset-0 z-0 opacity-75 rounded-xl overflow-hidden pointer-events-none border border-[#0B4F3C]/30 bg-white">
+              <img src={projectMapImage} alt="Masterplan Blueprint" className="w-full h-full object-contain" />
             </div>
           )}
 

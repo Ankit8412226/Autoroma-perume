@@ -33,7 +33,7 @@ exports.getEmployees = async (req, res, next) => {
 
 exports.createEmployee = async (req, res, next) => {
   try {
-    const { fullName, email, phone, password, role, parentId, joiningDate } = req.body;
+    const { fullName, email, phone, password, role, parentId, position, joiningDate } = req.body;
 
     let user = await User.findOne({ email });
     if (user) {
@@ -79,12 +79,20 @@ exports.createEmployee = async (req, res, next) => {
       employeeCode,
       joiningDate: joiningDate || new Date(),
       currentRank: 'Business Executive',
-      parentId: sponsorParentId
+      parentId: sponsorParentId,
+      position: position || 'LEFT'
     });
+
+    const populatedEmployee = await Employee.findById(employee._id)
+      .populate('userId', 'fullName email phone role avatar approvalStatus isActive')
+      .populate({
+        path: 'parentId',
+        populate: { path: 'userId', select: 'fullName' }
+      });
 
     res.status(201).json({
       message: 'Direct agent onboarding successful!',
-      employee,
+      employee: populatedEmployee,
       user
     });
   } catch (error) {
@@ -94,7 +102,7 @@ exports.createEmployee = async (req, res, next) => {
 
 exports.updateEmployee = async (req, res, next) => {
   try {
-    const { fullName, phone, currentRank, parentId } = req.body;
+    const { fullName, phone, currentRank, parentId, position } = req.body;
     const employee = await Employee.findById(req.params.id);
 
     if (!employee) {
@@ -110,12 +118,16 @@ exports.updateEmployee = async (req, res, next) => {
 
     if (currentRank) employee.currentRank = currentRank;
     if (parentId !== undefined) employee.parentId = parentId || null;
+    if (position) employee.position = position;
 
     await employee.save();
 
     const updated = await Employee.findById(employee._id)
       .populate('userId', 'fullName email phone role avatar approvalStatus isActive')
-      .populate('parentId');
+      .populate({
+        path: 'parentId',
+        populate: { path: 'userId', select: 'fullName' }
+      });
 
     res.json(updated);
   } catch (error) {

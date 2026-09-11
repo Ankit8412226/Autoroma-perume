@@ -6,6 +6,7 @@ import { AgentProfileModal } from '../components/employees/AgentProfileModal';
 import { TableSkeleton } from '../components/common/Skeleton';
 import { EmptyState } from '../components/common/EmptyState';
 import { ErrorState } from '../components/common/ErrorState';
+import { Pagination } from '../components/common/Pagination';
 import { formatNumber } from '../utils/formatters';
 import { UserPlus, Trash2, RefreshCw, Search, Users, Award, TrendingUp, Eye, CheckCircle2, XCircle, Clock } from 'lucide-react';
 import { useToast } from '../context/ToastContext';
@@ -22,6 +23,10 @@ export const EmployeesPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [rankFilter, setRankFilter] = useState<string>('ALL');
   const [approvalFilter, setApprovalFilter] = useState<string>('ALL');
+
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(15);
 
   useEffect(() => {
     fetchEmployees();
@@ -104,6 +109,11 @@ export const EmployeesPage: React.FC = () => {
     (e) => e.currentRank === 'Director Sales' || e.currentRank === 'Associate Sales Director'
   ).length;
   const totalSelfSales = employees.reduce((sum, e) => sum + (e.selfSalesCount || 0), 0);
+
+  // Reset page on filter/search change
+  React.useEffect(() => { setCurrentPage(1); }, [searchQuery, rankFilter, approvalFilter]);
+
+  const paginatedEmployees = filteredEmployees.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
@@ -288,7 +298,7 @@ export const EmployeesPage: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#0B4F3C]/10">
-                {filteredEmployees.map((emp) => {
+                {paginatedEmployees.map((emp) => {
                   const approvalStatus = (emp.userId as any)?.approvalStatus || 'APPROVED';
                   const isPending = approvalStatus === 'PENDING_APPROVAL';
 
@@ -311,9 +321,18 @@ export const EmployeesPage: React.FC = () => {
                         <p className="text-[10px] text-[#171A18]/60">{emp.userId?.email || 'N/A'}</p>
                       </td>
                       <td className="p-3 text-[#171A18]/70">
-                        {emp.parentId && typeof emp.parentId === 'object' && (emp.parentId as any).userId
-                          ? (emp.parentId as any).userId.fullName
-                          : 'Root / CEO'}
+                        <div>
+                          <p className="font-semibold text-[#171A18] text-[11px]">
+                            {emp.parentId && typeof emp.parentId === 'object' && (emp.parentId as any).userId
+                              ? (emp.parentId as any).userId.fullName
+                              : 'Root / Top Admin'}
+                          </p>
+                          <span className={`inline-block mt-0.5 px-1.5 py-0.2 rounded text-[9px] font-extrabold uppercase ${
+                            emp.position === 'RIGHT' ? 'bg-purple-100 text-purple-800 border border-purple-300' : 'bg-blue-100 text-blue-800 border border-blue-300'
+                          }`}>
+                            {emp.position === 'RIGHT' ? '👉 Right Leg' : '👈 Left Leg'}
+                          </span>
+                        </div>
                       </td>
                       <td className="p-3">
                         <span className="px-2.5 py-0.5 rounded-full bg-[#EAF3EF] text-[#0B4F3C] font-bold text-[10px] border border-[#0B4F3C]/20">
@@ -381,6 +400,16 @@ export const EmployeesPage: React.FC = () => {
               </tbody>
             </table>
           </div>
+
+          <Pagination
+            totalItems={filteredEmployees.length}
+            currentPage={currentPage}
+            pageSize={pageSize}
+            onPageChange={setCurrentPage}
+            onPageSizeChange={(s) => { setPageSize(s); setCurrentPage(1); }}
+            pageSizeOptions={[10, 15, 25, 50]}
+            label="agents"
+          />
         </div>
       )}
 

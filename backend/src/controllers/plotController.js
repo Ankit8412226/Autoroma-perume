@@ -8,6 +8,9 @@ const { computePricing, deriveBaseRatePerSqYrd } = require('../services/pricingE
 exports.getPlots = async (req, res, next) => {
   try {
     const { projectId, block, status, search } = req.query;
+    const page = parseInt(req.query.page) || null;
+    const limit = parseInt(req.query.limit) || null;
+
     const filter = {};
 
     if (projectId) filter.projectId = projectId;
@@ -20,7 +23,26 @@ exports.getPlots = async (req, res, next) => {
       ];
     }
 
-    const plots = await Plot.find(filter).populate('ownerId', 'fullName email phone');
+    const total = await Plot.countDocuments(filter);
+    let query = Plot.find(filter).populate('ownerId', 'fullName email phone');
+
+    if (page && limit) {
+      const skip = (page - 1) * limit;
+      query = query.skip(skip).limit(limit);
+    }
+
+    const plots = await query;
+
+    if (page && limit) {
+      return res.json({
+        data: plots,
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit)
+      });
+    }
+
     res.json(plots);
   } catch (error) {
     next(error);

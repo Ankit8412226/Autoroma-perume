@@ -4,6 +4,7 @@ import { Commission } from '../types';
 import { StatsCardSkeleton, TableSkeleton } from '../components/common/Skeleton';
 import { EmptyState } from '../components/common/EmptyState';
 import { ErrorState } from '../components/common/ErrorState';
+import { Pagination } from '../components/common/Pagination';
 import { formatCurrency } from '../utils/formatters';
 import { CheckCircle2, Clock, DollarSign, RefreshCw } from 'lucide-react';
 
@@ -12,6 +13,12 @@ export const CommissionsPage: React.FC = () => {
   const [summary, setSummary] = useState<any>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+
+  const paginatedCommissions = commissions.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   useEffect(() => {
     fetchCommissions();
@@ -103,7 +110,7 @@ export const CommissionsPage: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[#0B4F3C]/10">
-                    {commissions.map((comm) => (
+                    {paginatedCommissions.map((comm) => (
                       <tr key={comm._id} className="hover:bg-[#EAF3EF]/40 transition-colors">
                         <td className="p-3 font-bold text-[#171A18]">{comm.employeeId?.userId?.fullName || 'Agent'}</td>
                         <td className="p-3 text-[#0B4F3C] font-semibold">{comm.rankAtSale || 'Advisor'}</td>
@@ -124,6 +131,15 @@ export const CommissionsPage: React.FC = () => {
                   </tbody>
                 </table>
               </div>
+
+              <Pagination
+                totalItems={commissions.length}
+                currentPage={currentPage}
+                pageSize={pageSize}
+                onPageChange={setCurrentPage}
+                onPageSizeChange={(s) => { setPageSize(s); setCurrentPage(1); }}
+                label="commissions"
+              />
             </div>
           )}
         </>

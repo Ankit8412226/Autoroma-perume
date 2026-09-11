@@ -25,7 +25,8 @@ export interface Employee {
   teamSalesCount: number;
   activeLegsCount: number;
   joiningDate: string;
-  parentId?: string | null;
+  parentId?: any;
+  position?: 'LEFT' | 'RIGHT';
   userId?: User;
 }
 
@@ -42,6 +43,7 @@ export interface MLMTreeNode {
   teamSalesCount: number;
   activeLegsCount: number;
   parentId?: string | null;
+  position?: 'LEFT' | 'RIGHT';
   children: MLMTreeNode[];
 }
 
