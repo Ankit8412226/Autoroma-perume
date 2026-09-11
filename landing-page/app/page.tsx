@@ -11,6 +11,9 @@ import { DholeraArrivedSection } from '@/components/real-estate/DholeraArrivedSe
 import { IndiaIsRunningBanner } from '@/components/real-estate/IndiaIsRunningBanner'
 import { PlotBuyingProcess } from '@/components/real-estate/PlotBuyingProcess'
 import { HomepageContactSection } from '@/components/real-estate/HomepageContactSection'
+import { LandInvestmentCalculator } from '@/components/real-estate/LandInvestmentCalculator'
+import { InteractiveNakshaPreview } from '@/components/real-estate/InteractiveNakshaPreview'
+import { LandPlotFAQ } from '@/components/real-estate/LandPlotFAQ'
 import { PropertyCardSkeleton } from '@/components/common/Skeleton'
 import { formatCurrency } from '@/utils/formatters'
 import { AGENTS } from '@/data/agents'
@@ -211,22 +214,32 @@ export default function HomePage() {
         <DholeraArrivedSection />
       </section>
 
-      {/* 5. TRANSPARENT 4-STEP PLOT ACQUISITION JOURNEY */}
+      {/* 5. INTERACTIVE NAKSHA & VECTOR MAP DEMARCATION PREVIEW */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <InteractiveNakshaPreview />
+      </section>
+
+      {/* 6. TRANSPARENT 4-STEP PLOT ACQUISITION JOURNEY */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <PlotBuyingProcess />
       </section>
 
-      {/* 6. INDIA IS RUNNING - INFRASTRUCTURE GROWTH SUPERCYCLE BANNER */}
+      {/* 7. LAND INVESTMENT & ROI APPRECIATION CALCULATOR */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <LandInvestmentCalculator />
+      </section>
+
+      {/* 8. INDIA IS RUNNING - INFRASTRUCTURE GROWTH SUPERCYCLE BANNER */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <IndiaIsRunningBanner />
       </section>
 
-      {/* 7. FLAGSHIP TOWNSHIP SHOWCASE */}
+      {/* 9. FLAGSHIP TOWNSHIP SHOWCASE */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <DevelopmentFeature />
       </section>
 
-      {/* 8. PHILOSOPHY / TRUST */}
+      {/* 10. PHILOSOPHY / TRUST */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="bg-white border border-brand-green/15 rounded-2xl p-8 sm:p-12 shadow-sm">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
@@ -276,9 +289,14 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 9. MARKET SNAPSHOT */}
+      {/* 11. MARKET SNAPSHOT */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <MarketSnapshot />
+      </section>
+
+      {/* 12. FREQUENTLY ASKED QUESTIONS & LEGAL TITLE ACCORDION */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <LandPlotFAQ />
       </section>
 
       {/* 10. MEET THE ADVISORS */}
