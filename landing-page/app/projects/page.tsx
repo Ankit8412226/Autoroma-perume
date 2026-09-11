@@ -18,10 +18,10 @@ export default function PublicProjectsPage() {
     try {
       setIsLoading(true)
       const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1'
-      const res = await fetch(`${baseUrl}/public/projects`)
-      if (res.ok) {
-        const data = await res.json()
-        setProjects(data)
+      const res = await fetch(`${baseUrl}/public/projects`).catch(() => null)
+      if (res && res.ok) {
+        const data = await res.json().catch(() => null)
+        setProjects(data || [])
       }
     } catch (e) {
       console.error('Projects fetch error', e)

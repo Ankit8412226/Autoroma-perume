@@ -18,9 +18,9 @@ export default function AgentsPage() {
     try {
       setIsLoading(true)
       const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1'
-      const res = await fetch(`${baseUrl}/public/agents`)
-      if (res.ok) {
-        const data = await res.json()
+      const res = await fetch(`${baseUrl}/public/agents`).catch(() => null)
+      if (res && res.ok) {
+        const data = await res.json().catch(() => null)
         if (Array.isArray(data)) {
           setAgentsList(data)
           return

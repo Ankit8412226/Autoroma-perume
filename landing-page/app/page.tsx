@@ -7,6 +7,10 @@ import { SectionHeading } from '@/components/real-estate/SectionHeading'
 import { DevelopmentFeature } from '@/components/real-estate/DevelopmentFeature'
 import { MarketSnapshot } from '@/components/real-estate/MarketSnapshot'
 import { AgentCard } from '@/components/real-estate/AgentCard'
+import { DholeraArrivedSection } from '@/components/real-estate/DholeraArrivedSection'
+import { IndiaIsRunningBanner } from '@/components/real-estate/IndiaIsRunningBanner'
+import { PlotBuyingProcess } from '@/components/real-estate/PlotBuyingProcess'
+import { HomepageContactSection } from '@/components/real-estate/HomepageContactSection'
 import { PropertyCardSkeleton } from '@/components/common/Skeleton'
 import { formatCurrency } from '@/utils/formatters'
 import { AGENTS } from '@/data/agents'
@@ -31,14 +35,14 @@ export default function HomePage() {
     try {
       setIsLoading(true)
       const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1'
-      const res = await fetch(`${baseUrl}/public/projects`)
-      if (res.ok) {
-        const data = await res.json()
+      const res = await fetch(`${baseUrl}/public/projects`).catch(() => null)
+      if (res && res.ok) {
+        const data = await res.json().catch(() => null)
         setProjects(data || [])
       }
     } catch (e) {
       console.error('Failed to fetch live projects', e)
-    } flex: {
+    } finally {
       setIsLoading(false)
     }
   }
@@ -51,27 +55,29 @@ export default function HomePage() {
   ]
 
   return (
-    <div className="space-y-16 sm:space-y-24 pb-16">
+    <div className="space-y-20 sm:space-y-32 pb-24">
       {/* 1. HERO SECTION */}
       <section className="relative min-h-[85vh] flex items-center justify-center overflow-hidden bg-brand-charcoal text-white pt-8">
         <div className="absolute inset-0 z-0">
-          <Image
-            src="https://images.unsplash.com/photo-1524813686514-a57563d77965?w=1920&q=85&auto=format&fit=crop"
-            alt="House & Sky Township Land Development"
-            fill
-            priority
-            className="object-cover opacity-40 scale-105 transition-transform duration-1000"
-          />
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="w-full h-full object-cover opacity-45 scale-105"
+          >
+            <source src="/videos/hero-banner-video.mp4" type="video/mp4" />
+          </video>
           <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-black/30" />
         </div>
 
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full py-16">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
             <div className="lg:col-span-7 space-y-6 text-left">
-              <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-white/10 backdrop-blur-md border border-white/20 rounded-full">
-                <Sparkles className="w-3.5 h-3.5 text-brand-sky" />
-                <span className="text-[10px] sm:text-xs font-bold uppercase tracking-[0.2em] text-white">
-                  EXCEPTIONAL TOWNSHIPS. DEMARCATED LAND PLOTS.
+              <div className="inline-flex items-center gap-2.5 px-4 py-1.5 bg-white/10 backdrop-blur-md border border-white/20 rounded-full shadow-lg">
+                <img src="/logo.png" alt="House & Sky Logo" className="w-5 h-5 rounded-full object-cover border border-[#C9A96E]/60" />
+                <span className="text-[10px] sm:text-xs font-bold uppercase tracking-[0.2em] text-[#C9A96E]">
+                  BUILDING TRUST. DELIVERING VALUE.
                 </span>
               </div>
 
@@ -101,46 +107,6 @@ export default function HomePage() {
                 </Link>
               </div>
             </div>
-
-            <div className="lg:col-span-5 hidden lg:block">
-              <div className="bg-white/95 backdrop-blur-md border border-brand-green/30 rounded-2xl p-6 shadow-2xl text-brand-charcoal space-y-4">
-                <div className="relative aspect-[16/10] w-full rounded-xl overflow-hidden border border-brand-green/15 bg-brand-charcoal">
-                  <Image
-                    src="https://images.unsplash.com/photo-1524813686514-a57563d77965?w=800&q=80"
-                    alt="Featured Plot Project"
-                    fill
-                    className="object-cover"
-                  />
-                  <span className="absolute top-3 left-3 px-3 py-1 bg-brand-green text-white text-[10px] uppercase font-bold tracking-widest rounded shadow-sm">
-                    FEATURED TOWNSHIP
-                  </span>
-                </div>
-
-                <div className="space-y-1">
-                  <span className="text-xl font-serif font-bold text-brand-green block">
-                    Green Valley Enclave Phase 1
-                  </span>
-                  <h3 className="font-serif text-base text-brand-charcoal font-bold">
-                    Sector 82, Gurgaon
-                  </h3>
-                  <p className="text-xs text-brand-charcoal/70 font-light">
-                    Demarcated 1800 Sq Ft Plots · Base Rate ₹4,500/sqft
-                  </p>
-                </div>
-
-                <div className="pt-3 border-t border-brand-green/15 flex items-center justify-between text-xs">
-                  <span className="font-mono text-brand-green font-bold">
-                    18 / 30 Plots Available
-                  </span>
-                  <Link
-                    href="/projects"
-                    className="px-3.5 py-2 bg-brand-green hover:bg-brand-dark text-white font-bold text-[10px] uppercase tracking-wider rounded-md transition-all shadow-sm"
-                  >
-                    View Project Plots
-                  </Link>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       </section>
@@ -161,7 +127,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 3. LIVE PROJECTS SECTION (CONNECTS TO BACKEND) */}
+      {/* 3. FEATURED PLOT PROJECTS (PRIMARY DB PROJECTS) */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between mb-8">
           <SectionHeading
@@ -240,12 +206,27 @@ export default function HomePage() {
         )}
       </section>
 
-      {/* 4. FLAGSHIP TOWNSHIP SHOWCASE */}
+      {/* 4. DHOLERA SMART CITY ARRIVAL ANNOUNCEMENT SECTION */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <DholeraArrivedSection />
+      </section>
+
+      {/* 5. TRANSPARENT 4-STEP PLOT ACQUISITION JOURNEY */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <PlotBuyingProcess />
+      </section>
+
+      {/* 6. INDIA IS RUNNING - INFRASTRUCTURE GROWTH SUPERCYCLE BANNER */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <IndiaIsRunningBanner />
+      </section>
+
+      {/* 7. FLAGSHIP TOWNSHIP SHOWCASE */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <DevelopmentFeature />
       </section>
 
-      {/* 5. PHILOSOPHY / TRUST */}
+      {/* 8. PHILOSOPHY / TRUST */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="bg-white border border-brand-green/15 rounded-2xl p-8 sm:p-12 shadow-sm">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
@@ -295,12 +276,32 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 6. MARKET SNAPSHOT */}
+      {/* 9. MARKET SNAPSHOT */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <MarketSnapshot />
       </section>
 
-      {/* 7. WORK WITH US / BECOME AN AGENT */}
+      {/* 10. MEET THE ADVISORS */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <SectionHeading
+          eyebrow="OUR TEAM"
+          title="Meet our plot advisors."
+          subtitle="Experienced advisors dedicated to confidential land plot representation."
+          action={{ label: 'View all advisors →', href: '/agents' }}
+        />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {AGENTS.map((agent) => (
+            <AgentCard key={agent.id} agent={agent} />
+          ))}
+        </div>
+      </section>
+
+      {/* 11. DIRECT CONTACT US & VIP SITE TOUR FORM SECTION */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <HomepageContactSection />
+      </section>
+
+      {/* 12. WORK WITH US / BECOME AN AGENT */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="bg-brand-soft border border-brand-green/20 rounded-2xl p-8 sm:p-12 shadow-sm flex flex-col md:flex-row items-center justify-between gap-8">
           <div className="space-y-3 max-w-2xl">
@@ -325,21 +326,6 @@ export default function HomePage() {
             <span>Apply as an Agent</span>
             <ArrowUpRight className="w-4 h-4 text-white" />
           </Link>
-        </div>
-      </section>
-
-      {/* 8. MEET THE ADVISORS */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <SectionHeading
-          eyebrow="OUR TEAM"
-          title="Meet our plot advisors."
-          subtitle="Experienced advisors dedicated to confidential land plot representation."
-          action={{ label: 'View all advisors →', href: '/agents' }}
-        />
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {AGENTS.map((agent) => (
-            <AgentCard key={agent.id} agent={agent} />
-          ))}
         </div>
       </section>
     </div>

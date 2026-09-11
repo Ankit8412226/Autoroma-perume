@@ -49,9 +49,15 @@ export function InquiryForm({
             password: formData.password || 'Password123!',
             message: formData.message
           })
-        })
+        }).catch(() => null)
 
-        const data = await res.json()
+        if (!res) {
+          alert('Failed to connect to backend server. Please check your internet connection.')
+          setIsSubmitting(false)
+          return
+        }
+
+        const data = await res.json().catch(() => ({}))
 
         if (!res.ok) {
           alert(data.message || 'Failed to submit agent application.')
@@ -80,9 +86,15 @@ export function InquiryForm({
             plotNo: propertyTitle || '',
             message: `Preferred Window: ${formData.preferredTime} | Date: ${formData.preferredDate || 'Anytime'} | Notes: ${formData.message}`
           })
-        })
+        }).catch(() => null)
 
-        const data = await res.json()
+        if (!res) {
+          alert('Failed to connect to backend server. Please check your internet connection.')
+          setIsSubmitting(false)
+          return
+        }
+
+        const data = await res.json().catch(() => ({}))
 
         if (!res.ok) {
           alert(data.message || 'Failed to submit viewing inquiry.')

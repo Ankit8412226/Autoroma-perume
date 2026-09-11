@@ -106,17 +106,21 @@ export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen = false, onClose 
         }`}
       >
         {/* Brand Header */}
-        <div className="p-4 border-b border-white/10 flex items-center justify-between bg-[#0B241C]">
+        <div className="p-4 border-b border-white/10 flex items-center justify-between bg-[#061913]">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-[#0B4F3C] flex items-center justify-center shadow-lg border border-emerald-400/30">
-              <Building className="w-5 h-5 text-white" />
+            <div className="w-11 h-11 rounded-full overflow-hidden shadow-lg border border-[#C9A96E]/50 bg-[#0B241C] shrink-0">
+              <img
+                src="/logo.png"
+                alt="House & Sky Logo"
+                className="w-full h-full object-cover transform hover:scale-105 transition-transform duration-300"
+              />
             </div>
             <div>
               <h1 className="font-serif font-bold text-lg text-white tracking-tight leading-none">
-                House & <span className="text-emerald-400 italic font-serif">Sky</span>
+                House & <span className="text-[#C9A96E] italic font-serif">Sky</span>
               </h1>
-              <span className="text-[9px] text-emerald-400 font-extrabold tracking-widest uppercase block mt-1">
-                Enterprise Admin Portal
+              <span className="text-[8.5px] text-[#C9A96E] font-extrabold tracking-wider uppercase block mt-1">
+                Building Trust. Delivering Value.
               </span>
             </div>
           </div>

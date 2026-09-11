@@ -17,16 +17,16 @@ export function DevelopmentFeature() {
     try {
       setIsLoading(true)
       const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1'
-      const res = await fetch(`${baseUrl}/public/projects`)
-      if (res.ok) {
-        const projects = await res.json()
+      const res = await fetch(`${baseUrl}/public/projects`).catch(() => null)
+      if (res && res.ok) {
+        const projects = await res.json().catch(() => null)
         if (Array.isArray(projects) && projects.length > 0) {
           setFeaturedProject(projects[0])
           return
         }
       }
     } catch (e) {
-      console.error('Featured project error:', e)
+      // Quiet fallback to default featured project
     } finally {
       setIsLoading(false)
     }

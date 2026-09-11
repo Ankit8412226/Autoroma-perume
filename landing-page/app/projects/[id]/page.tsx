@@ -40,9 +40,9 @@ export default function ProjectDetailsPage() {
     try {
       setIsLoading(true)
       const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1'
-      const res = await fetch(`${baseUrl}/public/projects/${projectId}`)
-      if (res.ok) {
-        const data = await res.json()
+      const res = await fetch(`${baseUrl}/public/projects/${projectId}`).catch(() => null)
+      if (res && res.ok) {
+        const data = await res.json().catch(() => null)
         setProjectData(data)
       }
     } catch (e) {

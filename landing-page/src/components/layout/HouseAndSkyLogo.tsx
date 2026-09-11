@@ -4,92 +4,56 @@ interface HouseAndSkyLogoProps {
   className?: string
   variant?: 'dark' | 'light'
   showTagline?: boolean
+  size?: 'sm' | 'md' | 'lg'
 }
 
 export function HouseAndSkyLogo({
   className = '',
   variant = 'dark',
   showTagline = false,
+  size = 'md',
 }: HouseAndSkyLogoProps) {
-  const isDark = variant === 'dark' // Dark text/icon for light backgrounds
-  const mainColor = isDark ? '#0B4F3C' : '#FFFFFF'
+  const isDark = variant === 'dark'
   const textColor = isDark ? '#171A18' : '#FFFFFF'
-  const skyColor = '#0EA5E9'
+
+  const logoDimension = size === 'sm' ? 36 : size === 'lg' ? 56 : 44
 
   return (
     <div className={`inline-flex items-center gap-3 cursor-pointer select-none ${className}`}>
-      {/* Architectural Roof & Sky Monogram SVG */}
-      <svg
-        width="36"
-        height="36"
-        viewBox="0 0 36 36"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-        className="shrink-0 transition-transform duration-300 hover:scale-105"
+      {/* Luxury Medallion Image Emblem */}
+      <div
+        className="relative shrink-0 rounded-full overflow-hidden shadow-md border border-[#C9A96E]/50 bg-[#0B241C]"
+        style={{ width: logoDimension, height: logoDimension }}
       >
-        {/* Sky Arc Detail */}
-        <path
-          d="M 6 18 A 12 12 0 0 1 30 18"
-          stroke={skyColor}
-          strokeWidth="2.5"
-          strokeLinecap="round"
-          opacity="0.85"
+        <img
+          src="/logo.png"
+          alt="House & Sky Logo"
+          className="w-full h-full object-cover transform hover:scale-105 transition-transform duration-300"
         />
-        {/* House Architectural Roof Lines */}
-        <path
-          d="M 8 24 L 18 13 L 28 24"
-          stroke={mainColor}
-          strokeWidth="3"
-          strokeLinecap="square"
-          strokeLinejoin="miter"
-        />
-        {/* Inner Apex Architectural Pillar */}
-        <path
-          d="M 18 13 V 27"
-          stroke={mainColor}
-          strokeWidth="2.5"
-          strokeLinecap="round"
-        />
-        {/* Horizontal Foundation Line */}
-        <line
-          x1="6"
-          y1="27"
-          x2="30"
-          y2="27"
-          stroke={mainColor}
-          strokeWidth="2"
-          strokeLinecap="round"
-        />
-      </svg>
+      </div>
 
       {/* Typography */}
       <div className="flex flex-col">
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1 leading-none">
           <span
-            className="font-serif text-xl sm:text-2xl font-semibold tracking-tight"
+            className="font-serif text-xl sm:text-2xl font-bold tracking-tight"
             style={{ color: textColor }}
           >
             House
           </span>
-          <span
-            className="font-serif text-xl sm:text-2xl font-light italic"
-            style={{ color: '#0B4F3C' }}
-          >
+          <span className="font-serif text-xl sm:text-2xl italic font-bold text-[#C9A96E]">
             &
           </span>
           <span
-            className="font-serif text-xl sm:text-2xl font-semibold tracking-tight"
+            className="font-serif text-xl sm:text-2xl font-bold tracking-tight"
             style={{ color: textColor }}
           >
             Sky
           </span>
         </div>
         {showTagline && (
-          <span
-            className="text-[9px] uppercase tracking-[0.25em] font-medium -mt-1"
-            style={{ color: isDark ? '#6D746F' : 'rgba(255,255,255,0.7)' }}
-          >
-            Estates & Residences
+          <span className="text-[8.5px] sm:text-[9px] uppercase tracking-[0.2em] font-extrabold text-[#C9A96E] mt-1 block">
+            Building Trust. Delivering Value.
           </span>
         )}
       </div>

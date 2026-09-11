@@ -43,13 +43,19 @@ export const LoginPage: React.FC = () => {
       <div className="bg-white p-8 rounded-3xl border border-[#0B4F3C]/15 w-full max-w-md space-y-6 shadow-2xl">
         {/* Brand Header */}
         <div className="text-center space-y-2">
-          <div className="w-12 h-12 rounded-2xl bg-[#0B4F3C] flex items-center justify-center mx-auto shadow-lg">
-            <Building className="w-6 h-6 text-white" />
+          <div className="w-16 h-16 rounded-full overflow-hidden shadow-xl border-2 border-[#C9A96E]/60 bg-[#0B241C] mx-auto">
+            <img
+              src="/logo.png"
+              alt="House & Sky Logo"
+              className="w-full h-full object-cover transform hover:scale-105 transition-transform duration-300"
+            />
           </div>
           <h1 className="text-2xl font-serif font-bold text-[#171A18] tracking-tight">
-            House & <span className="text-[#0B4F3C] italic">Sky</span>
+            House & <span className="text-[#0B4F3C] italic font-serif">Sky</span>
           </h1>
-          <p className="text-xs text-[#171A18]/70">Enterprise Advisory & Multi-Role CRM</p>
+          <p className="text-[10px] uppercase tracking-[0.2em] font-extrabold text-[#C9A96E]">
+            Building Trust. Delivering Value.
+          </p>
         </div>
 
         {/* Role Selector Tabs */}

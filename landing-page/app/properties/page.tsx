@@ -38,9 +38,9 @@ function PropertiesContent() {
   const fetchLivePlots = async () => {
     try {
       const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1'
-      const res = await fetch(`${baseUrl}/public/plots`)
-      if (res.ok) {
-        const plots = await res.json()
+      const res = await fetch(`${baseUrl}/public/plots`).catch(() => null)
+      if (res && res.ok) {
+        const plots = await res.json().catch(() => null)
         if (Array.isArray(plots) && plots.length > 0) {
           const liveProps: Property[] = plots.map((plot: any) => ({
             id: plot._id,

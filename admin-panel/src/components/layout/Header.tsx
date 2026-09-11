@@ -60,7 +60,10 @@ export const Header: React.FC<HeaderProps> = ({ onToggleMobileMenu }) => {
 
         {/* Dynamic Breadcrumb Bar */}
         <div className="hidden sm:flex items-center gap-2 text-xs font-bold text-[#171A18]/70">
-          <span className="text-[#0B4F3C]">Admin Suite</span>
+          <div className="w-6 h-6 rounded-full overflow-hidden border border-[#C9A96E]/50 bg-[#0B241C] shrink-0">
+            <img src="/logo.png" alt="House & Sky" className="w-full h-full object-cover" />
+          </div>
+          <span className="text-[#0B4F3C] font-extrabold">House & Sky</span>
           <ChevronRight className="w-3.5 h-3.5 opacity-50" />
           <span className="text-[#171A18] font-extrabold text-sm font-serif">{currentRouteName}</span>
         </div>
