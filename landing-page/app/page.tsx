@@ -68,25 +68,25 @@ export default function HomePage() {
   return (
     <div className="space-y-20 sm:space-y-32 pb-24">
       {/* 1. HERO SECTION */}
-      <section className="relative min-h-[85vh] flex items-center justify-center overflow-hidden bg-brand-charcoal text-white pt-8">
+      <section className="relative min-h-[85vh] flex items-center justify-center overflow-hidden bg-brand-charcoal text-white pt-4">
         <div className="absolute inset-0 z-0">
           <video
             autoPlay
             loop
             muted
             playsInline
-            className="w-full h-full object-cover opacity-45 scale-105"
+            className="w-full h-full object-cover object-top opacity-70"
           >
-            <source src="/videos/WhatsApp%20Video%202026-09-12%20at%2019.15.17.mp4" type="video/mp4" />
+            <source src="/videos/hero-banner-video.mp4" type="video/mp4" />
           </video>
-          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-black/30" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-black/20" />
         </div>
 
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full py-16">
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full py-16 sm:py-20">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
             <div className="lg:col-span-7 space-y-6 text-left">
-              <div className="inline-flex items-center gap-2.5 px-4 py-1.5 bg-white/10 backdrop-blur-md border border-white/20 rounded-full shadow-lg">
-                <img src="/logo.png" alt="House & Sky Logo" className="w-5 h-5 rounded-full object-cover border border-[#C9A96E]/60" />
+              <div className="inline-flex items-center gap-3 px-4 py-2 bg-white/10 backdrop-blur-md border border-white/20 rounded-full shadow-lg">
+                <img src="/logo.png" alt="House & Sky Logo" className="w-7 h-7 sm:w-8 sm:h-8 rounded-full object-cover border-2 border-[#C9A96E]/70" />
                 <span className="text-[10px] sm:text-xs font-bold uppercase tracking-[0.2em] text-[#C9A96E]">
                   BUILDING TRUST. DELIVERING VALUE.
                 </span>

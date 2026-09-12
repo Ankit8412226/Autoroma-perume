@@ -16,13 +16,13 @@ export function HouseAndSkyLogo({
   const isDark = variant === 'dark'
   const textColor = isDark ? '#171A18' : '#FFFFFF'
 
-  const logoDimension = size === 'sm' ? 36 : size === 'lg' ? 56 : 44
+  const logoDimension = size === 'sm' ? 44 : size === 'lg' ? 64 : 52
 
   return (
     <div className={`inline-flex items-center gap-3 cursor-pointer select-none ${className}`}>
       {/* Luxury Medallion Image Emblem */}
       <div
-        className="relative shrink-0 rounded-full overflow-hidden shadow-md border border-[#C9A96E]/50 bg-[#0B241C]"
+        className="relative shrink-0 rounded-full overflow-hidden shadow-md border-2 border-[#C9A96E]/60 bg-[#0B241C]"
         style={{ width: logoDimension, height: logoDimension }}
       >
         <img
@@ -34,18 +34,18 @@ export function HouseAndSkyLogo({
 
       {/* Typography */}
       <div className="flex flex-col">
-        <div className="flex items-center gap-1 leading-none">
+        <div className="flex items-center gap-1.5 leading-none">
           <span
-            className="font-serif text-xl sm:text-2xl font-bold tracking-tight"
+            className="font-serif text-2xl sm:text-3xl font-bold tracking-tight"
             style={{ color: textColor }}
           >
             House
           </span>
-          <span className="font-serif text-xl sm:text-2xl italic font-bold text-[#C9A96E]">
+          <span className="font-serif text-2xl sm:text-3xl italic font-bold text-[#C9A96E]">
             &
           </span>
           <span
-            className="font-serif text-xl sm:text-2xl font-bold tracking-tight"
+            className="font-serif text-2xl sm:text-3xl font-bold tracking-tight"
             style={{ color: textColor }}
           >
             Sky
