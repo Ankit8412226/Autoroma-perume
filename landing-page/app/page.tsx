@@ -77,7 +77,7 @@ export default function HomePage() {
             playsInline
             className="w-full h-full object-cover opacity-45 scale-105"
           >
-            <source src="/videos/hero-banner-video.mp4" type="video/mp4" />
+            <source src="/videos/WhatsApp%20Video%202026-09-12%20at%2019.15.17.mp4" type="video/mp4" />
           </video>
           <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-black/30" />
         </div>
