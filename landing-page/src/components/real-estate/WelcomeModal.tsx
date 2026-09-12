@@ -4,13 +4,11 @@ import * as React from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { X, Sparkles, PhoneCall, ArrowUpRight } from 'lucide-react'
-import { SITE } from '@/utils/siteConfig'
 
 export function WelcomeModal() {
   const [isOpen, setIsOpen] = React.useState<boolean>(false)
 
   React.useEffect(() => {
-    // Automatically open on website load after a slight smooth delay
     const timer = setTimeout(() => {
       setIsOpen(true)
     }, 600)
@@ -49,7 +47,7 @@ export function WelcomeModal() {
 
       {/* Modal Content Box */}
       <div className="relative z-10 w-full max-w-2xl bg-[#092219] border border-[#C9A96E]/50 rounded-3xl shadow-2xl overflow-hidden my-auto transform transition-all duration-300 scale-100">
-        
+
         {/* Close Button */}
         <button
           onClick={() => setIsOpen(false)}
@@ -67,37 +65,23 @@ export function WelcomeModal() {
         </div>
 
         {/* Featured Image */}
-        <div className="relative w-full aspect-[16/10] bg-black/40 overflow-hidden">
+        <div className="relative w-full aspect-[16/10] bg-[#092219] overflow-hidden">
           <Image
             src="/images/krishna-lok-modal.png"
             alt="Krishna Lok Studio Apartment By House & Sky"
             fill
             priority
-            className="object-contain p-2 sm:p-4 hover:scale-105 transition-transform duration-700"
+            className="object-contain p-3 sm:p-5"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#092219] via-transparent to-transparent opacity-90" />
         </div>
 
-        {/* Modal Body Info */}
-        <div className="p-6 sm:p-8 space-y-5 text-center -mt-6 relative z-10">
-          <div className="space-y-2">
-            <span className="inline-block px-3.5 py-1 bg-[#C9A96E]/15 border border-[#C9A96E]/30 rounded-full text-[11px] font-bold text-[#C9A96E] uppercase tracking-widest">
-              Flagship Development
-            </span>
-            <h2 className="font-serif text-2xl sm:text-4xl text-white font-normal leading-tight">
-              Krishna Lok Studio Apartment
-            </h2>
-            <p className="text-xs sm:text-sm text-amber-100/80 font-light max-w-lg mx-auto">
-              Luxury studio apartments & prime township inventory designed for exceptional living and high-yield appreciation by <span className="text-white font-semibold">House & Sky</span>.
-            </p>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
+        {/* Modal Buttons */}
+        <div className="p-4 sm:p-6 bg-[#061A13] border-t border-[#C9A96E]/20 text-center relative z-10">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
             <Link
               href="/contact"
               onClick={() => setIsOpen(false)}
-              className="w-full sm:w-auto px-6 py-3.5 bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-500 hover:to-emerald-600 text-white font-bold text-xs uppercase tracking-[0.16em] rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 border border-emerald-400/30 cursor-pointer"
+              className="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-500 hover:to-emerald-600 text-white font-bold text-xs uppercase tracking-[0.16em] rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 border border-emerald-400/30 cursor-pointer"
             >
               <PhoneCall className="w-4 h-4 text-emerald-200" />
               <span>Book Site Visit / Enquire</span>
@@ -106,7 +90,7 @@ export function WelcomeModal() {
             <Link
               href="/projects"
               onClick={() => setIsOpen(false)}
-              className="w-full sm:w-auto px-6 py-3.5 bg-white/10 hover:bg-white/20 text-white border border-white/20 font-bold text-xs uppercase tracking-[0.16em] rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer"
+              className="w-full sm:w-auto px-6 py-3 bg-white/10 hover:bg-white/20 text-white border border-white/20 font-bold text-xs uppercase tracking-[0.16em] rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer"
             >
               <span>Explore All Projects</span>
               <ArrowUpRight className="w-4 h-4 text-amber-300" />
