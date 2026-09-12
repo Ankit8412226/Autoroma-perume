@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const Employee = require('../models/Employee');
 const { JWT_SECRET, JWT_EXPIRE } = require('../config/jwt');
+const { resolveSponsorByInviteCode } = require('../utils/agentInvite');
 
 const generateToken = (id) => {
   return jwt.sign({ id }, JWT_SECRET, { expiresIn: JWT_EXPIRE });
@@ -72,10 +73,18 @@ exports.register = async (req, res, next) => {
 // 2. Public Agent Application Registration (Requires Admin / Manager Approval)
 exports.registerPublicAgent = async (req, res, next) => {
   try {
-    const { email, password, fullName, phone } = req.body;
+    const { email, password, fullName, phone, inviteCode } = req.body;
 
     if (!email || !password || !fullName || !phone) {
       return res.status(400).json({ message: 'Full name, email, phone, and password are required' });
+    }
+
+    let sponsor = null;
+    if (inviteCode) {
+      sponsor = await resolveSponsorByInviteCode(inviteCode);
+      if (!sponsor) {
+        return res.status(400).json({ message: 'This invite link is invalid. Ask your sponsor for a fresh link.' });
+      }
     }
 
     let user = await User.findOne({ email });
@@ -104,7 +113,7 @@ exports.registerPublicAgent = async (req, res, next) => {
       employeeCode,
       joiningDate: new Date(),
       currentRank: 'Business Executive',
-      parentId: null
+      parentId: sponsor ? sponsor._id : null
     });
 
     res.status(201).json({

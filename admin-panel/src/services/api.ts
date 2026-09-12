@@ -37,7 +37,7 @@ api.interceptors.response.use(
     }
     error.friendlyMessage = friendlyMessage;
 
-    if (status === 401 && !window.location.pathname.includes('/login')) {
+    if (status === 401 && !window.location.pathname.includes('/login') && !window.location.pathname.includes('/join')) {
       localStorage.removeItem('hippo_token');
       localStorage.removeItem('hippo_user');
       localStorage.removeItem('hippo_employee');

@@ -47,6 +47,7 @@ router.get('/public/projects', inquiryController.getPublicProjects);
 router.get('/public/projects/:id', inquiryController.getPublicProjectById);
 router.get('/public/plots', inquiryController.getPublicPlots);
 router.get('/public/agents', inquiryController.getPublicAgents);
+router.get('/public/agent-invite/:code', employeeController.getPublicInvite);
 router.get('/public/locations', inquiryController.getPublicLocations);
 router.get('/public/properties', propertyController.getPublicProperties);
 router.get('/public/properties/:slug', propertyController.getPublicPropertyBySlug);
@@ -99,6 +100,7 @@ router.post('/auth/register-public-agent', authLimiter, validate({
 }), authController.registerPublicAgent);
 
 // --- Employee / Agent CRUD & MLM Routes ---
+router.get('/employees/me/invite-link', protect, employeeController.getMyInviteLink);
 router.get('/employees', protect, employeeController.getEmployees);
 router.post('/employees', protect, validate({
   fullName: { required: true, type: 'string', minLength: 2, maxLength: 80 },

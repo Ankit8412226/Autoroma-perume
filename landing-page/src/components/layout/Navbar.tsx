@@ -74,7 +74,7 @@ export function Navbar() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5 sm:py-3">
           <div className="flex items-center justify-between gap-6">
             <Link href="/" className="focus:outline-none shrink-0">
-              <HouseAndSkyLogo variant="dark" showTagline={false} size="sm" />
+              <HouseAndSkyLogo variant="dark" showTagline={true} size="sm" />
             </Link>
 
             <nav className="hidden lg:flex items-center gap-6">
@@ -160,7 +160,7 @@ export function Navbar() {
           <div className="fixed inset-0 bg-black/50" onClick={() => setIsMobileMenuOpen(false)} />
           <div className="fixed inset-y-0 right-0 max-w-xs w-full bg-white p-6 overflow-y-auto shadow-2xl">
             <div className="flex items-center justify-between pb-4 border-b border-brand-green/15">
-              <HouseAndSkyLogo variant="dark" size="sm" />
+              <HouseAndSkyLogo variant="dark" showTagline={true} size="sm" />
               <button type="button" onClick={() => setIsMobileMenuOpen(false)} className="p-2 bg-brand-soft rounded-md">
                 <X className="w-5 h-5 text-brand-green" />
               </button>

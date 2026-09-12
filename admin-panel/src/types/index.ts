@@ -26,6 +26,7 @@ export interface Employee {
   activeLegsCount: number;
   joiningDate: string;
   parentId?: any;
+  inviteCode?: string;
   position?: 'LEFT' | 'RIGHT';
   userId?: User;
 }

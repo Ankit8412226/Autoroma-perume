@@ -2,6 +2,7 @@ const Employee = require('../models/Employee');
 const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 const { calculateEmployeeSalesMetrics, evaluateAndUpgradeRank, getDownlineEmployeeIds } = require('../services/mlmEngine');
+const { ensureInviteCode, resolveSponsorByInviteCode, publicSponsorPayload } = require('../utils/agentInvite');
 
 exports.getEmployees = async (req, res, next) => {
   try {
@@ -211,6 +212,40 @@ exports.approveAgent = async (req, res, next) => {
       employee,
       user
     });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.getMyInviteLink = async (req, res, next) => {
+  try {
+    const employee = await Employee.findOne({ userId: req.user._id }).populate(
+      'userId',
+      'fullName isActive approvalStatus'
+    );
+    if (!employee) {
+      return res.status(404).json({ message: 'No agent profile found for this account' });
+    }
+    if (employee.userId?.isActive === false || employee.userId?.approvalStatus === 'PENDING_APPROVAL') {
+      return res.status(403).json({ message: 'Your account must be approved before you can invite agents' });
+    }
+    const inviteCode = await ensureInviteCode(employee);
+    res.json({
+      inviteCode,
+      ...publicSponsorPayload({ ...employee.toObject(), inviteCode })
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.getPublicInvite = async (req, res, next) => {
+  try {
+    const sponsor = await resolveSponsorByInviteCode(req.params.code);
+    if (!sponsor) {
+      return res.status(404).json({ message: 'This invite link is invalid or expired' });
+    }
+    res.json(publicSponsorPayload(sponsor));
   } catch (error) {
     next(error);
   }

@@ -10,19 +10,19 @@ interface HouseAndSkyLogoProps {
 export function HouseAndSkyLogo({
   className = '',
   variant = 'dark',
-  showTagline = false,
+  showTagline = true,
   size = 'md',
 }: HouseAndSkyLogoProps) {
   const isDark = variant === 'dark'
   const textColor = isDark ? '#171A18' : '#FFFFFF'
 
-  const logoDimension = size === 'sm' ? 44 : size === 'lg' ? 64 : 52
+  const logoDimension = size === 'sm' ? 56 : size === 'lg' ? 80 : 66
 
   return (
     <div className={`inline-flex items-center gap-3 cursor-pointer select-none ${className}`}>
       {/* Luxury Medallion Image Emblem */}
       <div
-        className="relative shrink-0 rounded-full overflow-hidden shadow-md border-2 border-[#C9A96E]/60 bg-[#0B241C]"
+        className="relative shrink-0 rounded-full overflow-hidden shadow-lg border-2 border-[#C9A96E] bg-[#0B241C]"
         style={{ width: logoDimension, height: logoDimension }}
       >
         <img
@@ -36,24 +36,24 @@ export function HouseAndSkyLogo({
       <div className="flex flex-col">
         <div className="flex items-center gap-1.5 leading-none">
           <span
-            className="font-serif text-2xl sm:text-3xl font-bold tracking-tight"
+            className="font-serif text-3xl sm:text-4xl font-extrabold tracking-tight"
             style={{ color: textColor }}
           >
             House
           </span>
-          <span className="font-serif text-2xl sm:text-3xl italic font-bold text-[#C9A96E]">
+          <span className="font-serif text-3xl sm:text-4xl italic font-black text-[#C9A96E]">
             &
           </span>
           <span
-            className="font-serif text-2xl sm:text-3xl font-bold tracking-tight"
+            className="font-serif text-3xl sm:text-4xl font-extrabold tracking-tight"
             style={{ color: textColor }}
           >
             Sky
           </span>
         </div>
         {showTagline && (
-          <span className="text-[8.5px] sm:text-[9px] uppercase tracking-[0.2em] font-extrabold text-[#C9A96E] mt-1 block">
-            Building Trust. Delivering Value.
+          <span className="text-[9px] sm:text-[10px] uppercase tracking-[0.22em] font-extrabold text-[#C9A96E] mt-1 block whitespace-nowrap">
+            BUILDING TRUST. DELIVERING VALUE.
           </span>
         )}
       </div>

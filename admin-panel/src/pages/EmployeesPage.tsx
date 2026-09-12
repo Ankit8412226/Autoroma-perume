@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import api from '../services/api';
 import { Employee, RANKS } from '../types';
 import { AddEmployeeModal } from '../components/employees/AddEmployeeModal';
+import { InviteLinkCard } from '../components/employees/InviteLinkCard';
 import { AgentProfileModal } from '../components/employees/AgentProfileModal';
 import { TableSkeleton } from '../components/common/Skeleton';
 import { EmptyState } from '../components/common/EmptyState';
@@ -139,6 +140,8 @@ export const EmployeesPage: React.FC = () => {
           </button>
         </div>
       </div>
+
+      <InviteLinkCard />
 
       {/* Pending Agent Applications Banner */}
       {pendingApprovalsCount > 0 && (

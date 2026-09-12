@@ -6,6 +6,7 @@ const User = require('../models/User');
 const Employee = require('../models/Employee');
 const bcrypt = require('bcryptjs');
 const { getPresignedUrl } = require('../services/s3Service');
+const { resolveSponsorByInviteCode } = require('../utils/agentInvite');
 const { deriveMapEmbedUrl } = require('../utils/googleMaps');
 
 async function withFreshProjectMedia(project) {
@@ -183,10 +184,18 @@ exports.createPublicInquiry = async (req, res, next) => {
 // 4. Public Agent Application Submission
 exports.createPublicAgentApplication = async (req, res, next) => {
   try {
-    const { fullName, email, phone, password, experienceYears, message } = req.body;
+    const { fullName, email, phone, password, experienceYears, message, inviteCode } = req.body;
 
     if (!fullName || !email || !phone) {
       return res.status(400).json({ message: 'Full name, email, and phone number are required' });
+    }
+
+    let sponsor = null;
+    if (inviteCode) {
+      sponsor = await resolveSponsorByInviteCode(inviteCode);
+      if (!sponsor) {
+        return res.status(400).json({ message: 'This invite link is invalid. Ask your sponsor for a fresh link.' });
+      }
     }
 
     let user = await User.findOne({ email });
@@ -215,18 +224,21 @@ exports.createPublicAgentApplication = async (req, res, next) => {
       employeeCode,
       joiningDate: new Date(),
       currentRank: 'Business Executive',
-      parentId: null
+      parentId: sponsor ? sponsor._id : null
     });
 
+    const sponsorName = sponsor?.userId?.fullName || '';
     const inquiry = await Inquiry.create({
       name: fullName,
       email,
       phone,
       inquiryType: 'AGENT_APPLICATION',
-      message: message || 'Submitted public agent application',
+      message: message || (sponsor
+        ? `Joined via invite from ${sponsorName} (${sponsor.employeeCode})`
+        : 'Submitted public agent application'),
       experienceYears: experienceYears || '0-2 Years',
       status: 'NEW',
-      source: 'BECOME_AGENT_FORM'
+      source: sponsor ? 'AGENT_INVITE' : 'BECOME_AGENT_FORM'
     });
 
     res.status(201).json({

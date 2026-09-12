@@ -50,12 +50,19 @@ const employeeSchema = new mongoose.Schema({
     ref: 'Employee',
     default: null
   },
+  inviteCode: {
+    type: String,
+    uppercase: true,
+    trim: true
+  },
   position: {
     type: String,
     enum: ['LEFT', 'RIGHT'],
     default: 'LEFT'
   }
 }, { timestamps: true });
+
+employeeSchema.index({ inviteCode: 1 }, { unique: true, sparse: true });
 
 module.exports = mongoose.model('Employee', employeeSchema);
 module.exports.RANKS = RANKS;

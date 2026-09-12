@@ -19,6 +19,7 @@ import { SettingsPage } from './pages/SettingsPage';
 import { AIKnowledgePage } from './pages/AIKnowledgePage';
 import { LeadsInquiriesPage } from './pages/LeadsInquiriesPage';
 import { PropertiesPage } from './pages/PropertiesPage';
+import { JoinAgentPage } from './pages/JoinAgentPage';
 
 const ADMIN_ROLES = ['ADMIN', 'DIRECTOR'];
 
@@ -50,6 +51,7 @@ export const App: React.FC = () => {
         <Router>
           <Routes>
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/join/:code" element={<JoinAgentPage />} />
 
             <Route path="/dashboard" element={<ProtectedRoute adminOnly><DashboardPage /></ProtectedRoute>} />
             <Route path="/inquiries" element={<ProtectedRoute><LeadsInquiriesPage /></ProtectedRoute>} />
