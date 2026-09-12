@@ -35,9 +35,9 @@ export function AnnouncementTicker() {
   }
 
   return (
-    <div className="bg-gradient-to-r from-[#063B2D] via-[#0B4F3C] to-[#063B2D] text-white border-b border-[#C9A96E]/30 text-xs shadow-inner overflow-hidden relative font-sans flex items-center h-9 sm:h-10 z-40">
+    <div className="bg-gradient-to-r from-[#063B2D] via-[#0B4F3C] to-[#063B2D] text-white border-b border-[#C9A96E]/30 text-xs shadow-inner overflow-hidden relative font-sans flex items-center h-9 sm:h-10 z-10">
       {/* Static Badge on the left */}
-      <div className="bg-gradient-to-r from-amber-600 to-amber-700 text-white font-extrabold px-3 sm:px-4 py-2 text-[11px] sm:text-xs uppercase tracking-wider flex items-center gap-1.5 shrink-0 z-20 shadow-md border-r border-amber-400/40">
+      <div className="bg-gradient-to-r from-amber-600 to-amber-700 text-white font-extrabold px-3 sm:px-4 py-2 text-[11px] sm:text-xs uppercase tracking-wider flex items-center gap-1.5 shrink-0 z-10 shadow-md border-r border-amber-400/40">
         <Megaphone className="w-3.5 h-3.5 text-amber-200 animate-pulse shrink-0" />
         <span className="whitespace-nowrap font-bold text-amber-100">महत्वपूर्ण सूचना</span>
       </div>

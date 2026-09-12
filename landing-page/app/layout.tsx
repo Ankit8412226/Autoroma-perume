@@ -7,6 +7,7 @@ import { Navbar } from '@/components/layout/Navbar'
 import { Footer } from '@/components/layout/Footer'
 import { HouseAndSkyChatbot } from '@/components/real-estate/HouseAndSkyChatbot'
 import { WhatsAppButton } from '@/components/real-estate/WhatsAppButton'
+import { WelcomeModal } from '@/components/real-estate/WelcomeModal'
 
 const cormorant = Cormorant_Garamond({
   subsets: ['latin'],
@@ -66,6 +67,7 @@ export default function RootLayout({
             <Footer />
             <WhatsAppButton />
             <HouseAndSkyChatbot />
+            <WelcomeModal />
           </ToastProvider>
         </QueryProvider>
       </body>

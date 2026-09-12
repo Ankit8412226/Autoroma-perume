@@ -82,7 +82,7 @@ export function Navbar() {
                   About Us <ChevronDown className="w-3 h-3" />
                 </Link>
                 {openMenu === 'about' && (
-                  <div className="absolute top-full left-0 pt-2 min-w-[190px] z-20">
+                  <div className="absolute top-full left-0 pt-2 min-w-[190px] z-[100]">
                     <div className="bg-white border border-brand-green/15 rounded-xl shadow-xl py-1.5 overflow-hidden">
                       <Link href="/about" className="block px-4 py-2.5 text-xs font-semibold text-brand-charcoal hover:bg-brand-soft hover:text-brand-green transition-colors">Brand Story</Link>
                       <Link href="/services" className="block px-4 py-2.5 text-xs font-semibold text-brand-charcoal hover:bg-brand-soft hover:text-brand-green transition-colors">Services</Link>
@@ -97,7 +97,7 @@ export function Navbar() {
                   Projects <ChevronDown className="w-3 h-3" />
                 </Link>
                 {openMenu === 'projects' && (
-                  <div className="absolute top-full left-0 pt-2 min-w-[220px] z-20">
+                  <div className="absolute top-full left-0 pt-2 min-w-[220px] z-[100]">
                     <div className="bg-white border border-brand-green/15 rounded-xl shadow-xl py-1.5 overflow-hidden">
                       <Link href="/projects" className="block px-4 py-2.5 text-xs font-bold text-brand-green hover:bg-brand-soft transition-colors">All Projects</Link>
                       {projects.map((project) => (
