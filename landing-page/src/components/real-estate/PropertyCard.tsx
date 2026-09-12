@@ -8,7 +8,17 @@ import { FavoriteButton } from './FavoriteButton'
 import { PriceDisplay } from './PriceDisplay'
 import { useCompareStore } from '@/stores/compare.store'
 import { PropertyQuickViewModal } from './PropertyQuickViewModal'
-import { Bed, Bath, Maximize2, MapPin, ArrowRight, Eye, Scale } from 'lucide-react'
+import { BulkBuyModal } from './BulkBuyModal'
+import { Bed, Bath, Maximize2, MapPin, ArrowRight, Eye, Scale, Building2 } from 'lucide-react'
+
+const FRONTEND_TYPE_TO_API: Record<string, string> = {
+  Villa: 'VILLA',
+  Apartment: 'APARTMENT',
+  Commercial: 'COMMERCIAL',
+  Estate: 'LAND',
+  Penthouse: 'APARTMENT',
+  Waterfront: 'VILLA',
+}
 
 interface PropertyCardProps {
   property: Property
@@ -22,7 +32,20 @@ export function PropertyCard({
   className = '',
 }: PropertyCardProps) {
   const [isQuickViewOpen, setIsQuickViewOpen] = React.useState(false)
+  const [isBulkBuyOpen, setIsBulkBuyOpen] = React.useState(false)
   const [mounted, setMounted] = React.useState(false)
+  const bulkBuyContext = {
+    propertyId: property.id,
+    propertyTitle: property.title,
+    city: property.location.city,
+    propertyType: FRONTEND_TYPE_TO_API[property.propertyType] || '',
+  }
+
+  const handleBulkBuyClick = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsBulkBuyOpen(true)
+  }
 
   const isComparingStore = useCompareStore((state) => state.isComparing(property.id))
   const toggleCompare = useCompareStore((state) => state.toggleCompare)
@@ -77,6 +100,14 @@ export function PropertyCard({
                   <Eye className="w-3.5 h-3.5 text-brand-green group-hover:text-white" />
                   <span>Quick View</span>
                 </button>
+                <button
+                  type="button"
+                  onClick={handleBulkBuyClick}
+                  className="px-3 py-1 bg-brand-green text-white text-[10px] font-semibold uppercase tracking-wider rounded-md border border-brand-green flex items-center gap-1.5 shadow-sm hover:bg-brand-dark transition-all cursor-pointer"
+                >
+                  <Building2 className="w-3.5 h-3.5" />
+                  <span>Bulk Buy</span>
+                </button>
 
                 <FavoriteButton propertyId={property.id} size="sm" />
               </div>
@@ -117,6 +148,11 @@ export function PropertyCard({
         <PropertyQuickViewModal
           property={isQuickViewOpen ? property : null}
           onClose={() => setIsQuickViewOpen(false)}
+        />
+        <BulkBuyModal
+          isOpen={isBulkBuyOpen}
+          onClose={() => setIsBulkBuyOpen(false)}
+          context={bulkBuyContext}
         />
       </>
     )
@@ -181,6 +217,13 @@ export function PropertyCard({
               <div className="flex items-center gap-3">
                 <button
                   type="button"
+                  onClick={handleBulkBuyClick}
+                  className="px-3 py-1.5 bg-white hover:bg-brand-green hover:text-white border border-brand-green/20 text-brand-green text-xs font-semibold uppercase tracking-wider rounded-md transition-colors cursor-pointer"
+                >
+                  Bulk Buy
+                </button>
+                <button
+                  type="button"
                   onClick={handleQuickViewClick}
                   className="px-3 py-1.5 bg-brand-soft hover:bg-brand-green hover:text-white border border-brand-green/20 text-brand-green text-xs font-semibold uppercase tracking-wider rounded-md transition-colors cursor-pointer"
                 >
@@ -201,6 +244,11 @@ export function PropertyCard({
         <PropertyQuickViewModal
           property={isQuickViewOpen ? property : null}
           onClose={() => setIsQuickViewOpen(false)}
+        />
+        <BulkBuyModal
+          isOpen={isBulkBuyOpen}
+          onClose={() => setIsBulkBuyOpen(false)}
+          context={bulkBuyContext}
         />
       </>
     )
@@ -282,13 +330,23 @@ export function PropertyCard({
               <span>{property.specs.areaSqFt.toLocaleString()} sq ft</span>
             </div>
 
-            <Link
-              href={`/properties/${property.slug}`}
-              className="inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-brand-green hover:text-brand-dark transition-colors shrink-0"
-            >
-              <span>View Property</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </Link>
+            <div className="flex items-center gap-3 shrink-0">
+              <button
+                type="button"
+                onClick={handleBulkBuyClick}
+                className="inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-brand-green hover:text-brand-dark transition-colors"
+              >
+                <Building2 className="w-3.5 h-3.5" />
+                <span>Bulk Buy</span>
+              </button>
+              <Link
+                href={`/properties/${property.slug}`}
+                className="inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-brand-green hover:text-brand-dark transition-colors"
+              >
+                <span>View Property</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
           </div>
         </div>
       </div>
@@ -296,6 +354,11 @@ export function PropertyCard({
       <PropertyQuickViewModal
         property={isQuickViewOpen ? property : null}
         onClose={() => setIsQuickViewOpen(false)}
+      />
+      <BulkBuyModal
+        isOpen={isBulkBuyOpen}
+        onClose={() => setIsBulkBuyOpen(false)}
+        context={bulkBuyContext}
       />
     </>
   )

@@ -40,11 +40,15 @@ export function LeadsInquiriesPage() {
     setIsLoading(true)
     setError(null)
     try {
-      const data = await inquiriesService.getInquiries()
-      if (Array.isArray(data)) {
-        const formatted = data.map((inq: any) => ({
+      const [data, bulkData] = await Promise.all([
+        inquiriesService.getInquiries(),
+        inquiriesService.getBulkBuyInquiries().catch(() => [])
+      ])
+      const formatted = Array.isArray(data)
+        ? data.map((inq: any) => ({
           id: inq._id ? `INQ-${inq._id.slice(-6).toUpperCase()}` : (inq.id || 'INQ'),
           rawId: inq._id,
+          leadKind: 'INQUIRY',
           customerName: inq.name || inq.customerName || 'Customer',
           email: inq.email || 'No email provided',
           phone: inq.phone || 'No phone provided',
@@ -52,12 +56,42 @@ export function LeadsInquiriesPage() {
           plotNo: inq.plotNo || 'N/A',
           type: inq.inquiryType || 'CONTACT_FORM',
           message: inq.message || '',
+          unitCount: '',
+          budgetRange: '',
+          city: '',
           assignedAgent: inq.assignedAgentId ? (inq.assignedAgentId.userId ? inq.assignedAgentId.userId.fullName : 'Assigned Agent') : 'Unassigned (Direct Desk)',
           status: inq.status || 'NEW',
-          date: formatDate(inq.createdAt, { includeTime: true, fallback: 'Just now' })
+          date: formatDate(inq.createdAt, { includeTime: true, fallback: 'Just now' }),
+          createdAt: inq.createdAt || ''
         }))
-        setInquiries(formatted)
-      }
+        : []
+      const bulkFormatted = Array.isArray(bulkData)
+        ? bulkData.map((inq: any) => ({
+          id: inq._id ? `BLK-${inq._id.slice(-6).toUpperCase()}` : 'BLK',
+          rawId: inq._id,
+          leadKind: 'BULK_BUY',
+          customerName: inq.name || 'Customer',
+          email: inq.email || 'No email provided',
+          phone: inq.phone || 'No phone provided',
+          project: inq.propertyTitle || inq.propertyId?.title || 'Bulk property buy',
+          plotNo: inq.unitCount ? `${inq.unitCount} units` : 'Bulk',
+          type: 'BULK_BUY',
+          message: inq.message || '',
+          unitCount: inq.unitCount || '',
+          budgetRange: inq.budgetRange || '',
+          city: inq.city || '',
+          assignedAgent: inq.assignedAgentId ? (inq.assignedAgentId.userId ? inq.assignedAgentId.userId.fullName : 'Assigned Agent') : 'Unassigned (Direct Desk)',
+          status: inq.status || 'NEW',
+          date: formatDate(inq.createdAt, { includeTime: true, fallback: 'Just now' }),
+          createdAt: inq.createdAt || ''
+        }))
+        : []
+      const merged = [...formatted, ...bulkFormatted].sort((a, b) => {
+        const aTime = a.createdAt ? new Date(a.createdAt).getTime() : 0
+        const bTime = b.createdAt ? new Date(b.createdAt).getTime() : 0
+        return bTime - aTime
+      })
+      setInquiries(merged)
     } catch (e: any) {
       console.error('Inquiries load error', e)
       setError(e?.friendlyMessage || 'Failed to fetch customer inquiries.')
@@ -66,9 +100,13 @@ export function LeadsInquiriesPage() {
     }
   }
 
-  const handleStatusChange = async (rawId: string, newStatus: string) => {
+  const handleStatusChange = async (rawId: string, newStatus: string, leadKind?: string) => {
     try {
-      await inquiriesService.updateInquiryStatus(rawId, { status: newStatus })
+      if (leadKind === 'BULK_BUY') {
+        await inquiriesService.updateBulkBuyStatus(rawId, { status: newStatus })
+      } else {
+        await inquiriesService.updateInquiryStatus(rawId, { status: newStatus })
+      }
       if (selectedInquiry && selectedInquiry.rawId === rawId) {
         setSelectedInquiry({ ...selectedInquiry, status: newStatus })
       }
@@ -102,7 +140,7 @@ export function LeadsInquiriesPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-serif font-bold text-[#171A18]">Customer Contact & Plot Inquiries</h1>
-          <p className="text-xs text-[#171A18]/70 mt-1">Central CRM inbox for landing page contacts, site tour requests & price inquiries</p>
+          <p className="text-xs text-[#171A18]/70 mt-1">Central CRM inbox for landing page contacts, site tours, price inquiries and bulk buy requests</p>
         </div>
 
         <div className="flex items-center gap-3">
@@ -249,7 +287,7 @@ export function LeadsInquiriesPage() {
                     <td className="py-4 px-4" onClick={(e) => e.stopPropagation()}>
                       <select
                         value={inq.status}
-                        onChange={(e) => inq.rawId && handleStatusChange(inq.rawId, e.target.value)}
+                        onChange={(e) => inq.rawId && handleStatusChange(inq.rawId, e.target.value, inq.leadKind)}
                         className={`px-2.5 py-1 rounded-full text-[10px] font-bold border cursor-pointer focus:outline-none ${
                           inq.status === 'NEW'
                             ? 'bg-amber-500/20 text-amber-800 border-amber-500/30'
@@ -329,9 +367,21 @@ export function LeadsInquiriesPage() {
 
               <div className="bg-[#FAF9F6] p-3 rounded-2xl border border-[#0B4F3C]/15">
                 <p className="text-[10px] text-[#171A18]/60 font-semibold uppercase">Plot / Unit</p>
-                <p className="font-bold text-[#0B4F3C] mt-0.5">Plot {selectedInquiry.plotNo}</p>
+                <p className="font-bold text-[#0B4F3C] mt-0.5">{selectedInquiry.type === 'BULK_BUY' ? selectedInquiry.plotNo : `Plot ${selectedInquiry.plotNo}`}</p>
               </div>
             </div>
+            {selectedInquiry.type === 'BULK_BUY' && (
+              <div className="grid grid-cols-2 gap-3 text-xs">
+                <div className="bg-[#FAF9F6] p-3 rounded-2xl border border-[#0B4F3C]/15">
+                  <p className="text-[10px] text-[#171A18]/60 font-semibold uppercase">Units</p>
+                  <p className="font-bold text-[#171A18] mt-0.5">{selectedInquiry.unitCount || selectedInquiry.plotNo}</p>
+                </div>
+                <div className="bg-[#FAF9F6] p-3 rounded-2xl border border-[#0B4F3C]/15">
+                  <p className="text-[10px] text-[#171A18]/60 font-semibold uppercase">Budget / City</p>
+                  <p className="font-bold text-[#171A18] mt-0.5">{[selectedInquiry.budgetRange, selectedInquiry.city].filter(Boolean).join(' · ') || '—'}</p>
+                </div>
+              </div>
+            )}
 
             {selectedInquiry.message && (
               <div className="bg-[#EAF3EF]/50 p-4 rounded-2xl border border-[#0B4F3C]/15 space-y-1">
@@ -346,7 +396,7 @@ export function LeadsInquiriesPage() {
                 <span className="font-bold text-[#171A18]">Update Status:</span>
                 <select
                   value={selectedInquiry.status}
-                  onChange={(e) => selectedInquiry.rawId && handleStatusChange(selectedInquiry.rawId, e.target.value)}
+                  onChange={(e) => selectedInquiry.rawId && handleStatusChange(selectedInquiry.rawId, e.target.value, selectedInquiry.leadKind)}
                   className="px-3 py-1.5 rounded-xl text-xs font-bold border border-[#0B4F3C]/30 bg-white cursor-pointer focus:outline-none"
                 >
                   <option value="NEW">NEW</option>

@@ -16,6 +16,8 @@ const notificationController = require('../controllers/notificationController');
 const reportController = require('../controllers/reportController');
 
 const inquiryController = require('../controllers/inquiryController');
+const bulkBuyController = require('../controllers/bulkBuyController');
+const BulkBuyInquiry = require('../models/BulkBuyInquiry');
 const uploadController = require('../controllers/uploadController');
 const propertyController = require('../controllers/propertyController');
 const settingController = require('../controllers/settingController');
@@ -57,6 +59,12 @@ router.post('/public/inquiries', inquiryLimiter, validate({
   email: { required: true, type: 'email' },
   phone: { required: true, type: 'string', minLength: 5, maxLength: 20 }
 }), inquiryController.createPublicInquiry);
+router.post('/public/bulk-buy', inquiryLimiter, validate({
+  name: { required: true, type: 'string', minLength: 2, maxLength: 80 },
+  phone: { required: true, type: 'string', minLength: 5, maxLength: 20 },
+  email: { type: 'email' },
+  unitCount: { type: 'number', min: BulkBuyInquiry.MIN_BULK_UNITS, max: BulkBuyInquiry.MAX_BULK_UNITS }
+}), bulkBuyController.createPublicBulkBuy);
 router.post('/public/agent-application', inquiryLimiter, validate({
   fullName: { required: true, type: 'string', minLength: 2, maxLength: 80 },
   email: { required: true, type: 'email' },
@@ -213,6 +221,8 @@ router.get('/reports/plot-ledger', protect, authorize('ADMIN', 'DIRECTOR'), repo
 // --- Inquiries & Customer Leads (Admin / Manager) ---
 router.get('/inquiries', protect, authorize('ADMIN', 'MANAGER', 'DIRECTOR'), inquiryController.getInquiries);
 router.put('/inquiries/:id/status', protect, authorize('ADMIN', 'MANAGER', 'DIRECTOR'), inquiryController.updateInquiryStatus);
+router.get('/bulk-buy-inquiries', protect, authorize('ADMIN', 'MANAGER', 'DIRECTOR'), bulkBuyController.getBulkBuyInquiries);
+router.put('/bulk-buy-inquiries/:id/status', protect, authorize('ADMIN', 'MANAGER', 'DIRECTOR'), bulkBuyController.updateBulkBuyStatus);
 
 // --- Executive Dashboard & Notifications ---
 router.get('/dashboard/stats', protect, authorize('ADMIN', 'DIRECTOR'), dashboardController.getDashboardStats);

@@ -8,7 +8,8 @@ import { PropertyCard } from '@/components/real-estate/PropertyCard'
 import { SectionHeading } from '@/components/real-estate/SectionHeading'
 import { getApiBaseUrl } from '@/utils/api'
 import { mapBackendProperty } from '@/utils/mapListing'
-import { Search } from 'lucide-react'
+import { Search, Building2 } from 'lucide-react'
+import { BulkBuyModal } from '@/components/real-estate/BulkBuyModal'
 
 function PropertiesContent() {
   const searchParams = useSearchParams()
@@ -16,6 +17,7 @@ function PropertiesContent() {
   const [searchQuery, setSearchQuery] = React.useState('')
   const [allProperties, setAllProperties] = React.useState<Property[]>([])
   const [isLoading, setIsLoading] = React.useState(true)
+  const [isBulkBuyOpen, setIsBulkBuyOpen] = React.useState(false)
 
   React.useEffect(() => {
     const load = async () => {
@@ -55,6 +57,21 @@ function PropertiesContent() {
         subtitle="Independent listings — not township plot inventory. Residential, commercial, villa and showroom stock from the admin panel."
       />
 
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border border-brand-green/15 bg-[#EAF3EF] p-4">
+        <div>
+          <p className="text-sm font-bold text-brand-charcoal">Buying more than one property?</p>
+          <p className="text-xs text-brand-charcoal/60 mt-0.5">Share your bulk requirement and an advisor will call you.</p>
+        </div>
+        <button
+          type="button"
+          onClick={() => setIsBulkBuyOpen(true)}
+          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-brand-green text-white text-xs font-bold shrink-0"
+        >
+          <Building2 className="w-4 h-4" />
+          Bulk Buy
+        </button>
+      </div>
+
       <div className="relative">
         <Search className="w-4 h-4 text-brand-charcoal/40 absolute left-3.5 top-1/2 -translate-y-1/2" />
         <input
@@ -80,6 +97,8 @@ function PropertiesContent() {
           ))}
         </div>
       )}
+
+      <BulkBuyModal isOpen={isBulkBuyOpen} onClose={() => setIsBulkBuyOpen(false)} />
     </div>
   )
 }

@@ -5,9 +5,10 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { InquiryForm } from '@/components/real-estate/InquiryForm'
+import { BulkBuyModal } from '@/components/real-estate/BulkBuyModal'
 import { getApiBaseUrl } from '@/utils/api'
 import { FALLBACK_IMAGE } from '@/utils/siteConfig'
-import { CheckCircle2, ChevronRight, MapPin } from 'lucide-react'
+import { Building2, CheckCircle2, ChevronRight, MapPin } from 'lucide-react'
 
 export default function PropertyDetailPage() {
   const params = useParams()
@@ -15,6 +16,7 @@ export default function PropertyDetailPage() {
   const [payload, setPayload] = React.useState<any | null>(null)
   const [isLoading, setIsLoading] = React.useState(true)
   const [activeImage, setActiveImage] = React.useState('')
+  const [isBulkBuyOpen, setIsBulkBuyOpen] = React.useState(false)
 
   React.useEffect(() => {
     if (!slug) return
@@ -106,9 +108,28 @@ export default function PropertyDetailPage() {
               ))}
             </div>
           )}
+          <button
+            type="button"
+            onClick={() => setIsBulkBuyOpen(true)}
+            className="w-full py-3 rounded-xl border border-brand-green text-brand-green text-xs font-bold flex items-center justify-center gap-2 hover:bg-brand-green hover:text-white transition-colors"
+          >
+            <Building2 className="w-4 h-4" />
+            Bulk Buy — request a callback
+          </button>
           <InquiryForm propertyTitle={property.title} />
         </div>
       </div>
+
+      <BulkBuyModal
+        isOpen={isBulkBuyOpen}
+        onClose={() => setIsBulkBuyOpen(false)}
+        context={{
+          propertyId: property._id,
+          propertyTitle: property.title,
+          city: property.city || '',
+          propertyType: property.propertyType || '',
+        }}
+      />
     </div>
   )
 }
