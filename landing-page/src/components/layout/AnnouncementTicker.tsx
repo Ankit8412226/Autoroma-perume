@@ -35,31 +35,31 @@ export function AnnouncementTicker() {
   }
 
   return (
-    <div className="bg-gradient-to-r from-[#063B2D] via-[#0B4F3C] to-[#063B2D] text-white border-b border-[#C9A96E]/30 text-xs shadow-inner overflow-hidden relative font-sans flex items-center h-9 sm:h-10 z-10">
+    <div className="bg-gradient-to-r from-[#D4AF37] via-[#F3E5AB] to-[#C9A96E] text-[#171A18] border-b border-[#B8860B]/30 text-xs shadow-md overflow-hidden relative font-sans flex items-center h-9 sm:h-10 z-10">
       {/* Static Badge on the left */}
-      <div className="bg-gradient-to-r from-amber-600 to-amber-700 text-white font-extrabold px-3 sm:px-4 py-2 text-[11px] sm:text-xs uppercase tracking-wider flex items-center gap-1.5 shrink-0 z-10 shadow-md border-r border-amber-400/40">
-        <Megaphone className="w-3.5 h-3.5 text-amber-200 animate-pulse shrink-0" />
-        <span className="whitespace-nowrap font-bold text-amber-100">महत्वपूर्ण सूचना</span>
+      <div className="bg-gradient-to-r from-[#063B2D] to-[#0B4F3C] text-amber-300 font-extrabold px-3 sm:px-4 py-2 text-[11px] sm:text-xs uppercase tracking-wider flex items-center gap-1.5 shrink-0 z-10 shadow-md border-r border-[#C9A96E]/50">
+        <Megaphone className="w-3.5 h-3.5 text-amber-300 animate-pulse shrink-0" />
+        <span className="whitespace-nowrap font-bold text-amber-200">महत्वपूर्ण सूचना</span>
       </div>
 
       {/* Marquee scrolling container */}
       <div className="relative flex-1 overflow-hidden h-full flex items-center">
         <div className="animate-marquee-continuous flex items-center whitespace-nowrap cursor-default">
-          <span className="inline-flex items-center gap-6 px-4 text-xs font-medium text-amber-50 tracking-wide">
+          <span className="inline-flex items-center gap-6 px-4 text-xs font-bold text-[#171A18] tracking-wide">
             <span>{announcement}</span>
-            <span className="text-[#C9A96E] font-bold">◆</span>
+            <span className="text-[#063B2D] font-black">◆</span>
           </span>
-          <span className="inline-flex items-center gap-6 px-4 text-xs font-medium text-amber-50 tracking-wide">
+          <span className="inline-flex items-center gap-6 px-4 text-xs font-bold text-[#171A18] tracking-wide">
             <span>{announcement}</span>
-            <span className="text-[#C9A96E] font-bold">◆</span>
+            <span className="text-[#063B2D] font-black">◆</span>
           </span>
-          <span className="inline-flex items-center gap-6 px-4 text-xs font-medium text-amber-50 tracking-wide">
+          <span className="inline-flex items-center gap-6 px-4 text-xs font-bold text-[#171A18] tracking-wide">
             <span>{announcement}</span>
-            <span className="text-[#C9A96E] font-bold">◆</span>
+            <span className="text-[#063B2D] font-black">◆</span>
           </span>
-          <span className="inline-flex items-center gap-6 px-4 text-xs font-medium text-amber-50 tracking-wide">
+          <span className="inline-flex items-center gap-6 px-4 text-xs font-bold text-[#171A18] tracking-wide">
             <span>{announcement}</span>
-            <span className="text-[#C9A96E] font-bold">◆</span>
+            <span className="text-[#063B2D] font-black">◆</span>
           </span>
         </div>
       </div>
