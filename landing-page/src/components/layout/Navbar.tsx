@@ -17,7 +17,6 @@ interface NavProject {
 const MAIN_LINKS = [
   { label: 'Home', href: '/' },
   { label: 'Properties', href: '/properties' },
-  { label: 'Gallery', href: '/gallery' },
   { label: 'Get In Touch', href: '/contact' }
 ]
 
@@ -25,6 +24,8 @@ export function Navbar() {
   const pathname = usePathname()
   const [isScrolled, setIsScrolled] = React.useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false)
+  const [isMobileAboutOpen, setIsMobileAboutOpen] = React.useState(false)
+  const [isMobileProjectsOpen, setIsMobileProjectsOpen] = React.useState(false)
   const [openMenu, setOpenMenu] = React.useState<string | null>(null)
   const [projects, setProjects] = React.useState<NavProject[]>([])
 
@@ -37,6 +38,8 @@ export function Navbar() {
   React.useEffect(() => {
     setIsMobileMenuOpen(false)
     setOpenMenu(null)
+    setIsMobileAboutOpen(false)
+    setIsMobileProjectsOpen(false)
   }, [pathname])
 
   React.useEffect(() => {
@@ -163,28 +166,73 @@ export function Navbar() {
               </button>
             </div>
             <div className="pt-2 space-y-1">
-              {MAIN_LINKS.filter((l) => l.href === '/').map((link) => (
-                <Link key={link.href} href={link.href} className="block text-xs uppercase tracking-[0.14em] font-semibold text-brand-charcoal py-2.5 border-b border-brand-green/10">
-                  {link.label}
-                </Link>
-              ))}
-              <p className="pt-2 text-[10px] uppercase tracking-wider text-brand-charcoal/40 font-bold">About Us</p>
-              <Link href="/about" className="block text-xs font-semibold text-brand-charcoal py-2">Brand Story</Link>
-              <Link href="/services" className="block text-xs font-semibold text-brand-charcoal py-2">Services</Link>
-              <Link href="/gallery" className="block text-xs font-semibold text-brand-charcoal py-2 border-b border-brand-green/10">Gallery</Link>
-              <p className="pt-2 text-[10px] uppercase tracking-wider text-brand-charcoal/40 font-bold">Projects</p>
-              <Link href="/projects" className="block text-xs font-bold text-brand-green py-2">All Projects</Link>
-              {projects.map((project) => (
-                <Link key={project._id} href={`/projects/${project._id}`} target="_blank" rel="noopener noreferrer" className="block text-xs font-semibold text-brand-charcoal py-2">
-                  {project.name}
-                </Link>
-              ))}
-              {MAIN_LINKS.filter((l) => l.href !== '/').map((link) => (
-                <Link key={link.href} href={link.href} className="block text-xs uppercase tracking-[0.14em] font-semibold text-brand-charcoal py-2.5 border-b border-brand-green/10">
-                  {link.label}
-                </Link>
-              ))}
-              <Link href="/saved" className="block text-xs uppercase tracking-[0.14em] font-semibold text-brand-charcoal py-2.5">Saved</Link>
+              <Link href="/" onClick={() => setIsMobileMenuOpen(false)} className="block text-xs uppercase tracking-[0.14em] font-semibold text-brand-charcoal py-2.5 border-b border-brand-green/10">
+                Home
+              </Link>
+
+              {/* About Us Accordion */}
+              <div className="border-b border-brand-green/10 py-1">
+                <button
+                  type="button"
+                  onClick={() => setIsMobileAboutOpen(!isMobileAboutOpen)}
+                  className="w-full flex items-center justify-between py-2 text-xs uppercase tracking-[0.14em] font-semibold text-brand-charcoal cursor-pointer"
+                >
+                  <span>About Us</span>
+                  <ChevronDown className={`w-4 h-4 text-brand-green transition-transform duration-200 ${isMobileAboutOpen ? 'rotate-180' : ''}`} />
+                </button>
+                {isMobileAboutOpen && (
+                  <div className="pl-3 py-1 space-y-1 bg-brand-soft/50 rounded-lg my-1">
+                    <Link href="/about" onClick={() => setIsMobileMenuOpen(false)} className="block text-xs font-semibold text-brand-charcoal py-1.5 hover:text-brand-green">
+                      Brand Story
+                    </Link>
+                    <Link href="/services" onClick={() => setIsMobileMenuOpen(false)} className="block text-xs font-semibold text-brand-charcoal py-1.5 hover:text-brand-green">
+                      Services
+                    </Link>
+                    <Link href="/gallery" onClick={() => setIsMobileMenuOpen(false)} className="block text-xs font-semibold text-brand-charcoal py-1.5 hover:text-brand-green">
+                      Gallery
+                    </Link>
+                  </div>
+                )}
+              </div>
+
+              {/* Projects Accordion */}
+              <div className="border-b border-brand-green/10 py-1">
+                <button
+                  type="button"
+                  onClick={() => setIsMobileProjectsOpen(!isMobileProjectsOpen)}
+                  className="w-full flex items-center justify-between py-2 text-xs uppercase tracking-[0.14em] font-semibold text-brand-charcoal cursor-pointer"
+                >
+                  <span>Projects</span>
+                  <ChevronDown className={`w-4 h-4 text-brand-green transition-transform duration-200 ${isMobileProjectsOpen ? 'rotate-180' : ''}`} />
+                </button>
+                {isMobileProjectsOpen && (
+                  <div className="pl-3 py-1 space-y-1 bg-brand-soft/50 rounded-lg my-1">
+                    <Link href="/projects" onClick={() => setIsMobileMenuOpen(false)} className="block text-xs font-bold text-brand-green py-1.5">
+                      All Projects
+                    </Link>
+                    {projects.map((project) => (
+                      <Link
+                        key={project._id}
+                        href={`/projects/${project._id}`}
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className="block text-xs font-semibold text-brand-charcoal py-1.5 hover:text-brand-green truncate"
+                      >
+                        {project.name}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <Link href="/properties" onClick={() => setIsMobileMenuOpen(false)} className="block text-xs uppercase tracking-[0.14em] font-semibold text-brand-charcoal py-2.5 border-b border-brand-green/10">
+                Properties
+              </Link>
+              <Link href="/contact" onClick={() => setIsMobileMenuOpen(false)} className="block text-xs uppercase tracking-[0.14em] font-semibold text-brand-charcoal py-2.5 border-b border-brand-green/10">
+                Get In Touch
+              </Link>
+              <Link href="/saved" onClick={() => setIsMobileMenuOpen(false)} className="block text-xs uppercase tracking-[0.14em] font-semibold text-brand-charcoal py-2.5">
+                Saved
+              </Link>
             </div>
             <div className="flex items-center gap-2 pt-5">
               <a href={mailHref} target="_blank" rel="noreferrer" className="p-2 rounded-full bg-brand-soft text-brand-green" title={`Email: ${SITE.email}`}><Mail className="w-4 h-4" /></a>
