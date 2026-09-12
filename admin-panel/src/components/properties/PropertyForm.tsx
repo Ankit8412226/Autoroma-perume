@@ -106,8 +106,8 @@ export function emptyPropertyForm(): PropertyFormValues {
 
 export function propertyToForm(property: ListingProperty): PropertyFormValues {
   const projectIdValue = typeof property.projectId === 'object' && property.projectId
-    ? property.projectId._id
-    : (property.projectId || '');
+    ? String((property.projectId as any)._id || (property.projectId as any).id || '')
+    : String(property.projectId || '');
 
   return {
     ...emptyPropertyForm(),

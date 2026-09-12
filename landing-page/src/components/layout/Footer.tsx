@@ -112,7 +112,7 @@ export function Footer() {
                 <Link href="/gallery" className="hover:text-brand-sky transition-colors">Gallery</Link>
               </li>
               <li>
-                <Link href="/contact" className="hover:text-brand-sky transition-colors">Contact Us</Link>
+                <Link href="/contact" className="hover:text-brand-sky transition-colors">Get In Touch</Link>
               </li>
             </ul>
           </div>
@@ -179,7 +179,7 @@ export function Footer() {
               </li>
               <li>
                 <Link href="/contact" className="hover:text-brand-sky transition-colors">
-                  Contact Us
+                  Get In Touch
                 </Link>
               </li>
             </ul>

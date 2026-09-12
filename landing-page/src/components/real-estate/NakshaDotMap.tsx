@@ -48,9 +48,14 @@ interface NakshaDotMapProps {
 export function NakshaDotMap({ imageUrl, imageAlt, plots, onSelectPlot }: NakshaDotMapProps) {
   const [hoveredId, setHoveredId] = React.useState<string | null>(null)
   const pinned = (plots || []).filter(hasPinnedMarker)
+  const hovered = pinned.find((plot) => plot._id === hoveredId)
+  const hoverX = Number(hovered?.marker?.xPercent) || 0
+  const hoverY = Number(hovered?.marker?.yPercent) || 0
+  const cardBelow = hoverY < 48
+  const cardRight = hoverX > 58
 
   return (
-    <div className="relative w-full">
+    <div className="relative w-full isolate">
       <Image
         src={imageUrl}
         alt={imageAlt}
@@ -74,7 +79,7 @@ export function NakshaDotMap({ imageUrl, imageAlt, plots, onSelectPlot }: Naksha
           <button
             key={plot._id}
             type="button"
-            className="absolute z-10 -translate-x-1/2 -translate-y-1/2"
+            className={`absolute -translate-x-1/2 -translate-y-1/2 ${isHovered ? 'z-30' : 'z-10'}`}
             style={{
               left: `${plot.marker.xPercent}%`,
               top: `${plot.marker.yPercent}%`
@@ -84,7 +89,7 @@ export function NakshaDotMap({ imageUrl, imageAlt, plots, onSelectPlot }: Naksha
             onClick={() => onSelectPlot?.(plot)}
             aria-label={`Plot ${plot.plotNo}`}
           >
-            <span className="relative flex h-4 w-4 items-center justify-center">
+            <span className="relative flex h-4 w-4 items-center justify-center pointer-events-none">
               {isAvailable && (
                 <span className="absolute inline-flex h-full w-full rounded-full opacity-40 animate-ping" style={{ backgroundColor: color }} />
               )}
@@ -93,28 +98,38 @@ export function NakshaDotMap({ imageUrl, imageAlt, plots, onSelectPlot }: Naksha
                 style={{ backgroundColor: color }}
               />
             </span>
-
-            {isHovered && (
-              <div className={`absolute top-1/2 -translate-y-1/2 w-56 bg-white text-left rounded-xl shadow-xl border border-brand-green/15 p-3 z-20 ${Number(plot.marker.xPercent) > 70 ? 'right-5' : 'left-5'}`}>
-                <p className="text-[10px] font-extrabold uppercase tracking-wider text-brand-green mb-2">Plot details</p>
-                <dl className="space-y-1 text-[11px] text-brand-charcoal">
-                  <Row label="Plot Number" value={plot.plotNo} />
-                  <Row label="Plot Type" value={derivePlotType(plot)} />
-                  <Row label="Facing" value={deriveFacing(plot)} />
-                  <Row label="Area Sq Ft" value={plot.sizeSqft || '—'} />
-                  <Row label="Super Built Up" value={plot.superBuiltUpSqft || plot.sizeSqft || '—'} />
-                  <Row label="Dimension" value={plot.dimensions || '—'} />
-                  <Row label="PLC" value={plot.totalPlc ? `${plot.totalPlc}` : '0'} />
-                  <Row label="Status" value={plot.status} />
-                </dl>
-                {isAvailable && (
-                  <p className="mt-2 text-[10px] font-bold text-brand-green">Inquiry / Book now</p>
-                )}
-              </div>
-            )}
           </button>
         )
       })}
+
+      {hovered && (
+        <div
+          className="absolute z-40 w-56 pointer-events-none bg-white text-left rounded-xl shadow-2xl border border-brand-green/20 p-3"
+          style={{
+            left: `${hoverX}%`,
+            top: cardBelow ? `${hoverY}%` : undefined,
+            bottom: cardBelow ? undefined : `${100 - hoverY}%`,
+            transform: cardRight ? 'translate(calc(-100% - 12px), 0)' : 'translate(12px, 0)',
+            marginTop: cardBelow ? '12px' : undefined,
+            marginBottom: cardBelow ? undefined : '12px'
+          }}
+        >
+          <p className="text-[10px] font-extrabold uppercase tracking-wider text-brand-green mb-2">Plot details</p>
+          <dl className="space-y-1 text-[11px] text-brand-charcoal">
+            <Row label="Plot Number" value={hovered.plotNo} />
+            <Row label="Plot Type" value={derivePlotType(hovered)} />
+            <Row label="Facing" value={deriveFacing(hovered)} />
+            <Row label="Area Sq Ft" value={hovered.sizeSqft || '—'} />
+            <Row label="Super Built Up" value={hovered.superBuiltUpSqft || hovered.sizeSqft || '—'} />
+            <Row label="Dimension" value={hovered.dimensions || '—'} />
+            <Row label="PLC" value={hovered.totalPlc ? `${hovered.totalPlc}` : '0'} />
+            <Row label="Status" value={hovered.status} />
+          </dl>
+          {hovered.status === 'AVAILABLE' && (
+            <p className="mt-2 text-[10px] font-bold text-brand-green">Inquiry / Book now</p>
+          )}
+        </div>
+      )}
     </div>
   )
 }

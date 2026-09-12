@@ -96,21 +96,6 @@ function plotArea(plot) {
   return toNumber(plot.sellableSqYrd) || (toNumber(plot.sizeSqft) / SQFT_PER_SQ_YRD);
 }
 
-function inferMissingArea(plot) {
-  if (plotArea(plot) > 0) return plot;
-  const x = Number(plot.marker?.xPercent);
-  const y = Number(plot.marker?.yPercent);
-  if (x >= 22 && x <= 28 && y >= 40 && y <= 64) {
-    return {
-      ...plot,
-      sellableSqYrd: 500,
-      sizeSqft: 4500,
-      superBuiltUpSqft: toNumber(plot.superBuiltUpSqft) || 4500
-    };
-  }
-  return plot;
-}
-
 function mergeExtractedPlots(plots) {
   const unique = [];
   plots.forEach((plot) => {
@@ -153,21 +138,41 @@ function mergeExtractedPlots(plots) {
 }
 
 function inferBlock(plot) {
-  const x = Number(plot.marker?.xPercent);
-  if (Number.isFinite(x)) return x < 21 ? 'B' : 'A';
-  return plot.block || 'A';
+  const printed = cleanText(plot.plotNo);
+  const fromNumber = deriveBlock(printed, '');
+  if (fromNumber && fromNumber !== 'A') return fromNumber;
+  const explicit = cleanText(plot.block);
+  if (explicit) return explicit.toUpperCase();
+  return 'A';
+}
+
+function isPrintedPlotNo(plot) {
+  const printed = cleanText(plot.plotNo);
+  if (!printed || isGarbagePlotNo(printed)) return false;
+  if (looksLikeAreaCode(printed, plot.sellableSqYrd, plot.sizeSqft)) return false;
+  return true;
 }
 
 function assignStablePlotNumbers(plots) {
   const counters = {};
+  const used = new Set();
+  plots.forEach((plot) => {
+    if (isPrintedPlotNo(plot)) used.add(cleanText(plot.plotNo).toUpperCase());
+  });
+
   return plots.map((plot) => {
     const block = inferBlock(plot);
-    counters[block] = (counters[block] || 0) + 1;
-    return {
-      ...plot,
-      block,
-      plotNo: `${block}-${String(counters[block]).padStart(2, '0')}`
-    };
+    if (isPrintedPlotNo(plot)) {
+      return { ...plot, block, plotNo: cleanText(plot.plotNo) };
+    }
+    counters[block] = counters[block] || 0;
+    let nextNo = '';
+    do {
+      counters[block] += 1;
+      nextNo = `${block}-${String(counters[block]).padStart(2, '0')}`;
+    } while (used.has(nextNo.toUpperCase()));
+    used.add(nextNo.toUpperCase());
+    return { ...plot, block, plotNo: nextNo };
   });
 }
 
@@ -177,13 +182,13 @@ function finalizeExtractedPlots(plots) {
     const sizeSqft = sellableSqYrd
       ? Number((sellableSqYrd * SQFT_PER_SQ_YRD).toFixed(2))
       : toNumber(plot.sizeSqft);
-    return inferMissingArea({
+    return {
       ...plot,
       sellableSqYrd,
       sizeSqft,
       status: parseOcrStatus(plot),
       superBuiltUpSqft: toNumber(plot.superBuiltUpSqft) || sizeSqft
-    });
+    };
   });
   const merged = mergeExtractedPlots(prepared).filter((plot) => plotArea(plot) > 0);
   return assignStablePlotNumbers(merged);

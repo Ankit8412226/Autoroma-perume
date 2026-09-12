@@ -38,9 +38,11 @@ export const EditProjectModal: React.FC<EditProjectModalProps> = ({ project, onC
   const [reraNumber, setReraNumber] = useState((project as any).legalInfo?.reraNumber || '');
   const [titleType, setTitleType] = useState((project as any).legalInfo?.titleType || 'Freehold');
   const [approvalAuthority, setApprovalAuthority] = useState((project as any).legalInfo?.approvalAuthority || '');
-  const [mapImageUrl, setMapImageUrl] = useState((project as any).mapImageUrl || project.bannerImage || '');
+  const [mapImageUrl, setMapImageUrl] = useState((project as any).mapImageUrl || '');
   const [mapImageS3Key, setMapImageS3Key] = useState((project as any).mapImageS3Key || '');
-  const [bannerImage, setBannerImage] = useState(project.bannerImage || '');
+  const [bannerImage, setBannerImage] = useState(project.bannerImage && project.bannerImage !== (project as any).mapImageUrl ? project.bannerImage : '');
+  const [bannerImageS3Key, setBannerImageS3Key] = useState((project as any).bannerImageS3Key || '');
+  const [bannerFileName, setBannerFileName] = useState('');
   const [gallery, setGallery] = useState<GalleryImage[]>(project.gallery || []);
   const [surveyNumber, setSurveyNumber] = useState(project.surveyNumber || '');
   const [village, setVillage] = useState(project.village || '');
@@ -83,6 +85,31 @@ export const EditProjectModal: React.FC<EditProjectModalProps> = ({ project, onC
     }
   };
 
+  const handleBannerUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selected = e.target.files?.[0];
+    if (!selected) return;
+    setBannerFileName(selected.name);
+    try {
+      setIsUploading(true);
+      const formData = new FormData();
+      formData.append('file', selected);
+      formData.append('folder', 'project_banners');
+      const response = await api.post('/upload', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      if (response.data?.url) {
+        setBannerImage(response.data.url);
+        setBannerImageS3Key(response.data.s3Key || '');
+        toast.success('Background image uploaded');
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to upload background image');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -102,7 +129,8 @@ export const EditProjectModal: React.FC<EditProjectModalProps> = ({ project, onC
         totalPlots,
         basePricePerSqft,
         priceRange,
-        bannerImage: bannerImage || mapImageUrl,
+        bannerImage,
+        bannerImageS3Key,
         mapImageUrl,
         brochureUrl,
         videoUrl,
@@ -216,7 +244,7 @@ export const EditProjectModal: React.FC<EditProjectModalProps> = ({ project, onC
           {/* Project Site Map File Upload Box */}
           <div className="p-4 bg-[#EAF3EF] rounded-xl border border-[#0B4F3C]/20 space-y-3">
             <label className="font-bold text-[#0B4F3C] flex items-center gap-1.5 text-[11px]">
-              <UploadCloud className="w-4 h-4 text-[#0B4F3C]" /> Upload Plot Map Blueprint / Image File
+              <UploadCloud className="w-4 h-4 text-[#0B4F3C]" /> Naksha / layout map
             </label>
             
             <div className="border-2 border-dashed border-[#0B4F3C]/20 hover:border-[#0B4F3C] rounded-xl p-4 text-center cursor-pointer transition-colors bg-white">
@@ -264,7 +292,22 @@ export const EditProjectModal: React.FC<EditProjectModalProps> = ({ project, onC
             </div>
           </div>
 
-          {/* Naksha Map URL */}
+          <div className="p-4 bg-[#FAF9F6] rounded-xl border border-[#0B4F3C]/15 space-y-3">
+            <label className="font-bold text-[#0B4F3C] text-[11px]">Project background image (hero)</label>
+            <div className="border-2 border-dashed border-[#0B4F3C]/20 hover:border-[#0B4F3C] rounded-xl p-4 text-center bg-white">
+              <input type="file" accept="image/*" onChange={handleBannerUpload} className="hidden" id="edit-project-banner-upload" />
+              <label htmlFor="edit-project-banner-upload" className="cursor-pointer flex flex-col items-center">
+                <UploadCloud className="w-5 h-5 text-[#0B4F3C] mb-1" />
+                <span className="text-xs font-bold text-[#171A18]">
+                  {bannerFileName ? `Selected: ${bannerFileName}` : 'Upload background image'}
+                </span>
+              </label>
+            </div>
+            {bannerImage && (
+              <img src={bannerImage} alt="Banner" className="w-full h-24 object-cover rounded-lg border border-[#0B4F3C]/15" />
+            )}
+          </div>
+
           <div>
             <label className="text-[#171A18]/70 font-semibold">Naksha / Layout Map URL</label>
             <input type="url" placeholder="https://…/naksha.jpg" value={mapImageUrl} onChange={(e) => setMapImageUrl(e.target.value)}

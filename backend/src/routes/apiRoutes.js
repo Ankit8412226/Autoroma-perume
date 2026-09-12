@@ -18,6 +18,7 @@ const reportController = require('../controllers/reportController');
 const inquiryController = require('../controllers/inquiryController');
 const uploadController = require('../controllers/uploadController');
 const propertyController = require('../controllers/propertyController');
+const settingController = require('../controllers/settingController');
 
 const { protect, authorize } = require('../middleware/auth');
 const { rateLimit } = require('../middleware/rateLimit');
@@ -48,6 +49,8 @@ router.get('/public/locations', inquiryController.getPublicLocations);
 router.get('/public/properties', propertyController.getPublicProperties);
 router.get('/public/properties/:slug', propertyController.getPublicPropertyBySlug);
 router.get('/public/gallery', propertyController.getPublicGallery);
+router.get('/public/announcement', settingController.getAnnouncement);
+router.put('/admin/announcement', protect, authorize('ADMIN', 'DIRECTOR', 'MANAGER'), settingController.updateAnnouncement);
 
 router.post('/public/inquiries', inquiryLimiter, validate({
   name: { required: true, type: 'string', minLength: 2, maxLength: 80 },

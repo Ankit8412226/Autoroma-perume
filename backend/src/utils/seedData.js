@@ -93,7 +93,7 @@ const seedDB = async () => {
 
     const adminEmp = await Employee.create({
       userId: adminUser._id,
-      employeeCode: 'EMP-1000',
+      employeeCode: 'H&S-1000',
       joiningDate: new Date('2023-01-01'),
       currentRank: 'Director Sales',
       selfSalesCount: 18,

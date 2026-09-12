@@ -85,6 +85,7 @@ export function DevelopmentFeature() {
 
           <Link
             href={linkHref}
+            {...(featuredProject?._id ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
             className="inline-flex items-center gap-2 px-6 py-3.5 bg-brand-green text-white font-bold text-xs uppercase tracking-[0.18em] rounded-md hover:bg-brand-dark transition-all shadow-md cursor-pointer"
           >
             <span className="text-white">Explore Project Plots</span>

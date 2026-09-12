@@ -68,6 +68,7 @@ export interface Project {
   status: 'UPCOMING' | 'ACTIVE' | 'COMPLETED';
   basePricePerSqft: number;
   bannerImage?: string;
+  bannerImageS3Key?: string;
   mapImageUrl?: string;
   mapImageS3Key?: string;
   logoImage?: string;

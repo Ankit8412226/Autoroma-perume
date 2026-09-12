@@ -60,6 +60,7 @@ exports.getPublicProjects = async (req, res, next) => {
       })
     );
 
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate');
     res.json(projectsWithStats);
   } catch (error) {
     next(error);
@@ -98,6 +99,7 @@ exports.getPublicProjectById = async (req, res, next) => {
     }).sort({ isFeatured: -1, createdAt: -1 });
 
     const hydrated = await withFreshProjectMedia(project);
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate');
     res.json({
       project: {
         ...hydrated,

@@ -49,15 +49,11 @@ export default function ProjectDetailsPage() {
   const [formData, setFormData] = React.useState({ name: '', phone: '', email: '', message: '' })
   const [formStatus, setFormStatus] = React.useState<'idle' | 'submitting' | 'success' | 'error'>('idle')
 
-  React.useEffect(() => {
-    if (projectId) fetchProjectDetails()
-  }, [projectId])
-
-  const fetchProjectDetails = async () => {
+  const fetchProjectDetails = async (silent = false) => {
     try {
-      setIsLoading(true)
+      if (!silent) setIsLoading(true)
       const baseUrl = getApiBaseUrl()
-      const res = await fetch(`${baseUrl}/public/projects/${projectId}`).catch(() => null)
+      const res = await fetch(`${baseUrl}/public/projects/${projectId}`, { cache: 'no-store' }).catch(() => null)
       if (res && res.ok) {
         const data = await res.json().catch(() => null)
         setProjectData(data)
@@ -65,9 +61,19 @@ export default function ProjectDetailsPage() {
     } catch (e) {
       console.error('Fetch project details error', e)
     } finally {
-      setIsLoading(false)
+      if (!silent) setIsLoading(false)
     }
   }
+
+  React.useEffect(() => {
+    if (!projectId) return
+    fetchProjectDetails()
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') fetchProjectDetails(true)
+    }
+    document.addEventListener('visibilitychange', onVisible)
+    return () => document.removeEventListener('visibilitychange', onVisible)
+  }, [projectId])
 
   const handleInquiry = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -131,7 +137,9 @@ export default function ProjectDetailsPage() {
   const highlights = Array.isArray(project.highlights) ? project.highlights.filter(Boolean) : []
   const locationAdvantages = Array.isArray(project.locationAdvantages) ? project.locationAdvantages.filter((a: any) => a?.landmark) : []
   const amenities = Array.isArray(project.amenities) ? project.amenities.filter(Boolean) : []
-  const heroImage = project.bannerImage || project.mapImageUrl || ''
+  const heroImage = project.bannerImage && project.bannerImage !== project.mapImageUrl
+    ? project.bannerImage
+    : ''
   const mapEmbedSrc = project.mapEmbedUrl || ''
   const projectPhone = project.contactPhone || ''
   const projectEmail = project.contactEmail || ''

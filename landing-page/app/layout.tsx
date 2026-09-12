@@ -60,7 +60,7 @@ export default function RootLayout({
         <QueryProvider>
           <ToastProvider>
             <Navbar />
-            <div className="min-h-screen pt-20 sm:pt-24">
+            <div className="min-h-screen pt-24 sm:pt-28">
               {children}
             </div>
             <Footer />

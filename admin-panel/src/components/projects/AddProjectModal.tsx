@@ -78,6 +78,9 @@ export const AddProjectModal: React.FC<AddProjectModalProps> = ({ onClose, onSuc
   const [approvalAuthority, setApprovalAuthority] = useState('');
   const [mapImageUrl, setMapImageUrl] = useState('');
   const [mapImageS3Key, setMapImageS3Key] = useState('');
+  const [bannerImage, setBannerImage] = useState('');
+  const [bannerImageS3Key, setBannerImageS3Key] = useState('');
+  const [bannerFileName, setBannerFileName] = useState('');
   const [gallery, setGallery] = useState<GalleryImage[]>([]);
   const [surveyNumber, setSurveyNumber] = useState('');
   const [village, setVillage] = useState('');
@@ -92,8 +95,35 @@ export const AddProjectModal: React.FC<AddProjectModalProps> = ({ onClose, onSuc
   const [isScanning, setIsScanning] = useState(false);
   const [scanStatusMsg, setScanStatusMsg] = useState('');
   const [extractedPlots, setExtractedPlots] = useState<ExtractedPlot[]>([]);
+  const [ocrMapId, setOcrMapId] = useState('');
+  const [ocrWarnings, setOcrWarnings] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [editingIdx, setEditingIdx] = useState<number | null>(null);
+
+  const handleBannerUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selected = e.target.files?.[0];
+    if (!selected) return;
+    setBannerFileName(selected.name);
+    try {
+      setIsUploading(true);
+      const formData = new FormData();
+      formData.append('file', selected);
+      formData.append('folder', 'project_banners');
+      const response = await api.post('/upload', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      if (response.data?.url) {
+        setBannerImage(response.data.url);
+        setBannerImageS3Key(response.data.s3Key || '');
+        toast.success('Background image uploaded');
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to upload background image');
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
@@ -165,7 +195,10 @@ export const AddProjectModal: React.FC<AddProjectModalProps> = ({ onClose, onSuc
 
       const plots: ExtractedPlot[] = response.data?.extractedPlots || [];
       const meta = response.data?.projectMeta || {};
+      const warnings: string[] = response.data?.ocrWarnings || [];
       setExtractedPlots(plots);
+      setOcrMapId(response.data?.mapId || '');
+      setOcrWarnings(warnings);
       if (plots.length > 0) {
         setTotalPlots(plots.length);
       }
@@ -178,7 +211,11 @@ export const AddProjectModal: React.FC<AddProjectModalProps> = ({ onClose, onSuc
       if (meta.surveyNumber) setSurveyNumber(meta.surveyNumber);
       if (meta.village) setVillage(meta.village);
       setStep(3);
-      toast.success(`AI extracted ${plots.length} plots from the naksha. Review before saving.`);
+      if (warnings.length) {
+        toast.error(warnings[0]);
+      } else {
+        toast.success(`AI extracted ${plots.length} plots from the naksha. Review before saving.`);
+      }
     } catch (err: any) {
       clearInterval(interval);
       setIsScanning(false);
@@ -235,7 +272,8 @@ export const AddProjectModal: React.FC<AddProjectModalProps> = ({ onClose, onSuc
         totalPlots: extractedPlots.length > 0 ? extractedPlots.length : totalPlots,
         basePricePerSqft,
         priceRange,
-        bannerImage: mapImageUrl,
+        bannerImage,
+        bannerImageS3Key,
         mapImageUrl: mapImageUrl,
         mapImageS3Key,
         googleMapsUrl,
@@ -249,7 +287,8 @@ export const AddProjectModal: React.FC<AddProjectModalProps> = ({ onClose, onSuc
         village,
         logoImage,
         status: 'ACTIVE',
-        ocrPlots: extractedPlots.length > 0 ? extractedPlots : undefined
+        ocrPlots: extractedPlots.length > 0 ? extractedPlots : undefined,
+        mapId: ocrMapId || undefined
       });
 
       toast.success(
@@ -545,6 +584,25 @@ export const AddProjectModal: React.FC<AddProjectModalProps> = ({ onClose, onSuc
               </div>
             </div>
 
+            <div className="p-4 bg-[#FAF9F6] rounded-2xl border border-[#0B4F3C]/15 space-y-3">
+              <label className="font-bold text-[#0B4F3C] flex items-center gap-1.5 text-xs">
+                <UploadCloud className="w-4 h-4 text-[#0B4F3C]" /> Project background image (hero)
+              </label>
+              <div className="border-2 border-dashed border-[#0B4F3C]/20 hover:border-[#0B4F3C] rounded-xl p-4 text-center bg-white">
+                <input type="file" accept="image/*" onChange={handleBannerUpload} className="hidden" id="add-project-banner-upload" />
+                <label htmlFor="add-project-banner-upload" className="cursor-pointer flex flex-col items-center">
+                  <UploadCloud className="w-6 h-6 text-[#0B4F3C] mb-1" />
+                  <span className="text-xs font-bold text-[#171A18]">
+                    {bannerFileName ? `Selected: ${bannerFileName}` : 'Upload background image'}
+                  </span>
+                  <span className="text-[10px] text-[#171A18]/70 mt-0.5">This is the hero photo. Naksha is uploaded separately below.</span>
+                </label>
+              </div>
+              {bannerImage ? (
+                <img src={bannerImage} alt="Background preview" className="w-full h-24 object-cover rounded-lg border border-[#0B4F3C]/15" />
+              ) : null}
+            </div>
+
             {/* Project Site Naksha Layout Upload Box */}
             <div className="p-4 bg-[#EAF3EF] rounded-2xl border border-[#0B4F3C]/20 space-y-3">
               <div className="flex items-center justify-between">
@@ -560,7 +618,7 @@ export const AddProjectModal: React.FC<AddProjectModalProps> = ({ onClose, onSuc
               <div className={`border-2 border-dashed rounded-xl p-4 text-center cursor-pointer transition-all bg-white ${isUploading ? 'border-[#0B4F3C] bg-[#EAF3EF]/50' : 'border-[#0B4F3C]/20 hover:border-[#0B4F3C]'}`}>
                 <input
                   type="file"
-                  accept="image/*,.pdf"
+                  accept="image/jpeg,image/png,image/webp"
                   onChange={handleFileUpload}
                   className="hidden"
                   id="project-map-upload"
@@ -576,9 +634,9 @@ export const AddProjectModal: React.FC<AddProjectModalProps> = ({ onClose, onSuc
                     <>
                       <UploadCloud className="w-7 h-7 text-[#0B4F3C] mb-1" />
                       <span className="text-xs font-bold text-[#171A18]">
-                        {fileName ? `✅ ${fileName}` : 'Click to Upload Site Naksha Map (PNG, JPG, PDF)'}
+                        {fileName ? `✅ ${fileName}` : 'Click to Upload Site Naksha Map (PNG, JPG)'}
                       </span>
-                      <span className="text-[10px] text-[#171A18]/70 mt-0.5">Upload masterplan to run AI plot boundary & size extraction</span>
+                      <span className="text-[10px] text-[#171A18]/70 mt-0.5">Upload masterplan JPG/PNG to run AI plot boundary & size extraction</span>
                     </>
                   )}
                 </label>
@@ -648,6 +706,13 @@ export const AddProjectModal: React.FC<AddProjectModalProps> = ({ onClose, onSuc
         {/* STEP 3: Review Extracted Plots Table & Confirmation */}
         {step === 3 && (
           <div className="space-y-4 text-xs">
+            {ocrWarnings.length > 0 && (
+              <div className="p-3 rounded-2xl border border-amber-300 bg-amber-50 text-amber-900 text-[11px] font-semibold space-y-1">
+                {ocrWarnings.map((warning) => (
+                  <p key={warning}>{warning}</p>
+                ))}
+              </div>
+            )}
             <div className="flex items-center justify-between bg-[#EAF3EF] p-3 rounded-2xl border border-[#0B4F3C]/20">
               <div>
                 <p className="font-bold text-[#0B4F3C] text-sm flex items-center gap-1.5">

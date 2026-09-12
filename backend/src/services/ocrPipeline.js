@@ -86,17 +86,25 @@ const META_PROMPT = `Read only the marketing text on this township sheet. Return
 }
 Use only printed text. No plots.`;
 
-const TILES = [
-  { id: 'ub-left', x0: 0.00, y0: 0.30, x1: 0.16, y1: 0.64, block: 'B' },
-  { id: 'ub-mid', x0: 0.12, y0: 0.30, x1: 0.32, y1: 0.64, block: 'B' },
-  { id: 'ua-top', x0: 0.28, y0: 0.30, x1: 0.52, y1: 0.64, block: 'A' },
-  { id: 'll-top', x0: 0.00, y0: 0.56, x1: 0.22, y1: 0.80, block: 'B' },
-  { id: 'll-bot', x0: 0.00, y0: 0.74, x1: 0.22, y1: 1.00, block: 'B' },
-  { id: 'lm-top', x0: 0.16, y0: 0.56, x1: 0.38, y1: 0.80, block: 'A' },
-  { id: 'lm-bot', x0: 0.16, y0: 0.74, x1: 0.38, y1: 1.00, block: 'A' },
-  { id: 'lr-top', x0: 0.32, y0: 0.56, x1: 0.56, y1: 0.80, block: 'A' },
-  { id: 'lr-bot', x0: 0.32, y0: 0.74, x1: 0.56, y1: 1.00, block: 'A' }
-];
+function buildFullCoverageTiles() {
+  const columns = [
+    { id: 'L', x0: 0.00, x1: 0.42 },
+    { id: 'M', x0: 0.29, x1: 0.71 },
+    { id: 'R', x0: 0.58, x1: 1.00 }
+  ];
+  const rows = [
+    { id: 'T', y0: 0.00, y1: 0.42 },
+    { id: 'M', y0: 0.29, y1: 0.71 },
+    { id: 'B', y0: 0.58, y1: 1.00 }
+  ];
+  return rows.flatMap((row) => columns.map((column) => ({
+    id: `${row.id}${column.id}`,
+    x0: column.x0,
+    x1: column.x1,
+    y0: row.y0,
+    y1: row.y1
+  })));
+}
 const TILE_ATTEMPTS = 3;
 const MAX_OUTPUT_TOKENS = 16384;
 
@@ -254,8 +262,10 @@ async function extractPlotsFromTiles(fileBuffer) {
   const imageHeight = meta.height || 1;
   const allPlots = [];
   const failedTiles = [];
+  const warnings = [];
+  const tiles = buildFullCoverageTiles();
 
-  for (const tile of TILES) {
+  for (const tile of tiles) {
     const tileBuffer = await cropTile(fileBuffer, tile, imageWidth, imageHeight);
     try {
       const parsed = await generateJsonFromImage({
@@ -269,7 +279,6 @@ async function extractPlotsFromTiles(fileBuffer) {
         const localY = plot.markerYPercent ?? plot.marker?.yPercent;
         return normalizeExtractedPlot({
           ...plot,
-          block: plot.block || tile.block,
           markerXPercent: toGlobalPercent(localX, tile.x0, tile.x1),
           markerYPercent: toGlobalPercent(localY, tile.y0, tile.y1)
         }, index);
@@ -287,17 +296,27 @@ async function extractPlotsFromTiles(fileBuffer) {
     error.statusCode = 429;
     throw error;
   }
+  if (failedTiles.length) {
+    warnings.push(`Some naksha tiles failed (${failedTiles.join(', ')}). Plot count may be incomplete — review before saving.`);
+  }
 
   const merged = finalizeExtractedPlots(allPlots);
-  return applySoldStamps(fileBuffer, merged);
+  let soldPassFailed = false;
+  const stamped = await applySoldStamps(fileBuffer, merged, {
+    onError: () => { soldPassFailed = true; }
+  });
+  if (soldPassFailed) {
+    warnings.push('SOLD stamp pass failed. Mark sold plots in the review table or on the admin map.');
+  }
+  return { plots: stamped, warnings };
 }
 
-async function applySoldStamps(fileBuffer, plots) {
+async function applySoldStamps(fileBuffer, plots, options = {}) {
   try {
     const meta = await sharp(fileBuffer).metadata();
     const imageWidth = meta.width || 1;
     const imageHeight = meta.height || 1;
-    const zone = { x0: 0, y0: 0.30, x1: 0.56, y1: 0.99 };
+    const zone = { x0: 0, y0: 0, x1: 1, y1: 1 };
     const zoneBuffer = await cropTile(fileBuffer, zone, imageWidth, imageHeight);
     const parsed = await generateJsonFromImage({
       fileBuffer: zoneBuffer,
@@ -333,6 +352,7 @@ async function applySoldStamps(fileBuffer, plots) {
     return next;
   } catch (error) {
     console.warn('[OCR] sold-stamp pass failed:', error.message);
+    if (typeof options.onError === 'function') options.onError(error);
     return plots;
   }
 }
@@ -345,6 +365,11 @@ async function processMapImageOCR({ projectId, mapName, fileBuffer, fileName, mi
   }
 
   const resolvedMime = mimeType || mimeFromFileName(fileName);
+  if (resolvedMime === 'application/pdf') {
+    const error = new Error('Upload a JPG or PNG naksha. PDF is not supported for plot OCR.');
+    error.statusCode = 400;
+    throw error;
+  }
   const uploadResult = await uploadToS3(fileBuffer, fileName, resolvedMime, 'naksa_layouts');
   const s3ImageUrl = typeof uploadResult === 'string' ? uploadResult : (uploadResult?.url || '');
   const imageS3Key = typeof uploadResult === 'string' ? '' : (uploadResult?.key || '');
@@ -367,7 +392,7 @@ async function processMapImageOCR({ projectId, mapName, fileBuffer, fileName, mi
     console.warn('[OCR] project meta pass failed:', error.message);
   }
 
-  const extractedPlots = await extractPlotsFromTiles(fileBuffer);
+  const { plots: extractedPlots, warnings: ocrWarnings } = await extractPlotsFromTiles(fileBuffer);
   if (extractedPlots.length === 0) {
     const error = new Error('AI could not read plot boxes from this naksha. Upload a clearer layout image.');
     error.statusCode = 422;
@@ -392,11 +417,12 @@ async function processMapImageOCR({ projectId, mapName, fileBuffer, fileName, mi
     mapName: plotMapRecord.mapName,
     imageUrl: plotMapRecord.imageUrl,
     imageS3Key,
-    confidenceScore: 0.92,
+    confidenceScore: ocrWarnings.length ? 0.6 : 0.8,
     requiresHumanReview: true,
     usedAI: true,
     isSample: false,
     extractedPlots,
+    ocrWarnings,
     projectMeta
   };
 }

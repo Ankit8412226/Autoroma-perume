@@ -1,6 +1,7 @@
 const Project = require('../models/Project');
 const ProjectSettings = require('../models/ProjectSettings');
 const Plot = require('../models/Plot');
+const PlotMap = require('../models/PlotMap');
 const { applyProjectMaps } = require('../utils/googleMaps');
 const { normalizeExtractedPlot, buildPricedPlot, DEFAULT_STATUS } = require('../utils/plotFromOcr');
 
@@ -106,12 +107,19 @@ exports.createProject = async (req, res, next) => {
           marker: priced.marker,
           coordinates: priced.coordinates,
           polygon: { points: priced.polygonPoints },
-          status: DEFAULT_STATUS
+          status: priced.status || DEFAULT_STATUS
         };
       });
       await Plot.insertMany(plotsToInsert);
       project.totalPlots = plotsToInsert.length;
       await project.save();
+    }
+
+    if (req.body.mapId) {
+      await PlotMap.findByIdAndUpdate(req.body.mapId, {
+        projectId: project._id,
+        status: 'APPROVED'
+      });
     }
 
     res.status(201).json(project);

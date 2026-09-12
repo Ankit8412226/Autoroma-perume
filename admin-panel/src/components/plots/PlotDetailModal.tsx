@@ -5,6 +5,8 @@ import api from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 
+const SQFT_PER_SQ_YRD = 9;
+
 interface PlotDetailModalProps {
   plot: Plot;
   employees: Employee[];
@@ -49,6 +51,9 @@ export const PlotDetailModal: React.FC<PlotDetailModalProps> = ({
   const [facing, setFacing] = useState<string>(plot.facing || '');
   const [dimensions, setDimensions] = useState<string>(plot.dimensions || '');
   const [superBuiltUpSqft, setSuperBuiltUpSqft] = useState<number>(plot.superBuiltUpSqft || 0);
+  const [plotNo, setPlotNo] = useState<string>(plot.plotNo || '');
+  const [block, setBlock] = useState<string>(plot.block || '');
+  const [sellableSqYrd, setSellableSqYrd] = useState<number>(plot.sellableSqYrd || 0);
 
   // IMPORTANT: plot.totalCost is already authoritative — computed by the
   // pricingEngine and persisted by the Mongoose pre-save hook. We must NOT
@@ -87,6 +92,29 @@ export const PlotDetailModal: React.FC<PlotDetailModalProps> = ({
     updated[idx].status = updated[idx].status === 'RECEIVED' ? 'PENDING' : 'RECEIVED';
     setPaymentMilestones(updated);
     toast.success(`Milestone "${updated[idx].title}" status toggled to ${updated[idx].status}`);
+  };
+
+  const handleInventoryCorrection = async () => {
+    try {
+      setIsSubmitting(true);
+      await api.put(`/plots/${plot._id}/status`, {
+        status,
+        inventoryOnly: true,
+        plotNo,
+        block,
+        sellableSqYrd,
+        sizeSqft: sellableSqYrd > 0 ? Number((sellableSqYrd * SQFT_PER_SQ_YRD).toFixed(2)) : plot.sizeSqft,
+        dimensions
+      });
+      toast.success(`Plot ${plotNo || plot.plotNo} inventory corrected`);
+      onSuccess();
+      onClose();
+    } catch (error: any) {
+      console.error(error);
+      toast.error(error.response?.data?.message || 'Failed to correct plot inventory');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleUpdateStatus = async () => {
@@ -217,6 +245,47 @@ export const PlotDetailModal: React.FC<PlotDetailModalProps> = ({
             </div>
           </div>
         )}
+
+        <div className="space-y-3 text-xs p-4 rounded-2xl bg-[#FAF9F6] border border-[#0B4F3C]/15">
+          <h4 className="font-bold text-[#0B4F3C] uppercase tracking-wider">Inventory correction (no commission)</h4>
+          <div className="grid grid-cols-3 gap-2">
+            <div>
+              <label className="text-[#171A18]/70 font-semibold">Plot No</label>
+              <input
+                type="text"
+                value={plotNo}
+                onChange={(e) => setPlotNo(e.target.value)}
+                className="w-full mt-1 bg-white border border-[#0B4F3C]/20 rounded-xl px-3 py-2 text-[#171A18] font-bold focus:outline-none focus:border-[#0B4F3C]"
+              />
+            </div>
+            <div>
+              <label className="text-[#171A18]/70 font-semibold">Block</label>
+              <input
+                type="text"
+                value={block}
+                onChange={(e) => setBlock(e.target.value)}
+                className="w-full mt-1 bg-white border border-[#0B4F3C]/20 rounded-xl px-3 py-2 text-[#171A18] font-bold focus:outline-none focus:border-[#0B4F3C]"
+              />
+            </div>
+            <div>
+              <label className="text-[#171A18]/70 font-semibold">Sq. Yrd</label>
+              <input
+                type="number"
+                value={sellableSqYrd}
+                onChange={(e) => setSellableSqYrd(Number(e.target.value))}
+                className="w-full mt-1 bg-white border border-[#0B4F3C]/20 rounded-xl px-3 py-2 text-[#171A18] font-bold focus:outline-none focus:border-[#0B4F3C]"
+              />
+            </div>
+          </div>
+          <button
+            type="button"
+            disabled={isSubmitting}
+            onClick={handleInventoryCorrection}
+            className="w-full py-2 rounded-xl bg-[#0B4F3C] text-white font-bold disabled:opacity-50"
+          >
+            Save inventory correction
+          </button>
+        </div>
 
         {/* Status & Booking Form */}
         <div className="space-y-4 text-xs">

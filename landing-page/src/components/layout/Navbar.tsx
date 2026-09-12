@@ -4,6 +4,7 @@ import * as React from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { HouseAndSkyLogo } from './HouseAndSkyLogo'
+import { AnnouncementTicker } from './AnnouncementTicker'
 import { getApiBaseUrl } from '@/utils/api'
 import { SITE } from '@/utils/siteConfig'
 import { Bookmark, Menu, X, PhoneCall, ChevronDown, Mail, Facebook, MessageCircle } from 'lucide-react'
@@ -17,7 +18,7 @@ const MAIN_LINKS = [
   { label: 'Home', href: '/' },
   { label: 'Properties', href: '/properties' },
   { label: 'Gallery', href: '/gallery' },
-  { label: 'Contact', href: '/contact' }
+  { label: 'Get In Touch', href: '/contact' }
 ]
 
 export function Navbar() {
@@ -47,7 +48,7 @@ export function Navbar() {
   }, [])
 
   const whatsappHref = `https://wa.me/${SITE.whatsapp}`
-  const mailHref = `mailto:${SITE.email}`
+  const mailHref = `https://mail.google.com/mail/?view=cm&fs=1&to=${SITE.email}`
   const telHref = `tel:${SITE.phoneTel}`
 
   const isActive = (href: string) => pathname === href || (href !== '/' && pathname.startsWith(href))
@@ -63,11 +64,11 @@ export function Navbar() {
       <header
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
           isScrolled
-            ? 'bg-white/95 backdrop-blur-md border-b border-brand-green/10 py-2.5 shadow-sm'
-            : 'bg-white/90 backdrop-blur-sm py-3 border-b border-brand-green/5'
+            ? 'bg-white/95 backdrop-blur-md border-b border-brand-green/10 shadow-sm'
+            : 'bg-white/90 backdrop-blur-sm border-b border-brand-green/5'
         }`}
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5 sm:py-3">
           <div className="flex items-center justify-between gap-6">
             <Link href="/" className="focus:outline-none shrink-0">
               <HouseAndSkyLogo variant="dark" showTagline={false} size="sm" />
@@ -110,12 +111,12 @@ export function Navbar() {
               </div>
 
               <Link href="/properties" className={linkClass('/properties')}>Properties</Link>
-              <Link href="/contact" className={linkClass('/contact')}>Contact</Link>
+              <Link href="/contact" className={linkClass('/contact')}>Get In Touch</Link>
             </nav>
 
             <div className="hidden lg:flex items-center gap-2">
               <div className="flex items-center rounded-full border border-brand-green/15 bg-brand-soft/80 px-1">
-                <a href={mailHref} className="p-2 text-brand-green hover:text-brand-dark" title="Email">
+                <a href={mailHref} target="_blank" rel="noopener noreferrer" className="p-2 text-brand-green hover:text-brand-dark" title={`Email: ${SITE.email}`}>
                   <Mail className="w-3.5 h-3.5" />
                 </a>
                 <a href={whatsappHref} target="_blank" rel="noreferrer" className="p-2 text-brand-green hover:text-brand-dark" title="WhatsApp">
@@ -147,6 +148,8 @@ export function Navbar() {
             </button>
           </div>
         </div>
+
+        <AnnouncementTicker />
       </header>
 
       {isMobileMenuOpen && (
@@ -172,7 +175,7 @@ export function Navbar() {
               <p className="pt-2 text-[10px] uppercase tracking-wider text-brand-charcoal/40 font-bold">Projects</p>
               <Link href="/projects" className="block text-xs font-bold text-brand-green py-2">All Projects</Link>
               {projects.map((project) => (
-                <Link key={project._id} href={`/projects/${project._id}`} className="block text-xs font-semibold text-brand-charcoal py-2">
+                <Link key={project._id} href={`/projects/${project._id}`} target="_blank" rel="noopener noreferrer" className="block text-xs font-semibold text-brand-charcoal py-2">
                   {project.name}
                 </Link>
               ))}
@@ -184,7 +187,7 @@ export function Navbar() {
               <Link href="/saved" className="block text-xs uppercase tracking-[0.14em] font-semibold text-brand-charcoal py-2.5">Saved</Link>
             </div>
             <div className="flex items-center gap-2 pt-5">
-              <a href={mailHref} className="p-2 rounded-full bg-brand-soft text-brand-green"><Mail className="w-4 h-4" /></a>
+              <a href={mailHref} target="_blank" rel="noreferrer" className="p-2 rounded-full bg-brand-soft text-brand-green" title={`Email: ${SITE.email}`}><Mail className="w-4 h-4" /></a>
               <a href={whatsappHref} className="p-2 rounded-full bg-brand-soft text-brand-green"><MessageCircle className="w-4 h-4" /></a>
               <a href={SITE.facebook} className="p-2 rounded-full bg-brand-soft text-brand-green"><Facebook className="w-4 h-4" /></a>
               <a href={telHref} className="ml-auto inline-flex items-center gap-1.5 px-3 py-2 text-[11px] font-bold text-white bg-brand-green rounded-full">

@@ -43,7 +43,7 @@ async function createAdmin() {
       if (!emp) {
         await Employee.create({
           userId: admin._id,
-          employeeCode: `EMP-HS-${Math.floor(1000 + Math.random() * 9000)}`,
+          employeeCode: `H&S-${Math.floor(1000 + Math.random() * 9000)}`,
           joiningDate: new Date(),
           currentRank: 'Director Sales',
           selfSalesCount: 0,

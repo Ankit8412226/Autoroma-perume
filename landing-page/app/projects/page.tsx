@@ -35,7 +35,7 @@ export default function PublicProjectsPage() {
     try {
       setIsLoading(true)
       const baseUrl = getApiBaseUrl()
-      const res = await fetch(`${baseUrl}/public/projects`).catch(() => null)
+      const res = await fetch(`${baseUrl}/public/projects`, { cache: 'no-store' }).catch(() => null)
       if (res && res.ok) {
         const data = await res.json().catch(() => null)
         setProjects(Array.isArray(data) ? data : (data?.data || []))
@@ -174,16 +174,22 @@ function ProjectCard({ proj }: { proj: any }) {
   return (
     <Link
       href={`/projects/${proj._id}`}
+      target="_blank"
+      rel="noopener noreferrer"
       className="group bg-white rounded-3xl overflow-hidden shadow-sm border border-brand-green/10 hover:shadow-xl hover:border-brand-green/30 transition-all duration-300 flex flex-col"
     >
       {/* Image */}
       <div className="relative aspect-[4/3] overflow-hidden bg-brand-charcoal">
-        <Image
-          src={proj.bannerImage || 'https://images.unsplash.com/photo-1582407947304-fd86f28f3fdc?w=800&q=80'}
-          alt={proj.name || 'Project'}
-          fill
-          className="object-cover group-hover:scale-105 transition-transform duration-700"
-        />
+        {proj.bannerImage && proj.bannerImage !== proj.mapImageUrl ? (
+          <Image
+            src={proj.bannerImage}
+            alt={proj.name || 'Project'}
+            fill
+            className="object-cover group-hover:scale-105 transition-transform duration-700"
+          />
+        ) : (
+          <div className="absolute inset-0 bg-brand-green/80" />
+        )}
         {/* Gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
 
@@ -225,7 +231,7 @@ function ProjectCard({ proj }: { proj: any }) {
           </div>
           <div className="bg-red-50 rounded-xl p-2.5 border border-red-200">
             <span className="text-[10px] text-red-700 font-bold uppercase block">Sold</span>
-            <span className="text-base font-extrabold text-red-700">{(proj.bookedCount ?? 0) + (proj.soldCount ?? 0)}</span>
+            <span className="text-base font-extrabold text-red-700">{proj.soldCount ?? 0}</span>
           </div>
         </div>
 

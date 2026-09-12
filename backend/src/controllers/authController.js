@@ -36,7 +36,7 @@ exports.register = async (req, res, next) => {
     });
 
     const empCount = await Employee.countDocuments();
-    const employeeCode = `EMP-${1000 + empCount + 1}`;
+    const employeeCode = `H&S-${1000 + empCount + 1}`;
 
     const employee = await Employee.create({
       userId: user._id,
@@ -97,7 +97,7 @@ exports.registerPublicAgent = async (req, res, next) => {
     });
 
     const empCount = await Employee.countDocuments();
-    const employeeCode = `EMP-${1000 + empCount + 1}`;
+    const employeeCode = `H&S-${1000 + empCount + 1}`;
 
     const employee = await Employee.create({
       userId: user._id,
