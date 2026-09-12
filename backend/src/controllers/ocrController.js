@@ -6,6 +6,8 @@ const {
   normalizeExtractedPlot,
   normalizeProjectMeta,
   buildPricedPlot,
+  finalizeExtractedPlots,
+  resolveApproveStatus,
   DEFAULT_STATUS
 } = require('../utils/plotFromOcr');
 
@@ -63,9 +65,11 @@ exports.approveMapOverlay = async (req, res, next) => {
       ? updatedVectorOverlayData
       : plotMap.vectorOverlayData;
 
-    const normalizedPlots = rawPlots
-      .map((plot, index) => normalizeExtractedPlot(plot, index))
-      .filter(Boolean);
+    const normalizedPlots = finalizeExtractedPlots(
+      rawPlots
+        .map((plot, index) => normalizeExtractedPlot(plot, index))
+        .filter(Boolean)
+    );
 
     if (normalizedPlots.length === 0) {
       return res.status(422).json({ message: 'No readable plots to approve. Re-upload a clearer naksha.' });
@@ -92,7 +96,7 @@ exports.approveMapOverlay = async (req, res, next) => {
       const priced = buildPricedPlot(plotData, project.basePricePerSqft);
       keptPlotNos.push(priced.plotNo);
       const existing = await Plot.findOne({ projectId: plotMap.projectId, plotNo: priced.plotNo });
-      const nextStatus = existing && existing.status !== DEFAULT_STATUS ? existing.status : DEFAULT_STATUS;
+      const nextStatus = resolveApproveStatus(existing, priced.status || DEFAULT_STATUS);
       await Plot.findOneAndUpdate(
         { projectId: plotMap.projectId, plotNo: priced.plotNo },
         {

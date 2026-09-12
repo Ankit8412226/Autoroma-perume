@@ -6,7 +6,6 @@ import Link from 'next/link'
 import { SectionHeading } from '@/components/real-estate/SectionHeading'
 import { DevelopmentFeature } from '@/components/real-estate/DevelopmentFeature'
 import { MarketSnapshot } from '@/components/real-estate/MarketSnapshot'
-import { AgentCard } from '@/components/real-estate/AgentCard'
 import { DholeraArrivedSection } from '@/components/real-estate/DholeraArrivedSection'
 import { IndiaIsRunningBanner } from '@/components/real-estate/IndiaIsRunningBanner'
 import { PlotBuyingProcess } from '@/components/real-estate/PlotBuyingProcess'
@@ -18,7 +17,6 @@ import { BrandValuesSection } from '@/components/real-estate/BrandValuesSection'
 import { TestimonialsCommunityInsights } from '@/components/real-estate/TestimonialsCommunityInsights'
 import { PropertyCardSkeleton } from '@/components/common/Skeleton'
 import { formatCurrency } from '@/utils/formatters'
-import { AGENTS } from '@/data/agents'
 import { PropertyCard } from '@/components/real-estate/PropertyCard'
 import { mapBackendProperty } from '@/utils/mapListing'
 import {
@@ -353,20 +351,7 @@ export default function HomePage() {
         <TestimonialsCommunityInsights />
       </section>
 
-      {/* 15. MEET THE ADVISORS */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <SectionHeading
-          eyebrow="OUR TEAM"
-          title="Meet our plot advisors."
-          subtitle="Experienced advisors dedicated to confidential land plot representation."
-          action={{ label: 'View all advisors →', href: '/agents' }}
-        />
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {AGENTS.map((agent) => (
-            <AgentCard key={agent.id} agent={agent} />
-          ))}
-        </div>
-      </section>
+
 
       {/* 16. DIRECT CONTACT US & VIP SITE TOUR FORM SECTION */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

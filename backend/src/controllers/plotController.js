@@ -5,6 +5,8 @@ const Employee = require('../models/Employee');
 const { processDifferentialCommission } = require('../services/commissionEngine');
 const { computePricing, deriveBaseRatePerSqYrd } = require('../services/pricingEngine');
 
+const PLOT_STATUSES = ['AVAILABLE', 'BOOKED', 'PENDING', 'SOLD'];
+
 exports.getPlots = async (req, res, next) => {
   try {
     const { projectId, block, status, search } = req.query;
@@ -94,6 +96,20 @@ exports.updatePlotStatus = async (req, res, next) => {
 
     const prevStatus = plot.status;
     const isAdminOrManager = req.user && ['ADMIN', 'MANAGER', 'DIRECTOR'].includes(req.user.role);
+
+    if (req.body.inventoryOnly && isAdminOrManager) {
+      if (!PLOT_STATUSES.includes(status)) {
+        return res.status(400).json({ message: 'Invalid plot status' });
+      }
+      plot.status = status;
+      if (req.body.sellableSqYrd !== undefined) plot.sellableSqYrd = Number(req.body.sellableSqYrd) || 0;
+      if (req.body.sizeSqft !== undefined) plot.sizeSqft = Number(req.body.sizeSqft) || plot.sizeSqft;
+      if (req.body.plotNo !== undefined && String(req.body.plotNo).trim()) plot.plotNo = String(req.body.plotNo).trim();
+      if (req.body.block !== undefined && String(req.body.block).trim()) plot.block = String(req.body.block).trim();
+      if (req.body.dimensions !== undefined) plot.dimensions = req.body.dimensions;
+      await plot.save();
+      return res.json(plot);
+    }
 
     // Business Logic: If an Agent or Customer requests to purchase/book, set to PENDING (Hold) pending Admin approval!
     let targetStatus = status;

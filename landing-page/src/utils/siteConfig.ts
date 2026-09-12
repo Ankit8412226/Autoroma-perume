@@ -4,7 +4,7 @@ export const SITE = {
   phoneTel: '+919311227789',
   whatsappDisplay: '+91 92899 27527',
   whatsapp: '919289927527',
-  email: 'advisory@houseandsky.com',
+  email: 'houseandskydevelopers@gmail.com',
   facebook: 'https://www.facebook.com',
   address: 'TOWER-C, UNIT-2124, Plot No.1, Alphathum, Sector-90, Noida, Uttar Pradesh 201301',
   googleMapsUrl: 'https://maps.google.com/?q=28.512848,77.411942',

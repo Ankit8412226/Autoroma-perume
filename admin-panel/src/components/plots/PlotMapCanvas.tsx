@@ -110,6 +110,16 @@ export const PlotMapCanvas: React.FC<PlotMapCanvasProps> = ({
     };
   };
 
+  const correctStatus = async (plot: Plot, status: 'AVAILABLE' | 'SOLD') => {
+    try {
+      await api.put(`/plots/${plot._id}/status`, { status, inventoryOnly: true });
+      toast.success(`Plot ${plot.plotNo} marked ${status}`);
+      onRefresh?.();
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Failed to correct plot status');
+    }
+  };
+
   const saveMarker = async (plotId: string, xPercent: number, yPercent: number) => {
     setLocalMarkers((prev) => ({ ...prev, [plotId]: { xPercent, yPercent } }));
     try {
@@ -259,7 +269,7 @@ export const PlotMapCanvas: React.FC<PlotMapCanvasProps> = ({
         <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: DOT_RED }} /> Sold</span>
         <span className="ml-auto flex items-center gap-1 text-[#0B4F3C]">
           <MousePointerClick className="w-3 h-3" />
-          Select a plot, click the exact box on the image, then drag to fine-tune
+          Pin on the photo, then Correct / Sold / Available if OCR missed a stamp
         </span>
       </div>
 
@@ -289,7 +299,20 @@ export const PlotMapCanvas: React.FC<PlotMapCanvasProps> = ({
                     <span className="w-2 h-2 rounded-full" style={{ backgroundColor: statusDotColor(plot.status) }} />
                     {plot.plotNo}
                   </span>
-                  <span className="text-[9px] opacity-70">{pinned ? 'Pinned' : 'Click to pin'}</span>
+                  <span className="flex items-center gap-2">
+                    <span
+                      role="button"
+                      tabIndex={0}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        onSelectPlot(plot);
+                      }}
+                      className="text-[9px] underline opacity-80"
+                    >
+                      Correct
+                    </span>
+                    <span className="text-[9px] opacity-70">{pinned ? 'Pinned' : 'Pin'}</span>
+                  </span>
                 </button>
               );
             })}
@@ -365,7 +388,29 @@ export const PlotMapCanvas: React.FC<PlotMapCanvasProps> = ({
                           <HoverRow label="Dimension" value={plot.dimensions || '—'} />
                           <HoverRow label="Status" value={plot.status} />
                         </dl>
-                        <p className="mt-2 text-[10px] text-[#171A18]/50">Drag to move · click for booking</p>
+                        <div className="mt-2 flex gap-1.5">
+                          <button
+                            type="button"
+                            className="flex-1 text-[10px] font-bold rounded-md border border-emerald-200 bg-emerald-50 text-emerald-800 py-1"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              void correctStatus(plot, 'AVAILABLE');
+                            }}
+                          >
+                            Available
+                          </button>
+                          <button
+                            type="button"
+                            className="flex-1 text-[10px] font-bold rounded-md border border-red-200 bg-red-50 text-red-700 py-1"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              void correctStatus(plot, 'SOLD');
+                            }}
+                          >
+                            Sold
+                          </button>
+                        </div>
+                        <p className="mt-2 text-[10px] text-[#171A18]/50">Drag pin · click dot for full edit</p>
                       </div>
                     )}
                   </div>

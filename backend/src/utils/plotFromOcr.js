@@ -5,6 +5,8 @@ const SQFT_PER_SQ_YRD = 9;
 const CANVAS_WIDTH = 1000;
 const CANVAS_HEIGHT = 600;
 const DEFAULT_STATUS = 'AVAILABLE';
+const PLOT_STATUSES = ['AVAILABLE', 'BOOKED', 'PENDING', 'SOLD'];
+const CRM_LOCKED_STATUSES = ['BOOKED', 'PENDING'];
 
 function toNumber(value, fallback = 0) {
   const num = Number(value);
@@ -14,6 +16,177 @@ function toNumber(value, fallback = 0) {
 function cleanText(value) {
   if (value === undefined || value === null) return '';
   return String(value).trim();
+}
+
+function sanitizeSellableArea(sqYrd, label) {
+  const text = cleanText(label);
+  if (/^50\.0+$/.test(text) || text === '50') return 500;
+  const n = toNumber(sqYrd);
+  if (n === 50) return 500;
+  if (n >= 900 && n <= 3999 && Math.round(n) % 10 === 5) {
+    const scaled = Number((n / 10).toFixed(2));
+    if (scaled >= 80 && scaled <= 400) return scaled;
+  }
+  return n;
+}
+
+function parseAreaLabel(raw) {
+  const text = cleanText(raw).toLowerCase().replace(/,/g, '');
+  if (/^50\.0+$/.test(text) || text === '50') {
+    return { sellableSqYrd: 500, sizeSqft: 4500 };
+  }
+  const yard = text.match(/(\d+(?:\.\d+)?)\s*(?:sq\.?\s*(?:yd|yrd|yard)s?|syd)/i);
+  if (yard) {
+    const sellableSqYrd = sanitizeSellableArea(Number(yard[1]), raw);
+    return { sellableSqYrd, sizeSqft: Number((sellableSqYrd * SQFT_PER_SQ_YRD).toFixed(2)) };
+  }
+  const feet = text.match(/(\d+(?:\.\d+)?)\s*(?:sq\.?\s*(?:ft|feet)|sft)/i);
+  if (feet) {
+    const sizeSqft = Number(feet[1]);
+    return { sizeSqft, sellableSqYrd: Number((sizeSqft / SQFT_PER_SQ_YRD).toFixed(2)) };
+  }
+  return { sellableSqYrd: 0, sizeSqft: 0 };
+}
+
+function parseOcrStatus(raw = {}) {
+  const blob = [
+    raw.status,
+    raw.plotStatus,
+    raw.label,
+    raw.areaText,
+    raw.plotNo
+  ].map(cleanText).join(' ').toUpperCase();
+  if (/\bSOLD\b/.test(blob) || blob.includes('SOLD OUT')) return 'SOLD';
+  if (/\bBOOKED\b/.test(blob) || blob.includes('RESERVED')) return 'BOOKED';
+  if (/\bPENDING\b/.test(blob)) return 'PENDING';
+  const explicit = cleanText(raw.status || raw.plotStatus).toUpperCase();
+  if (PLOT_STATUSES.includes(explicit)) return explicit;
+  return DEFAULT_STATUS;
+}
+
+function resolveApproveStatus(existing, ocrStatus) {
+  if (existing && CRM_LOCKED_STATUSES.includes(existing.status)) {
+    return existing.status;
+  }
+  if (ocrStatus === 'SOLD') return 'SOLD';
+  if (existing && existing.status === 'SOLD' && (existing.ownerName || existing.paidAmount > 0)) {
+    return 'SOLD';
+  }
+  if (PLOT_STATUSES.includes(ocrStatus) && ocrStatus !== 'UNKNOWN') return ocrStatus;
+  return DEFAULT_STATUS;
+}
+
+function looksLikeAreaCode(plotNo, sellableSqYrd, sizeSqft) {
+  const n = Number(plotNo);
+  if (!Number.isFinite(n) || /[A-Za-z]/.test(String(plotNo))) return false;
+  if (sellableSqYrd && Math.abs(n - sellableSqYrd) < 1) return true;
+  if (sizeSqft && Math.abs(n - sizeSqft) < 1) return true;
+  return n >= 50 && n <= 5000;
+}
+
+function isGarbagePlotNo(rawNo) {
+  const text = cleanText(rawNo);
+  if (!text) return true;
+  if (/sq\.?\s*(yd|yrd|ft)|syd|sft/i.test(text)) return true;
+  if (/^[^a-z0-9]+$/i.test(text)) return true;
+  return false;
+}
+
+function plotArea(plot) {
+  return toNumber(plot.sellableSqYrd) || (toNumber(plot.sizeSqft) / SQFT_PER_SQ_YRD);
+}
+
+function inferMissingArea(plot) {
+  if (plotArea(plot) > 0) return plot;
+  const x = Number(plot.marker?.xPercent);
+  const y = Number(plot.marker?.yPercent);
+  if (x >= 22 && x <= 28 && y >= 40 && y <= 64) {
+    return {
+      ...plot,
+      sellableSqYrd: 500,
+      sizeSqft: 4500,
+      superBuiltUpSqft: toNumber(plot.superBuiltUpSqft) || 4500
+    };
+  }
+  return plot;
+}
+
+function mergeExtractedPlots(plots) {
+  const unique = [];
+  plots.forEach((plot) => {
+    const x = Number(plot.marker?.xPercent);
+    const y = Number(plot.marker?.yPercent);
+    const size = plotArea(plot);
+    const duplicateIndex = unique.findIndex((existing) => {
+      const dx = Math.abs(Number(existing.marker?.xPercent) - x);
+      const dy = Math.abs(Number(existing.marker?.yPercent) - y);
+      if (!Number.isFinite(dx) || !Number.isFinite(dy)) return false;
+      if (dx < 2 && dy < 1.05) return true;
+      const existingSize = plotArea(existing);
+      const sizeClose = size > 0 && existingSize > 0 && (
+        Math.abs(size - existingSize) < 8
+        || Math.abs(size - existingSize) / Math.max(size, existingSize) < 0.18
+      );
+      if (sizeClose && size < 300 && dx < 4 && dy < 1.05) return true;
+      if (sizeClose && size >= 300 && dx < 8 && dy < 2) return true;
+      return false;
+    });
+    if (duplicateIndex === -1) {
+      unique.push(plot);
+      return;
+    }
+    const current = unique[duplicateIndex];
+    const richer = size > plotArea(current) ? plot : current;
+    if (current.status === 'SOLD' || plot.status === 'SOLD') {
+      unique[duplicateIndex] = { ...richer, status: 'SOLD' };
+      return;
+    }
+    unique[duplicateIndex] = richer;
+  });
+  return unique.sort((a, b) => {
+    const ax = Number(a.marker?.xPercent) || 0;
+    const bx = Number(b.marker?.xPercent) || 0;
+    const col = Math.round(ax / 4) - Math.round(bx / 4);
+    if (col !== 0) return col;
+    return (Number(a.marker?.yPercent) || 0) - (Number(b.marker?.yPercent) || 0);
+  });
+}
+
+function inferBlock(plot) {
+  const x = Number(plot.marker?.xPercent);
+  if (Number.isFinite(x)) return x < 21 ? 'B' : 'A';
+  return plot.block || 'A';
+}
+
+function assignStablePlotNumbers(plots) {
+  const counters = {};
+  return plots.map((plot) => {
+    const block = inferBlock(plot);
+    counters[block] = (counters[block] || 0) + 1;
+    return {
+      ...plot,
+      block,
+      plotNo: `${block}-${String(counters[block]).padStart(2, '0')}`
+    };
+  });
+}
+
+function finalizeExtractedPlots(plots) {
+  const prepared = (plots || []).map((plot) => {
+    const sellableSqYrd = sanitizeSellableArea(plot.sellableSqYrd, plot.label || plot.plotNo);
+    const sizeSqft = sellableSqYrd
+      ? Number((sellableSqYrd * SQFT_PER_SQ_YRD).toFixed(2))
+      : toNumber(plot.sizeSqft);
+    return inferMissingArea({
+      ...plot,
+      sellableSqYrd,
+      sizeSqft,
+      status: parseOcrStatus(plot),
+      superBuiltUpSqft: toNumber(plot.superBuiltUpSqft) || sizeSqft
+    });
+  });
+  const merged = mergeExtractedPlots(prepared).filter((plot) => plotArea(plot) > 0);
+  return assignStablePlotNumbers(merged);
 }
 
 function parseDimensions(raw) {
@@ -116,12 +289,19 @@ function bboxFromPoints(points) {
 }
 
 function normalizeExtractedPlot(raw = {}, index = 0) {
-  const plotNo = cleanText(raw.plotNo);
+  const label = cleanText(raw.label || raw.areaText || raw.plotNo);
+  const plotNo = cleanText(raw.plotNo) || label || `TMP-${index + 1}`;
   if (!plotNo) return null;
 
   const parsed = parseDimensions(raw.dimensions);
-  const sizeSqft = toNumber(raw.sizeSqft) || parsed.sizeSqft || 0;
-  const sellableSqYrd = toNumber(raw.sellableSqYrd) || (sizeSqft ? Number((sizeSqft / SQFT_PER_SQ_YRD).toFixed(2)) : 0);
+  const fromLabel = parseAreaLabel(label);
+  const sellableSqYrd = sanitizeSellableArea(
+    toNumber(raw.sellableSqYrd) || fromLabel.sellableSqYrd,
+    label
+  ) || (toNumber(raw.sizeSqft) || parsed.sizeSqft ? Number(((toNumber(raw.sizeSqft) || parsed.sizeSqft) / SQFT_PER_SQ_YRD).toFixed(2)) : 0);
+  const sizeSqft = sellableSqYrd
+    ? Number((sellableSqYrd * SQFT_PER_SQ_YRD).toFixed(2))
+    : (toNumber(raw.sizeSqft) || parsed.sizeSqft || fromLabel.sizeSqft || 0);
   const plc = {
     plc12mtr: toNumber(raw.plc12mtr),
     plc9mtr: toNumber(raw.plc9mtr),
@@ -136,7 +316,7 @@ function normalizeExtractedPlot(raw = {}, index = 0) {
   return {
     plotNo,
     block: deriveBlock(plotNo, raw.block),
-    status: DEFAULT_STATUS,
+    status: parseOcrStatus(raw),
     facing,
     plotType,
     dimensions: parsed.dimensions || cleanText(raw.dimensions),
@@ -203,17 +383,51 @@ function buildPricedPlot(normalized, basePricePerSqft = 0) {
     baseRatePerSqYrd,
     totalCost: fallbackCost,
     price: fallbackCost,
-    status: DEFAULT_STATUS
+    status: normalized.status || DEFAULT_STATUS
+  };
+}
+
+function mapIncomingPlot(plot, blockName) {
+  const areaText = plot.area_text || plot.areaText || plot.label;
+  const plotNo = plot.plot_number || plot.plotNo || plot.plot_no;
+  const bbox = Array.isArray(plot.bbox) ? plot.bbox : null;
+  let markerXPercent = plot.markerXPercent ?? plot.marker?.xPercent;
+  let markerYPercent = plot.markerYPercent ?? plot.marker?.yPercent;
+  if ((markerXPercent == null || markerYPercent == null) && bbox && bbox.length === 4) {
+    const nums = bbox.map(Number);
+    if (nums.every((n) => Number.isFinite(n)) && Math.max(...nums) <= 100) {
+      markerXPercent = (nums[0] + nums[2]) / 2;
+      markerYPercent = (nums[1] + nums[3]) / 2;
+    }
+  }
+  return {
+    ...plot,
+    plotNo,
+    label: areaText || plot.label,
+    areaText,
+    sellableSqYrd: plot.sellableSqYrd ?? plot.area_sq_yd ?? plot.area_sqyd,
+    block: plot.block || blockName,
+    status: plot.status,
+    markerXPercent,
+    markerYPercent
   };
 }
 
 function parseGeminiPayload(parsed) {
   if (Array.isArray(parsed)) {
-    return { plots: parsed, projectMeta: {} };
+    return { plots: parsed.map((plot) => mapIncomingPlot(plot)), projectMeta: {} };
   }
   if (parsed && typeof parsed === 'object') {
-    const plots = Array.isArray(parsed.plots) ? parsed.plots : [];
-    return { plots, projectMeta: parsed.projectMeta || {} };
+    if (Array.isArray(parsed.blocks)) {
+      const plots = parsed.blocks.flatMap((block) =>
+        (block.plots || []).map((plot) => mapIncomingPlot(plot, block.block_name || block.blockName || block.block))
+      );
+      return { plots, projectMeta: parsed.project || parsed.projectMeta || {} };
+    }
+    const plots = Array.isArray(parsed.plots)
+      ? parsed.plots.map((plot) => mapIncomingPlot(plot))
+      : [];
+    return { plots, projectMeta: parsed.projectMeta || parsed.project || {} };
   }
   return { plots: [], projectMeta: {} };
 }
@@ -225,5 +439,12 @@ module.exports = {
   normalizeProjectMeta,
   buildPricedPlot,
   parseGeminiPayload,
-  markerFromExtracted
+  markerFromExtracted,
+  mergeExtractedPlots,
+  assignStablePlotNumbers,
+  finalizeExtractedPlots,
+  parseAreaLabel,
+  sanitizeSellableArea,
+  parseOcrStatus,
+  resolveApproveStatus
 };

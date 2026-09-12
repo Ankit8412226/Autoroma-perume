@@ -138,9 +138,7 @@ export const OcrValidationViewer: React.FC<OcrValidationViewerProps> = ({
             <p className="text-xs text-[#171A18]/60 mt-0.5">
               {mapData.isSample
                 ? 'This is sample data to preview the workflow'
-                : mapData.requiresHumanReview
-                ? 'Low confidence — please review each plot before approving'
-                : 'High confidence extraction. Ready to save to database.'
+                : `Click any row to correct plot no, area, or SOLD/AVAILABLE before saving. ${counts.SOLD || 0} sold · ${counts.AVAILABLE || 0} available`
               }
             </p>
           </div>
