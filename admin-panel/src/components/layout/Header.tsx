@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { Search, Bell, LogOut, Menu, ChevronRight, Plus, Building2, Users, MapPin, ScanText, Home } from 'lucide-react';
+import { Search, Bell, LogOut, Menu, ChevronRight, Plus, Building2, Users, MapPin, ScanText, Home, Link2 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 const ROLE_LABEL: Record<string, string> = {
@@ -121,6 +121,12 @@ export const Header: React.FC<HeaderProps> = ({ onToggleMobileMenu }) => {
                 className="w-full px-3 py-2 rounded-xl text-xs font-bold text-left flex items-center gap-2 hover:bg-[#EAF3EF] text-[#171A18] cursor-pointer"
               >
                 <Users className="w-4 h-4 text-[#0B4F3C]" /> Onboard Agent / Employee
+              </button>
+              <button
+                onClick={() => { navigate('/employees'); setShowQuickActions(false); }}
+                className="w-full px-3 py-2 rounded-xl text-xs font-bold text-left flex items-center gap-2 hover:bg-[#EAF3EF] text-[#171A18] cursor-pointer"
+              >
+                <Link2 className="w-4 h-4 text-[#0B4F3C]" /> Generate agent invite link
               </button>
               <button
                 onClick={() => { navigate('/plots'); setShowQuickActions(false); }}

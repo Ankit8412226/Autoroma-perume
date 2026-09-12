@@ -50,7 +50,7 @@ export const InviteLinkCard: React.FC = () => {
           Invite an agent under you
         </p>
         <p className="text-[11px] text-[#171A18]/60 mt-0.5">
-          Generate a link. Anyone who signs up with it becomes your downline agent after admin approval.
+          Admin, Manager, Director, Agent — koi bhi login karke link bana sakta hai. Jo is link se join karega woh aapke downline mein aayega.
         </p>
         {inviteUrl ? (
           <p className="mt-2 text-[11px] font-mono break-all text-[#0B4F3C] bg-[#EAF3EF] rounded-lg px-2 py-1.5">{inviteUrl}</p>
