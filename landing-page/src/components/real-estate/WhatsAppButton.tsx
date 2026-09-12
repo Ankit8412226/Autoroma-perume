@@ -1,6 +1,7 @@
 'use client'
 
 import * as React from 'react'
+import { SITE } from '@/utils/siteConfig'
 
 interface WhatsAppButtonProps {
   phoneNumber?: string
@@ -8,8 +9,8 @@ interface WhatsAppButtonProps {
 }
 
 export function WhatsAppButton({
-  phoneNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '+9102288009900',
-  defaultMessage = 'Hello House & Sky Advisory Team, I am interested in inquiring about your architectural properties.',
+  phoneNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || SITE.whatsapp,
+  defaultMessage = 'Hello House & Sky Advisory Team, I am interested in inquiring about your plots and properties.',
 }: WhatsAppButtonProps) {
   const cleanNumber = phoneNumber.replace(/[^0-9]/g, '')
   const whatsappUrl = `https://wa.me/${cleanNumber}?text=${encodeURIComponent(defaultMessage)}`

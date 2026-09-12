@@ -69,6 +69,7 @@ export interface Project {
   basePricePerSqft: number;
   bannerImage?: string;
   mapImageUrl?: string;
+  mapImageS3Key?: string;
   logoImage?: string;
   insetImage?: string;
   gallery?: GalleryImage[];
@@ -172,6 +173,14 @@ export interface Plot {
   totalCost?: number;
   price: number;
   status: 'AVAILABLE' | 'BOOKED' | 'PENDING' | 'SOLD';
+  plotType?: string;
+  facing?: string;
+  dimensions?: string;
+  superBuiltUpSqft?: number;
+  marker?: {
+    xPercent?: number | null;
+    yPercent?: number | null;
+  };
   coordinates?: {
     x: number;
     y: number;

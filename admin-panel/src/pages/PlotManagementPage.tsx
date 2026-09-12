@@ -298,6 +298,7 @@ export const PlotManagementPage: React.FC = () => {
           plots={plots}
           onSelectPlot={(plot) => setSelectedPlot(plot)}
           onOpenNaksaModal={() => setIsNaksaModalOpen(true)}
+          onRefresh={fetchProjectsAndPlots}
         />
       ) : filteredPlots.length === 0 ? (
         <EmptyState

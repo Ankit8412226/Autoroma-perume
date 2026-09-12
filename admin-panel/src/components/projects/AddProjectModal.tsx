@@ -76,7 +76,8 @@ export const AddProjectModal: React.FC<AddProjectModalProps> = ({ onClose, onSuc
   const [reraNumber, setReraNumber] = useState('');
   const [titleType, setTitleType] = useState('Freehold');
   const [approvalAuthority, setApprovalAuthority] = useState('');
-  const [mapImageUrl, setMapImageUrl] = useState('https://images.unsplash.com/photo-1524813686514-a57563d77965?auto=format&fit=crop&w=1200&q=80');
+  const [mapImageUrl, setMapImageUrl] = useState('');
+  const [mapImageS3Key, setMapImageS3Key] = useState('');
   const [gallery, setGallery] = useState<GalleryImage[]>([]);
   const [surveyNumber, setSurveyNumber] = useState('');
   const [village, setVillage] = useState('');
@@ -115,6 +116,7 @@ export const AddProjectModal: React.FC<AddProjectModalProps> = ({ onClose, onSuc
 
         if (response.data?.url) {
           setMapImageUrl(response.data.url);
+          setMapImageS3Key(response.data.s3Key || '');
           toast.success('Map uploaded to S3 successfully!');
         }
       } catch (err) {
@@ -152,7 +154,6 @@ export const AddProjectModal: React.FC<AddProjectModalProps> = ({ onClose, onSuc
     try {
       const formData = new FormData();
       if (file) formData.append('file', file);
-      formData.append('projectId', '656565656565656565656565');
       formData.append('mapName', name ? `${name} Naksha` : 'Project Masterplan Layout');
 
       const response = await api.post('/ocr/analyze', formData, {
@@ -163,12 +164,21 @@ export const AddProjectModal: React.FC<AddProjectModalProps> = ({ onClose, onSuc
       setIsScanning(false);
 
       const plots: ExtractedPlot[] = response.data?.extractedPlots || [];
+      const meta = response.data?.projectMeta || {};
       setExtractedPlots(plots);
       if (plots.length > 0) {
         setTotalPlots(plots.length);
       }
+      if (response.data?.imageUrl) setMapImageUrl(response.data.imageUrl);
+      if (response.data?.imageS3Key) setMapImageS3Key(response.data.imageS3Key);
+      if (meta.location && !location) setLocation(meta.location);
+      if (Array.isArray(meta.highlights) && meta.highlights.length) setHighlights(meta.highlights);
+      if (Array.isArray(meta.amenities) && meta.amenities.length) setAmenities(meta.amenities);
+      if (Array.isArray(meta.locationAdvantages) && meta.locationAdvantages.length) setLocationAdvantages(meta.locationAdvantages);
+      if (meta.surveyNumber) setSurveyNumber(meta.surveyNumber);
+      if (meta.village) setVillage(meta.village);
       setStep(3);
-      toast.success(`AI successfully extracted ${plots.length} plots from Naksha!`);
+      toast.success(`AI extracted ${plots.length} plots from the naksha. Review before saving.`);
     } catch (err: any) {
       clearInterval(interval);
       setIsScanning(false);
@@ -190,9 +200,9 @@ export const AddProjectModal: React.FC<AddProjectModalProps> = ({ onClose, onSuc
       {
         plotNo: newNo,
         status: 'AVAILABLE',
-        sellableSqYrd: 200,
-        sizeSqft: 1800,
-        totalCost: 1800 * basePricePerSqft,
+        sellableSqYrd: 0,
+        sizeSqft: 0,
+        dimensions: '',
         confidence: 1.0
       }
     ]);
@@ -203,8 +213,8 @@ export const AddProjectModal: React.FC<AddProjectModalProps> = ({ onClose, onSuc
   };
 
   const handleFinalSubmit = async () => {
-    if (!name || !code || !location) {
-      toast.error('Please fill in Project Name, Code, and Location');
+    if (!name || !code || !location || !googleMapsUrl) {
+      toast.error('Please fill in Project Name, Code, Location, and Google Maps URL');
       return;
     }
 
@@ -227,6 +237,8 @@ export const AddProjectModal: React.FC<AddProjectModalProps> = ({ onClose, onSuc
         priceRange,
         bannerImage: mapImageUrl,
         mapImageUrl: mapImageUrl,
+        mapImageS3Key,
+        googleMapsUrl,
         brochureUrl,
         videoUrl,
         contactPhone,
@@ -235,13 +247,16 @@ export const AddProjectModal: React.FC<AddProjectModalProps> = ({ onClose, onSuc
         gallery,
         surveyNumber,
         village,
-        googleMapsUrl,
         logoImage,
         status: 'ACTIVE',
         ocrPlots: extractedPlots.length > 0 ? extractedPlots : undefined
       });
 
-      toast.success(`🎉 Project created! ${extractedPlots.length > 0 ? `${extractedPlots.length} OCR Plots added to Plot Inventory & Canvas` : 'Plots generated'}`);
+      toast.success(
+        extractedPlots.length > 0
+          ? `Project created with ${extractedPlots.length} plots extracted from the naksha.`
+          : 'Project created. Upload a naksha next to extract plot inventory.'
+      );
       onSuccess();
       onClose();
     } catch (error: any) {
@@ -484,7 +499,7 @@ export const AddProjectModal: React.FC<AddProjectModalProps> = ({ onClose, onSuc
             </div>
             <div>
               <label className="text-[#171A18]/70 font-semibold block mb-1">Google Maps URL</label>
-              <input type="url" placeholder="https://maps.google.com/…" value={googleMapsUrl} onChange={(e) => setGoogleMapsUrl(e.target.value)}
+              <input required type="url" placeholder="https://maps.google.com/?q=Sector+80+Noida" value={googleMapsUrl} onChange={(e) => setGoogleMapsUrl(e.target.value)}
                 className="w-full bg-[#FAF9F6] border border-[#0B4F3C]/20 rounded-xl px-3 py-2 text-[#171A18] font-bold focus:outline-none focus:border-[#0B4F3C]" />
             </div>
             <GalleryUploader items={gallery} onChange={setGallery} folder="project_gallery" label="Project Photo Gallery (S3)" />

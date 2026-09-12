@@ -169,6 +169,10 @@ router.post('/plots/import-csv', protect, authorize('ADMIN', 'DIRECTOR'), valida
   plotsData: { required: true, type: 'array' }
 }), plotController.importPlotsCSV);
 router.get('/plots/:id', protect, plotController.getPlotById);
+router.put('/plots/:id/marker', protect, authorize('ADMIN', 'DIRECTOR', 'MANAGER'), validate({
+  xPercent: { required: true, type: 'number', min: 0, max: 100 },
+  yPercent: { required: true, type: 'number', min: 0, max: 100 }
+}), plotController.updatePlotMarker);
 router.put('/plots/:id/status', protect, validate({
   status: { required: true, type: 'string', enum: PLOT_STATUSES },
   ownerEmail: { type: 'email' },

@@ -38,7 +38,8 @@ export const EditProjectModal: React.FC<EditProjectModalProps> = ({ project, onC
   const [reraNumber, setReraNumber] = useState((project as any).legalInfo?.reraNumber || '');
   const [titleType, setTitleType] = useState((project as any).legalInfo?.titleType || 'Freehold');
   const [approvalAuthority, setApprovalAuthority] = useState((project as any).legalInfo?.approvalAuthority || '');
-  const [mapImageUrl, setMapImageUrl] = useState((project as any).mapImageUrl || project.bannerImage || 'https://images.unsplash.com/photo-1524813686514-a57563d77965?auto=format&fit=crop&w=1200&q=80');
+  const [mapImageUrl, setMapImageUrl] = useState((project as any).mapImageUrl || project.bannerImage || '');
+  const [mapImageS3Key, setMapImageS3Key] = useState((project as any).mapImageS3Key || '');
   const [bannerImage, setBannerImage] = useState(project.bannerImage || '');
   const [gallery, setGallery] = useState<GalleryImage[]>(project.gallery || []);
   const [surveyNumber, setSurveyNumber] = useState(project.surveyNumber || '');
@@ -65,6 +66,7 @@ export const EditProjectModal: React.FC<EditProjectModalProps> = ({ project, onC
 
         if (response.data?.url) {
           setMapImageUrl(response.data.url);
+          setMapImageS3Key(response.data.s3Key || '');
           toast.success('Map uploaded to S3 successfully!');
         }
       } catch (err) {
@@ -110,7 +112,8 @@ export const EditProjectModal: React.FC<EditProjectModalProps> = ({ project, onC
         gallery,
         surveyNumber,
         village,
-        googleMapsUrl
+        googleMapsUrl,
+        mapImageS3Key
       });
 
       toast.success('Project updated successfully!');

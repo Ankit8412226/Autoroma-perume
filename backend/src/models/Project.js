@@ -16,15 +16,15 @@ const projectSchema = new mongoose.Schema({
   },
   city: {
     type: String,
-    default: 'Gurgaon'
+    default: ''
   },
   state: {
     type: String,
-    default: 'Haryana'
+    default: ''
   },
   description: {
     type: String,
-    default: 'Premium Gated Real Estate Township with 24/7 Security, Wide Roads, and Commercial Zones.'
+    default: ''
   },
   // Key selling points shown as bullet list on detail page
   highlights: [{ type: String }],
@@ -71,6 +71,14 @@ const projectSchema = new mongoose.Schema({
   },
   // Layout / Naksha image URL shown on public detail page
   mapImageUrl: {
+    type: String,
+    default: ''
+  },
+  mapImageS3Key: {
+    type: String,
+    default: ''
+  },
+  bannerImageS3Key: {
     type: String,
     default: ''
   },
@@ -130,7 +138,7 @@ const projectSchema = new mongoose.Schema({
   // Legal: RERA number, title type etc.
   legalInfo: {
     reraNumber: { type: String, default: '' },
-    titleType: { type: String, default: 'Freehold' },
+    titleType: { type: String, default: '' },
     approvalAuthority: { type: String, default: '' }
   },
   createdBy: {

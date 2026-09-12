@@ -1,138 +1,172 @@
+const path = require('path');
 const PlotMap = require('../models/PlotMap');
-const Plot = require('../models/Plot');
 const { uploadToS3 } = require('./s3Service');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
+const {
+  normalizeExtractedPlot,
+  normalizeProjectMeta,
+  parseGeminiPayload
+} = require('../utils/plotFromOcr');
 
+const OCR_PROMPT = `You are a production real-estate naksha / site-plan OCR engine.
 
-async function processMapImageOCR({ projectId, mapName, fileBuffer, fileName }) {
-  let s3ImageUrl = 'https://images.unsplash.com/photo-1524813686514-a57563d77965?auto=format&fit=crop&w=1200&q=80';
+Read ONLY what is printed on this image. Never invent plot numbers, sizes, roads, or amenities that are not visible.
 
-  // 1. Store the uploaded Naksa file — uploadToS3 returns { url, key } with a pre-signed URL
-  if (fileBuffer) {
-    const uploadResult = await uploadToS3(fileBuffer, fileName, 'image/png', 'naksa_layouts');
-    s3ImageUrl = typeof uploadResult === 'string' ? uploadResult : (uploadResult?.url || s3ImageUrl);
-  }
-
-  let extractedPlots = [];
-  let overallConfidence = 0.896;
-  let usedAI = false;
-
-  // 2. Extract via Google Gemini Vision (best for architectural blueprints / Naksa).
-  if (process.env.GEMINI_API_KEY && fileBuffer) {
-    const preferredModel = process.env.GEMINI_VISION_MODEL || 'gemini-1.5-flash';
-    const fallbackModels = Array.from(new Set([
-      preferredModel,
-      'gemini-1.5-flash',
-      'gemini-1.5-pro',
-      'gemini-2.0-flash-exp',
-      'gemini-2.5-flash'
-    ]));
-
-    for (const modelName of fallbackModels) {
-      try {
-        const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-        const model = genAI.getGenerativeModel({ model: modelName });
-
-        const imagePart = {
-          inlineData: {
-            data: fileBuffer.toString('base64'),
-            mimeType: 'image/png'
-          }
-        };
-
-        const prompt = `You are an expert real estate architectural Naksha / site plan OCR analyzer. Analyze this site plan image carefully and extract details for EVERY visible plot / lot unit.
-
-Return a JSON array ONLY (no markdown fences, no explanation). Each item must be a JSON object with:
-- plotNo: plot number or name as written on map (string, e.g. "A-101", "P-12", "Plot 45"). Required.
-- status: "AVAILABLE", "BOOKED", "SOLD", or "PENDING".
-- sellableSqYrd: sellable area in sq yards (number, 0 if not specified).
-- carpetSqYrd: carpet area in sq yards (number, 0 if not specified).
-- dimensions: size text like "30x60" or "40x50" (string, empty if unknown).
-- sizeSqft: area in sq feet (number, 0 if unknown).
-- plc12mtr, plc9mtr, plcCorner, plcParkFacing: PLC charges (numbers, default 0).
-- totalPlc, discountedPlc, otmc, gstOnOtherCharges, totalCost: numbers, default 0.
-- polygonPoints: array of 4 coordinate objects [{x, y}, {x, y}, {x, y}, {x, y}] in pixels on a 1000x600 canvas indicating the boundary of this plot unit.
-- confidence: confidence score from 0.80 to 1.00.
+Return STRICT JSON only (no markdown) in this shape:
+{
+  "projectMeta": {
+    "location": "address text if printed, else empty",
+    "surveyNumber": "",
+    "village": "",
+    "highlights": ["only bullets printed on the sheet"],
+    "locationAdvantages": [{"distance":"45 minutes","landmark":"Airport"}],
+    "amenities": ["only facilities printed on the sheet"]
+  },
+  "plots": [
+    {
+      "plotNo": "exact label on the plot box",
+      "block": "A or B if labeled",
+      "dimensions": "30x50 if printed, else empty",
+      "sizeSqft": 0,
+      "superBuiltUpSqft": 0,
+      "sellableSqYrd": 0,
+      "facing": "Park / Garden / Corner / Road if readable from labels or PLC notes, else empty",
+      "plotType": "SIMPLE or CORNER or PARK_FACING or GARDEN_FACING or ROAD_FACING",
+      "plc12mtr": 0,
+      "plc9mtr": 0,
+      "plcCorner": 0,
+      "plcParkFacing": 0,
+      "markerXPercent": 12.5,
+      "markerYPercent": 44.0,
+      "polygonPoints": [{"xPercent":10,"yPercent":40},{"xPercent":15,"yPercent":40},{"xPercent":15,"yPercent":48},{"xPercent":10,"yPercent":48}],
+      "confidence": 0.9
+    }
+  ]
+}
 
 Rules:
-1. Identify all plot numbers present in the map layout.
-2. Return strictly valid JSON array. Do not wrap in markdown or add text outside JSON.`;
+1. Extract EVERY numbered plot box you can read. Skip site office / other site / roads / parks that are not sale plots.
+2. markerXPercent / markerYPercent = center of that plot box as a percent of the FULL image (0-100). This must sit on the real box.
+3. polygonPoints must also use xPercent/yPercent of the FULL image, not a fake canvas.
+4. If area is printed as sq.yd, fill sellableSqYrd. If sq.ft, fill sizeSqft. If WxD, fill dimensions and compute sizeSqft = W*D.
+5. status is not needed. All new inventory is AVAILABLE until a sale is recorded in the CRM.
+6. Do not guess missing numbers. Use 0 or empty string.
+7. Return valid JSON only.`;
 
-        const result = await model.generateContent([prompt, imagePart]);
-        const responseText = result.response.text();
+function mimeFromFileName(fileName, fallback = 'image/jpeg') {
+  const ext = path.extname(fileName || '').toLowerCase();
+  if (ext === '.png') return 'image/png';
+  if (ext === '.jpg' || ext === '.jpeg') return 'image/jpeg';
+  if (ext === '.webp') return 'image/webp';
+  if (ext === '.gif') return 'image/gif';
+  if (ext === '.pdf') return 'application/pdf';
+  return fallback;
+}
 
-        // Parse JSON — handle markdown code fences
-        let cleanJson = responseText.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim();
-        const arrayStart = cleanJson.indexOf('[');
-        const arrayEnd = cleanJson.lastIndexOf(']');
-        if (arrayStart !== -1 && arrayEnd !== -1) {
-          cleanJson = cleanJson.substring(arrayStart, arrayEnd + 1);
+function parseModelJson(responseText) {
+  let cleanJson = String(responseText || '').replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim();
+  const objectStart = cleanJson.indexOf('{');
+  const arrayStart = cleanJson.indexOf('[');
+  if (objectStart !== -1 && (arrayStart === -1 || objectStart < arrayStart)) {
+    const objectEnd = cleanJson.lastIndexOf('}');
+    if (objectEnd !== -1) cleanJson = cleanJson.substring(objectStart, objectEnd + 1);
+  } else if (arrayStart !== -1) {
+    const arrayEnd = cleanJson.lastIndexOf(']');
+    if (arrayEnd !== -1) cleanJson = cleanJson.substring(arrayStart, arrayEnd + 1);
+  }
+  return JSON.parse(cleanJson);
+}
+
+async function processMapImageOCR({ projectId, mapName, fileBuffer, fileName, mimeType }) {
+  if (!fileBuffer) {
+    const error = new Error('Naksha image file is required for OCR');
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const resolvedMime = mimeType || mimeFromFileName(fileName);
+  const uploadResult = await uploadToS3(fileBuffer, fileName, resolvedMime, 'naksa_layouts');
+  const s3ImageUrl = typeof uploadResult === 'string' ? uploadResult : (uploadResult?.url || '');
+  const imageS3Key = typeof uploadResult === 'string' ? '' : (uploadResult?.key || '');
+
+  let extractedPlots = [];
+  let projectMeta = {};
+  let overallConfidence = 0;
+  let usedAI = false;
+
+  if (!process.env.GEMINI_API_KEY) {
+    const error = new Error('GEMINI_API_KEY is not configured. OCR cannot invent plot inventory.');
+    error.statusCode = 503;
+    throw error;
+  }
+
+  const preferredModel = process.env.GEMINI_VISION_MODEL || 'gemini-2.5-flash';
+  const fallbackModels = Array.from(new Set([
+    preferredModel,
+    'gemini-2.5-flash',
+    'gemini-2.0-flash-exp',
+    'gemini-1.5-pro',
+    'gemini-1.5-flash'
+  ]));
+
+  for (const modelName of fallbackModels) {
+    try {
+      const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+      const model = genAI.getGenerativeModel({ model: modelName });
+      const imagePart = {
+        inlineData: {
+          data: fileBuffer.toString('base64'),
+          mimeType: resolvedMime === 'application/pdf' ? 'application/pdf' : resolvedMime
         }
+      };
 
-        const parsed = JSON.parse(cleanJson);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          extractedPlots = parsed;
-          overallConfidence = 0.95;
-          usedAI = true;
-          console.log(`[OCR] ✅ Gemini (${modelName}) successfully extracted ${parsed.length} real plots from Naksha`);
-          break;
-        }
-      } catch (aiError) {
-        console.warn(`[OCR] Gemini (${modelName}) attempt warning:`, aiError.message);
+      const result = await model.generateContent([OCR_PROMPT, imagePart]);
+      const parsed = parseModelJson(result.response.text());
+      const payload = parseGeminiPayload(parsed);
+      const normalized = payload.plots.map((plot, index) => normalizeExtractedPlot(plot, index)).filter(Boolean);
+
+      if (normalized.length > 0) {
+        extractedPlots = normalized;
+        projectMeta = normalizeProjectMeta(payload.projectMeta);
+        overallConfidence = 0.95;
+        usedAI = true;
+        console.log(`[OCR] Gemini (${modelName}) extracted ${normalized.length} plots`);
+        break;
       }
+    } catch (aiError) {
+      console.warn(`[OCR] Gemini (${modelName}) attempt warning:`, aiError.message);
     }
   }
 
-  // 3. Fallback: If AI key not configured or image OCR produced zero plots, generate clean grid layout for detected/expected plots
-  let isSample = false;
   if (extractedPlots.length === 0) {
-    overallConfidence = 0.70;
-    // Generate clean layout array without fake hardcoded values if no file provided
+    const error = new Error('AI could not read plot numbers from this naksha. Upload a clearer layout image.');
+    error.statusCode = 422;
+    throw error;
   }
 
-  // Attach bounding-box rectangle to every plot
-  extractedPlots = extractedPlots.map((p, index) => {
-    const points = p.polygonPoints || p.polygon?.points || [];
-    const coords = bboxFromPoints(points);
-    return {
-      ...p,
-      plotNo: p.plotNo || `P-${101 + index}`,
-      status: p.status || 'AVAILABLE',
-      coordinates: coords
-    };
-  });
-
   const plotMapRecord = await PlotMap.create({
-    projectId,
+    projectId: projectId || undefined,
     mapName: mapName || fileName || 'Site Layout Plan',
     imageUrl: s3ImageUrl,
+    imageS3Key,
     vectorOverlayData: extractedPlots,
+    extractedProjectMeta: projectMeta,
     confidenceScore: overallConfidence,
-    status: overallConfidence < 0.90 ? 'PENDING_REVIEW' : 'APPROVED'
+    status: 'PENDING_REVIEW'
   });
 
   return {
     mapId: plotMapRecord._id,
     mapName: plotMapRecord.mapName,
     imageUrl: plotMapRecord.imageUrl,
+    imageS3Key,
     confidenceScore: overallConfidence,
-    requiresHumanReview: overallConfidence < 0.90,
+    requiresHumanReview: true,
     usedAI,
-    isSample,
-    extractedPlots
+    isSample: false,
+    extractedPlots,
+    projectMeta
   };
-}
-
-/** Axis-aligned bounding box for a polygon (canvas rectangle fallback). */
-function bboxFromPoints(points) {
-  if (!Array.isArray(points) || points.length === 0) {
-    return { x: 50, y: 50, width: 120, height: 90 };
-  }
-  const xs = points.map((p) => Number(p.x) || 0);
-  const ys = points.map((p) => Number(p.y) || 0);
-  const minX = Math.min(...xs);
-  const minY = Math.min(...ys);
-  return { x: minX, y: minY, width: (Math.max(...xs) - minX) || 120, height: (Math.max(...ys) - minY) || 90 };
 }
 
 module.exports = {

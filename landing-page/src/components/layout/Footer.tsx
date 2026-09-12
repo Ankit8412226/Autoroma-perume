@@ -3,7 +3,8 @@
 import * as React from 'react'
 import Link from 'next/link'
 import { HouseAndSkyLogo } from './HouseAndSkyLogo'
-import { Mail, MapPin, Phone, ShieldCheck } from 'lucide-react'
+import { Mail, MapPin, Phone, ShieldCheck, MessageCircle } from 'lucide-react'
+import { SITE } from '@/utils/siteConfig'
 
 export function Footer() {
   const [email, setEmail] = React.useState('')
@@ -69,21 +70,25 @@ export function Footer() {
           <div className="lg:col-span-2 space-y-6">
             <HouseAndSkyLogo variant="light" showTagline={true} />
             <p className="text-xs text-white/70 font-light leading-relaxed max-w-sm">
-              House & Sky is a premium real-estate platform connecting architectural homes, luxury penthouses, and landmark residences with discerning buyers worldwide.
+              House & Sky is a premium real-estate platform connecting architectural homes, luxury penthouses, and landmark township plots with discerning buyers.
             </p>
 
             <div className="space-y-2.5 text-xs text-white/80">
-              <div className="flex items-center gap-3">
-                <MapPin className="w-4 h-4 text-brand-sky shrink-0" />
-                <span>Bandra West Executive Office, Mumbai 400050</span>
-              </div>
+              <a href={SITE.googleMapsUrl} target="_blank" rel="noopener noreferrer" className="flex items-start gap-3 hover:text-brand-sky transition-colors">
+                <MapPin className="w-4 h-4 text-brand-sky shrink-0 mt-0.5" />
+                <span>{SITE.address}</span>
+              </a>
               <div className="flex items-center gap-3">
                 <Phone className="w-4 h-4 text-brand-sky shrink-0" />
-                <span>+91 (022) 8800 9900 · Advisory Desk</span>
+                <a href={`tel:${SITE.phoneTel}`} className="hover:text-brand-sky transition-colors">{SITE.phoneDisplay} · Advisory Desk</a>
+              </div>
+              <div className="flex items-center gap-3">
+                <MessageCircle className="w-4 h-4 text-emerald-400 shrink-0" />
+                <a href={`https://wa.me/${SITE.whatsapp}`} target="_blank" rel="noopener noreferrer" className="hover:text-brand-sky transition-colors">{SITE.whatsappDisplay} · WhatsApp Desk</a>
               </div>
               <div className="flex items-center gap-3">
                 <Mail className="w-4 h-4 text-brand-sky shrink-0" />
-                <span>advisory@houseandsky.com</span>
+                <span>{SITE.email}</span>
               </div>
             </div>
           </div>

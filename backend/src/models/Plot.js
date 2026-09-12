@@ -89,6 +89,26 @@ const plotSchema = new mongoose.Schema({
     type: String,
     default: ''
   },
+  plotType: {
+    type: String,
+    default: 'SIMPLE'
+  },
+  facing: {
+    type: String,
+    default: ''
+  },
+  dimensions: {
+    type: String,
+    default: ''
+  },
+  superBuiltUpSqft: {
+    type: Number,
+    default: 0
+  },
+  marker: {
+    xPercent: { type: Number, default: null },
+    yPercent: { type: Number, default: null }
+  },
   coordinates: {
     x: { type: Number, default: 0 },
     y: { type: Number, default: 0 },

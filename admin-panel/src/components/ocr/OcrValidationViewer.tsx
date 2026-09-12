@@ -14,6 +14,8 @@ import { useToast } from '../../context/ToastContext';
 interface ExtractedPlot {
   plotNo: string;
   status: string;
+  facing?: string;
+  plotType?: string;
   sellableSqYrd?: number;
   carpetSqYrd?: number;
   dimensions?: string;

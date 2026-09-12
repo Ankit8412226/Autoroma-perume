@@ -2,70 +2,45 @@ const { processMapImageOCR } = require('../services/ocrPipeline');
 const PlotMap = require('../models/PlotMap');
 const Plot = require('../models/Plot');
 const Project = require('../models/Project');
-const { computePricing, deriveBaseRatePerSqYrd } = require('../services/pricingEngine');
+const {
+  normalizeExtractedPlot,
+  normalizeProjectMeta,
+  buildPricedPlot,
+  DEFAULT_STATUS
+} = require('../utils/plotFromOcr');
 
-/** Axis-aligned bounding box for a polygon, used as the canvas rectangle fallback. */
-function bboxFromPoints(points) {
-  if (!Array.isArray(points) || points.length === 0) {
-    return null;
+function mergeProjectMeta(existing, meta) {
+  const next = {};
+  if (meta.location && !existing.location) next.location = meta.location;
+  if (meta.surveyNumber) next.surveyNumber = meta.surveyNumber;
+  if (meta.village) next.village = meta.village;
+  if (meta.highlights.length && !(existing.highlights || []).length) next.highlights = meta.highlights;
+  if (meta.amenities.length && !(existing.amenities || []).length) next.amenities = meta.amenities;
+  if (meta.locationAdvantages.length && !(existing.locationAdvantages || []).length) {
+    next.locationAdvantages = meta.locationAdvantages;
   }
-  const xs = points.map((p) => Number(p.x) || 0);
-  const ys = points.map((p) => Number(p.y) || 0);
-  const minX = Math.min(...xs);
-  const minY = Math.min(...ys);
-  const maxX = Math.max(...xs);
-  const maxY = Math.max(...ys);
-
-  if (maxX <= minX || maxY <= minY) {
-    return null;
-  }
-
-  return {
-    x: minX,
-    y: minY,
-    width: maxX - minX || 125,
-    height: maxY - minY || 90
-  };
-}
-
-/** Generates clean non-overlapping grid layout for plots if polygon points are absent. */
-function generateGridPosition(index) {
-  const col = index % 5;
-  const row = Math.floor(index / 5);
-  const startX = 60;
-  const startY = 60;
-  const gapX = 160;
-  const gapY = 110;
-  const width = 135;
-  const height = 85;
-
-  const x = startX + col * gapX;
-  const y = startY + row * gapY;
-
-  return {
-    coordinates: { x, y, width, height },
-    points: [
-      { x, y },
-      { x: x + width, y },
-      { x: x + width, y: y + height },
-      { x, y: y + height }
-    ]
-  };
+  return next;
 }
 
 exports.analyzeMap = async (req, res, next) => {
   try {
-    const { projectId, mapName } = req.body;
+    if (!req.file || !req.file.buffer) {
+      return res.status(400).json({ message: 'Upload a naksha image to extract plot details' });
+    }
 
     const result = await processMapImageOCR({
-      projectId: projectId || '656565656565656565656565',
-      mapName: mapName || 'Government Masterplan Layout',
-      fileBuffer: req.file ? req.file.buffer : null,
-      fileName: req.file ? req.file.originalname : 'naksa_blueprint.pdf'
+      projectId: req.body.projectId || null,
+      mapName: req.body.mapName || req.file.originalname,
+      fileBuffer: req.file.buffer,
+      fileName: req.file.originalname,
+      mimeType: req.file.mimetype
     });
 
     res.json(result);
   } catch (error) {
+    if (error.statusCode) {
+      return res.status(error.statusCode).json({ message: error.message });
+    }
     next(error);
   }
 };
@@ -77,79 +52,89 @@ exports.approveMapOverlay = async (req, res, next) => {
 
     const plotMap = await PlotMap.findById(mapId);
     if (!plotMap) return res.status(404).json({ message: 'Plot Map not found' });
+    if (!plotMap.projectId) {
+      return res.status(400).json({ message: 'This OCR result is not linked to a project yet' });
+    }
+
+    const project = await Project.findById(plotMap.projectId);
+    if (!project) return res.status(404).json({ message: 'Project not found' });
+
+    const rawPlots = Array.isArray(updatedVectorOverlayData) && updatedVectorOverlayData.length
+      ? updatedVectorOverlayData
+      : plotMap.vectorOverlayData;
+
+    const normalizedPlots = rawPlots
+      .map((plot, index) => normalizeExtractedPlot(plot, index))
+      .filter(Boolean);
+
+    if (normalizedPlots.length === 0) {
+      return res.status(422).json({ message: 'No readable plots to approve. Re-upload a clearer naksha.' });
+    }
 
     plotMap.status = 'APPROVED';
-    if (updatedVectorOverlayData) {
-      plotMap.vectorOverlayData = updatedVectorOverlayData;
-    }
+    plotMap.vectorOverlayData = normalizedPlots;
     await plotMap.save();
 
-    // 1. Update Project blueprint background image URL so PlotMapCanvas renders it!
-    if (plotMap.projectId && plotMap.imageUrl) {
-      await Project.findByIdAndUpdate(plotMap.projectId, {
-        bannerImage: plotMap.imageUrl
-      });
+    const projectPatch = {
+      mapImageUrl: plotMap.imageUrl,
+      bannerImage: project.bannerImage || plotMap.imageUrl,
+      totalPlots: normalizedPlots.length
+    };
+    if (plotMap.imageS3Key) {
+      projectPatch.mapImageS3Key = plotMap.imageS3Key;
+      if (!project.bannerImageS3Key) projectPatch.bannerImageS3Key = plotMap.imageS3Key;
     }
+    Object.assign(projectPatch, mergeProjectMeta(project, normalizeProjectMeta(plotMap.extractedProjectMeta || {})));
+    await Project.findByIdAndUpdate(plotMap.projectId, projectPatch);
 
-    // 2. Sync extracted plots into the Plots table
-    let index = 0;
-    for (const plotData of plotMap.vectorOverlayData) {
-      let points = plotData.polygonPoints || plotData.polygon?.points || [];
-      let coordinates = bboxFromPoints(points);
-
-      // If points are invalid or missing, generate a clean grid layout position
-      if (!coordinates || points.length < 3) {
-        const grid = generateGridPosition(index);
-        coordinates = grid.coordinates;
-        points = grid.points;
-      }
-
-      const priceInputs = {
-        sellableSqYrd: plotData.sellableSqYrd || 0,
-        plc12mtr: plotData.plc12mtr || 0,
-        plc9mtr: plotData.plc9mtr || 0,
-        plcCorner: plotData.plcCorner || 0,
-        plcParkFacing: plotData.plcParkFacing || 0,
-        discountedPlc: plotData.discountedPlc || 0,
-        otmc: plotData.otmc || 0,
-        totalCost: plotData.totalCost || 0
-      };
-      const baseRatePerSqYrd = deriveBaseRatePerSqYrd(priceInputs);
-      const pricing = computePricing({ ...priceInputs, baseRatePerSqYrd });
-      const finalTotalCost = baseRatePerSqYrd > 0 ? pricing.totalCost : (plotData.totalCost || 0);
-
+    const keptPlotNos = [];
+    for (const plotData of normalizedPlots) {
+      const priced = buildPricedPlot(plotData, project.basePricePerSqft);
+      keptPlotNos.push(priced.plotNo);
+      const existing = await Plot.findOne({ projectId: plotMap.projectId, plotNo: priced.plotNo });
+      const nextStatus = existing && existing.status !== DEFAULT_STATUS ? existing.status : DEFAULT_STATUS;
       await Plot.findOneAndUpdate(
-        { projectId: plotMap.projectId, plotNo: plotData.plotNo },
+        { projectId: plotMap.projectId, plotNo: priced.plotNo },
         {
           projectId: plotMap.projectId,
-          block: plotData.plotNo.split('-')[0] || 'A1',
-          plotNo: plotData.plotNo,
-          sizeSqft: plotData.sizeSqft || (plotData.sellableSqYrd ? plotData.sellableSqYrd * 9 : 1800),
-          sellableSqYrd: plotData.sellableSqYrd || 0,
-          carpetSqYrd: plotData.carpetSqYrd || 0,
-          plc12mtr: plotData.plc12mtr || 0,
-          plc9mtr: plotData.plc9mtr || 0,
-          plcCorner: plotData.plcCorner || 0,
-          plcParkFacing: plotData.plcParkFacing || 0,
-          totalPlc: pricing.totalPlc,
-          discountedPlc: plotData.discountedPlc || 0,
-          otmc: plotData.otmc || 0,
-          baseRatePerSqYrd,
-          gstOnOtherCharges: pricing.gstOnOtherCharges,
-          totalCost: finalTotalCost,
-          price: finalTotalCost || 0,
-          ownerName: plotData.ownerName || '',
-          status: plotData.status || 'AVAILABLE',
-          coordinates,
-          polygon: { points }
+          block: priced.block,
+          plotNo: priced.plotNo,
+          sizeSqft: priced.sizeSqft,
+          sellableSqYrd: priced.sellableSqYrd,
+          carpetSqYrd: priced.carpetSqYrd,
+          plc12mtr: priced.plc12mtr,
+          plc9mtr: priced.plc9mtr,
+          plcCorner: priced.plcCorner,
+          plcParkFacing: priced.plcParkFacing,
+          totalPlc: priced.totalPlc,
+          discountedPlc: priced.discountedPlc,
+          otmc: priced.otmc,
+          baseRatePerSqYrd: priced.baseRatePerSqYrd,
+          gstOnOtherCharges: priced.gstOnOtherCharges,
+          totalCost: priced.totalCost,
+          price: priced.price,
+          plotType: priced.plotType,
+          facing: priced.facing,
+          dimensions: priced.dimensions,
+          superBuiltUpSqft: priced.superBuiltUpSqft,
+          marker: priced.marker,
+          coordinates: priced.coordinates,
+          polygon: { points: priced.polygonPoints },
+          status: nextStatus
         },
-        { upsert: true, new: true }
+        { upsert: true, new: true, setDefaultsOnInsert: true }
       );
-      index++;
     }
 
+    await Plot.deleteMany({
+      projectId: plotMap.projectId,
+      status: DEFAULT_STATUS,
+      plotNo: { $nin: keptPlotNos }
+    });
+
     res.json({
-      message: 'Plot Map Overlay successfully approved and synchronized with Plot Database',
+      message: 'Naksha approved. Plot inventory synced from AI extraction.',
+      plotCount: keptPlotNos.length,
       plotMap
     });
   } catch (error) {

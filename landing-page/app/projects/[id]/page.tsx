@@ -11,6 +11,8 @@ import {
   Navigation, ArrowUpRight
 } from 'lucide-react'
 import { getApiBaseUrl } from '@/utils/api'
+import { NakshaDotMap } from '@/components/real-estate/NakshaDotMap'
+import { SITE } from '@/utils/siteConfig'
 
 const AMENITY_ICONS: Record<string, React.ReactNode> = {
   security: <Shield className="w-4 h-4" />,
@@ -30,8 +32,8 @@ const STATUS_STYLE: Record<string, string> = {
 }
 const STATUS_DOT: Record<string, string> = {
   AVAILABLE: 'bg-emerald-500',
-  BOOKED: 'bg-sky-500',
-  PENDING: 'bg-amber-500',
+  BOOKED: 'bg-yellow-500',
+  PENDING: 'bg-yellow-500',
   SOLD: 'bg-red-500',
 }
 
@@ -126,43 +128,13 @@ export default function ProjectDetailsPage() {
     ? Math.round(((stats?.AVAILABLE ?? 0) / project.totalPlots) * 100)
     : 0
 
-  const DEFAULT_HIGHLIGHTS = [
-    'Prime Strategic Location with Direct Expressway Access',
-    '100% Clear Title Freehold Land with Immediate Registry & Mutation',
-    '24/7 Multi-Tier Gated Community Security & CCTV Surveillance',
-    'Wide 40ft & 60ft Internal Sector Asphalt Roads with Streetlights',
-    'Underground Electrical Wiring, Drainage & Dual Water Lines',
-    'Dedicated Landscaped Parks, Children Play Zones & Club Facility'
-  ]
-
-  const DEFAULT_LOCATION_ADVANTAGES = [
-    { distance: '5 Mins', landmark: 'Upcoming Sector Metro Station & Express Highway' },
-    { distance: '10 Mins', landmark: 'International Schools, Colleges & Healthcare Hub' },
-    { distance: '15 Mins', landmark: 'Commercial Business District & Shopping Centers' },
-    { distance: '25 Mins', landmark: 'International Airport & Regional Transit Station' }
-  ]
-
-  const DEFAULT_AMENITIES = [
-    '24/7 Security Patrol',
-    'Uninterrupted Electricity',
-    'Dual Water Supply System',
-    'Landscaped Central Park',
-    'Visitor Parking Area',
-    'High-Speed Fiber Connectivity',
-    'CCTV Camera Surveillance'
-  ]
-
-  const highlights = (project.highlights && project.highlights.length > 0)
-    ? project.highlights
-    : DEFAULT_HIGHLIGHTS
-
-  const locationAdvantages = (project.locationAdvantages && project.locationAdvantages.length > 0)
-    ? project.locationAdvantages
-    : DEFAULT_LOCATION_ADVANTAGES
-
-  const amenities = (project.amenities && project.amenities.length > 0)
-    ? project.amenities
-    : DEFAULT_AMENITIES
+  const highlights = Array.isArray(project.highlights) ? project.highlights.filter(Boolean) : []
+  const locationAdvantages = Array.isArray(project.locationAdvantages) ? project.locationAdvantages.filter((a: any) => a?.landmark) : []
+  const amenities = Array.isArray(project.amenities) ? project.amenities.filter(Boolean) : []
+  const heroImage = project.bannerImage || project.mapImageUrl || ''
+  const mapEmbedSrc = project.mapEmbedUrl || ''
+  const projectPhone = project.contactPhone || ''
+  const projectEmail = project.contactEmail || ''
 
   const filteredPlots = (plots || []).filter((p: any) => {
     const matchStatus = statusFilter === 'ALL' || p.status === statusFilter
@@ -178,12 +150,17 @@ export default function ProjectDetailsPage() {
 
       {/* ═══ HERO BANNER ═══ */}
       <div className="relative h-[50vh] min-h-[340px] max-h-[520px] overflow-hidden bg-brand-charcoal">
-        <Image
-          src={project.bannerImage || 'https://images.unsplash.com/photo-1524813686514-a57563d77965?w=1400&q=85'}
-          alt={project.name}
-          fill priority
-          className="object-cover"
-        />
+        {heroImage ? (
+          <Image
+            src={heroImage}
+            alt={project.name}
+            fill priority
+            className="object-cover"
+            unoptimized
+          />
+        ) : (
+          <div className="absolute inset-0 bg-brand-charcoal" />
+        )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-black/15" />
         <div className="absolute inset-0 bg-gradient-to-r from-black/30 to-transparent" />
 
@@ -279,17 +256,18 @@ export default function ProjectDetailsPage() {
               </div>
 
               {/* Description */}
-              <div className="px-7 pb-6 pt-2">
-                <p className="text-sm text-brand-charcoal/70 leading-relaxed font-light">
-                  {project.description || 'Premium Gated Real Estate Township with 24/7 Security, Wide Roads, and Commercial Zones.'}
-                </p>
-              </div>
+              {project.description ? (
+                <div className="px-7 pb-6 pt-2">
+                  <p className="text-sm text-brand-charcoal/70 leading-relaxed font-light">
+                    {project.description}
+                  </p>
+                </div>
+              ) : null}
             </section>
 
-            {/* PROJECT HIGHLIGHTS + LOCATION ADVANTAGES — side by side like hippoinfra */}
+            {(highlights.length > 0 || locationAdvantages.length > 0) && (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-
-              {/* Project Highlights */}
+              {highlights.length > 0 && (
               <section className="bg-white rounded-3xl shadow-sm border border-brand-green/10 overflow-hidden">
                 <div className="px-6 py-4 border-b border-brand-green/10">
                   <h2 className="font-serif text-lg font-bold text-brand-charcoal flex items-center gap-2">
@@ -305,8 +283,9 @@ export default function ProjectDetailsPage() {
                   ))}
                 </div>
               </section>
+              )}
 
-              {/* Location Advantages */}
+              {locationAdvantages.length > 0 && (
               <section className="bg-white rounded-3xl shadow-sm border border-brand-green/10 overflow-hidden">
                 <div className="px-6 py-4 border-b border-brand-green/10">
                   <h2 className="font-serif text-lg font-bold text-brand-charcoal flex items-center gap-2">
@@ -323,9 +302,11 @@ export default function ProjectDetailsPage() {
                   ))}
                 </div>
               </section>
+              )}
             </div>
+            )}
 
-            {/* AMENITIES & FACILITIES */}
+            {amenities.length > 0 && (
             <section className="bg-white rounded-3xl shadow-sm border border-brand-green/10 overflow-hidden">
               <div className="bg-[#EAF3EF] px-7 py-4 border-b border-brand-green/15">
                 <h2 className="font-serif text-xl font-bold text-brand-charcoal">Amenities &amp; Facilities</h2>
@@ -344,6 +325,7 @@ export default function ProjectDetailsPage() {
                 })}
               </div>
             </section>
+            )}
 
             {Array.isArray(project.gallery) && project.gallery.length > 0 && (
               <section className="bg-white rounded-3xl shadow-sm border border-brand-green/10 overflow-hidden">
@@ -391,41 +373,19 @@ export default function ProjectDetailsPage() {
                   {/* Legend */}
                   <div className="flex items-center gap-3 text-[10px] font-bold">
                     <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-pulse block" />Available</span>
-                    <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 bg-sky-500 rounded-full block" />Booked</span>
+                    <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 bg-yellow-500 rounded-full block" />Booked / Pending</span>
                     <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 bg-red-500 rounded-full block" />Sold</span>
                   </div>
                 </div>
                 <div className="p-5">
                   {project.mapImageUrl ? (
-                    <div className="relative w-full rounded-2xl overflow-hidden border border-brand-green/10">
-                      <Image
-                        src={project.mapImageUrl}
-                        alt={`${project.name} Layout`}
-                        width={900}
-                        height={600}
-                        className="w-full h-auto object-contain bg-[#F5F5F0]"
-                        unoptimized
+                    <div className="relative w-full rounded-2xl overflow-visible border border-brand-green/10 bg-white">
+                      <NakshaDotMap
+                        imageUrl={project.mapImageUrl}
+                        imageAlt={`${project.name} Layout`}
+                        plots={filteredPlots}
+                        onSelectPlot={setSelectedPlot}
                       />
-                      {/* Overlay blinking dots for available plots on naksha */}
-                      {plots?.filter((p: any) => p.status === 'AVAILABLE').slice(0, 8).map((p: any, i: number) => (
-                        <div
-                          key={p._id}
-                          className="absolute cursor-pointer group"
-                          style={{
-                            left: `${10 + (i % 4) * 22}%`,
-                            top: `${15 + Math.floor(i / 4) * 40}%`,
-                          }}
-                          onClick={() => setSelectedPlot(p)}
-                        >
-                          <div className="relative">
-                            <div className="w-4 h-4 bg-emerald-500 rounded-full animate-pulse shadow-lg shadow-emerald-500/50" />
-                            <div className="absolute -inset-1 bg-emerald-500 rounded-full opacity-30 animate-ping" />
-                          </div>
-                          <div className="absolute left-5 top-0 bg-brand-charcoal text-white text-[9px] font-bold px-2 py-1 rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-10 shadow-lg">
-                            Plot {p.plotNo} · Available<br/>Click to Inquire
-                          </div>
-                        </div>
-                      ))}
                     </div>
                   ) : (
                     /* If no naksha image, show a clean status grid */
@@ -521,18 +481,28 @@ export default function ProjectDetailsPage() {
               {/* Direct contact */}
               <div className="bg-white rounded-3xl p-5 shadow-sm border border-brand-green/10 space-y-3">
                 <h4 className="font-bold text-sm text-brand-charcoal">Direct Project Sales Contact</h4>
-                <a href={`tel:${project.contactPhone || '+91 98765 43210'}`} className="flex items-center gap-3 text-sm text-brand-charcoal/80 hover:text-brand-green transition-colors font-semibold">
+                {projectPhone && (
+                <a href={`tel:${projectPhone.replace(/[^0-9+]/g, '')}`} className="flex items-center gap-3 text-sm text-brand-charcoal/80 hover:text-brand-green transition-colors font-semibold">
                   <div className="w-9 h-9 bg-[#EAF3EF] rounded-xl flex items-center justify-center shrink-0">
                     <Phone className="w-4 h-4 text-brand-green" />
                   </div>
-                  {project.contactPhone || '+91 98765 43210'}
+                  {projectPhone}
                 </a>
-                <a href={`mailto:${project.contactEmail || 'sales@auraveloce.com'}`} className="flex items-center gap-3 text-sm text-brand-charcoal/80 hover:text-brand-green transition-colors font-semibold">
+                )}
+                <a href={`https://wa.me/${SITE.whatsapp}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-sm text-brand-charcoal/80 hover:text-brand-green transition-colors font-semibold">
+                  <div className="w-9 h-9 bg-emerald-50 rounded-xl flex items-center justify-center shrink-0">
+                    <Phone className="w-4 h-4 text-emerald-600" />
+                  </div>
+                  {SITE.whatsappDisplay} (WhatsApp)
+                </a>
+                {projectEmail && (
+                <a href={`mailto:${projectEmail}`} className="flex items-center gap-3 text-sm text-brand-charcoal/80 hover:text-brand-green transition-colors font-semibold">
                   <div className="w-9 h-9 bg-[#EAF3EF] rounded-xl flex items-center justify-center shrink-0">
                     <Mail className="w-4 h-4 text-brand-green" />
                   </div>
-                  {project.contactEmail || 'sales@auraveloce.com'}
+                  {projectEmail}
                 </a>
+                )}
               </div>
 
               {/* Brochure */}
@@ -571,7 +541,7 @@ export default function ProjectDetailsPage() {
               </div>
 
               {/* Legal Info */}
-              {(project.legalInfo?.reraNumber || project.legalInfo?.titleType) && (
+              {(project.legalInfo?.reraNumber || project.legalInfo?.approvalAuthority || project.legalInfo?.titleType) && (
                 <div className="bg-white rounded-3xl p-5 shadow-sm border border-brand-green/10 space-y-3">
                   <div className="flex items-center gap-2">
                     <Shield className="w-4 h-4 text-brand-green" />
@@ -601,17 +571,26 @@ export default function ProjectDetailsPage() {
           </div>
         </div>
 
-        {(project.googleMapsUrl || project.mapEmbedUrl) && (
-          <section className="mt-10 grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="bg-white rounded-3xl border border-brand-green/10 overflow-hidden min-h-[280px]">
-              {project.mapEmbedUrl ? (
-                <iframe title="Project map" src={project.mapEmbedUrl} className="w-full h-full min-h-[280px] border-0" />
-              ) : (
-                <a href={project.googleMapsUrl} target="_blank" rel="noreferrer" className="flex h-full items-center justify-center text-sm font-bold text-brand-green">
-                  Open in Google Maps
-                </a>
-              )}
-            </div>
+        <section className="mt-10 grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="bg-white rounded-3xl border border-brand-green/10 overflow-hidden min-h-[280px]">
+            {mapEmbedSrc ? (
+              <iframe
+                title="Project Location Map"
+                src={mapEmbedSrc}
+                className="w-full h-full min-h-[280px] border-0"
+                allowFullScreen
+                loading="lazy"
+              />
+            ) : project.googleMapsUrl ? (
+              <a href={project.googleMapsUrl} target="_blank" rel="noreferrer" className="flex h-full min-h-[280px] items-center justify-center text-sm font-bold text-brand-green">
+                Open project location in Google Maps
+              </a>
+            ) : (
+              <div className="flex h-full min-h-[280px] items-center justify-center text-sm text-brand-charcoal/50 px-6 text-center">
+                Google Maps location will appear after it is saved on this project.
+              </div>
+            )}
+          </div>
             <div className="bg-white rounded-3xl border border-brand-green/10 p-6">
               <h3 className="font-serif text-2xl text-brand-charcoal mb-2">Send us your inquiry</h3>
               <p className="text-xs text-brand-charcoal/60 mb-4">Ask about a plot number, site visit or pricing.</p>
@@ -628,7 +607,6 @@ export default function ProjectDetailsPage() {
               </form>
             </div>
           </section>
-        )}
       </div>
     </div>
   )

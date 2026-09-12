@@ -45,6 +45,10 @@ export const PlotDetailModal: React.FC<PlotDetailModalProps> = ({
   const [plc12mtr, setPlc12mtr] = useState<number>(plot.plc12mtr || 0);
   const [plcCorner, setPlcCorner] = useState<number>(plot.plcCorner || 0);
   const [plcParkFacing, setPlcParkFacing] = useState<number>(plot.plcParkFacing || 0);
+  const [plotType, setPlotType] = useState<string>(plot.plotType || 'SIMPLE');
+  const [facing, setFacing] = useState<string>(plot.facing || '');
+  const [dimensions, setDimensions] = useState<string>(plot.dimensions || '');
+  const [superBuiltUpSqft, setSuperBuiltUpSqft] = useState<number>(plot.superBuiltUpSqft || 0);
 
   // IMPORTANT: plot.totalCost is already authoritative — computed by the
   // pricingEngine and persisted by the Mongoose pre-save hook. We must NOT
@@ -98,7 +102,11 @@ export const PlotDetailModal: React.FC<PlotDetailModalProps> = ({
         registryDate: registryDate ? new Date(registryDate) : undefined,
         paymentMilestones,
         sellerEmployeeId: sellerEmployeeId === 'DIRECT' ? null : (sellerEmployeeId || null),
-        paymentMode
+        paymentMode,
+        plotType,
+        facing,
+        dimensions,
+        superBuiltUpSqft
       });
 
       toast.success(`Plot ${plot.plotNo} status updated successfully!`);
@@ -223,11 +231,57 @@ export const PlotDetailModal: React.FC<PlotDetailModalProps> = ({
               onChange={(e) => setStatus(e.target.value)}
               className="w-full mt-1 bg-[#FAF9F6] border border-[#0B4F3C]/20 rounded-xl px-3 py-2 text-[#171A18] font-bold focus:outline-none focus:border-[#0B4F3C]"
             >
-              <option value="AVAILABLE">🟢 AVAILABLE (Green)</option>
-              <option value="BOOKED">🔵 BOOKED (Blue)</option>
-              <option value="PENDING">🟡 PENDING (Yellow)</option>
-              <option value="SOLD">🔴 SOLD (Triggers Commission Engine!)</option>
+              <option value="AVAILABLE">AVAILABLE (Green)</option>
+              <option value="BOOKED">BOOKED (Yellow)</option>
+              <option value="PENDING">PENDING (Yellow)</option>
+              <option value="SOLD">SOLD (Red — triggers commission)</option>
             </select>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-[#171A18]/70 font-semibold">Plot Type</label>
+              <select
+                value={plotType}
+                onChange={(e) => setPlotType(e.target.value)}
+                className="w-full mt-1 bg-[#FAF9F6] border border-[#0B4F3C]/20 rounded-xl px-3 py-2 text-[#171A18] font-bold focus:outline-none focus:border-[#0B4F3C]"
+              >
+                <option value="SIMPLE">Simple</option>
+                <option value="CORNER">Corner</option>
+                <option value="PARK_FACING">Park Facing</option>
+                <option value="GARDEN_FACING">Garden Facing</option>
+                <option value="ROAD_FACING">Road Facing</option>
+              </select>
+            </div>
+            <div>
+              <label className="text-[#171A18]/70 font-semibold">Facing</label>
+              <input
+                type="text"
+                placeholder="Garden / Park / East..."
+                value={facing}
+                onChange={(e) => setFacing(e.target.value)}
+                className="w-full mt-1 bg-[#FAF9F6] border border-[#0B4F3C]/20 rounded-xl px-3 py-2 text-[#171A18] font-bold focus:outline-none focus:border-[#0B4F3C]"
+              />
+            </div>
+            <div>
+              <label className="text-[#171A18]/70 font-semibold">Dimensions</label>
+              <input
+                type="text"
+                placeholder="e.g. 30x50"
+                value={dimensions}
+                onChange={(e) => setDimensions(e.target.value)}
+                className="w-full mt-1 bg-[#FAF9F6] border border-[#0B4F3C]/20 rounded-xl px-3 py-2 text-[#171A18] font-bold focus:outline-none focus:border-[#0B4F3C]"
+              />
+            </div>
+            <div>
+              <label className="text-[#171A18]/70 font-semibold">Super Built-up (sqft)</label>
+              <input
+                type="number"
+                value={superBuiltUpSqft}
+                onChange={(e) => setSuperBuiltUpSqft(Number(e.target.value))}
+                className="w-full mt-1 bg-[#FAF9F6] border border-[#0B4F3C]/20 rounded-xl px-3 py-2 text-[#171A18] font-bold focus:outline-none focus:border-[#0B4F3C]"
+              />
+            </div>
           </div>
 
           <div>

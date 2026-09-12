@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { X, UploadCloud, ScanText, Sparkles, FileImage } from 'lucide-react';
+import { X, UploadCloud, ScanText, FileImage } from 'lucide-react';
 import api from '../../services/api';
 import { Project } from '../../types';
 import { OcrValidationViewer } from '../ocr/OcrValidationViewer';
@@ -39,20 +39,20 @@ export const UploadNaksaModal: React.FC<UploadNaksaModalProps> = ({
     }
   };
 
-  const handleRunOcr = async (useSample = false) => {
+  const handleRunOcr = async () => {
     if (!projectId) {
       toast.error('Please select a project first.');
       return;
     }
-    if (!useSample && !file) {
-      toast.error('Please upload a Naksha image or PDF first.');
+    if (!file) {
+      toast.error('Please upload a Naksha image first.');
       return;
     }
 
     try {
       setIsAnalyzing(true);
       const formData = new FormData();
-      if (file && !useSample) formData.append('file', file);
+      formData.append('file', file);
       formData.append('projectId', projectId);
       formData.append('mapName', mapName || 'Naksha Layout');
 
@@ -183,7 +183,7 @@ export const UploadNaksaModal: React.FC<UploadNaksaModalProps> = ({
               {/* Buttons */}
               <div className="flex gap-3">
                 <button
-                  onClick={() => handleRunOcr(false)}
+                  onClick={() => handleRunOcr()}
                   disabled={isAnalyzing || !file || !projectId}
                   className="flex-1 py-3 rounded-xl bg-[#0B4F3C] hover:bg-[#063B2D] text-white font-bold text-sm shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                 >
@@ -200,14 +200,6 @@ export const UploadNaksaModal: React.FC<UploadNaksaModalProps> = ({
                   )}
                 </button>
 
-                <button
-                  onClick={() => handleRunOcr(true)}
-                  disabled={isAnalyzing || !projectId}
-                  className="px-5 py-3 rounded-xl bg-[#EAF3EF] hover:bg-[#D0E8DC] text-[#0B4F3C] font-bold text-xs transition-all flex items-center justify-center gap-2 border border-[#0B4F3C]/20 disabled:opacity-40"
-                >
-                  <Sparkles className="w-4 h-4" />
-                  Try Demo
-                </button>
               </div>
             </>
           ) : (

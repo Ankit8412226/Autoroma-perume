@@ -14,6 +14,7 @@ import {
   Sparkles
 } from 'lucide-react'
 import { getApiBaseUrl } from '@/utils/api'
+import { SITE } from '@/utils/siteConfig'
 
 export function HomepageContactSection() {
   const [submitted, setSubmitted] = React.useState(false)
@@ -86,7 +87,17 @@ export function HomepageContactSection() {
               </div>
               <div>
                 <span className="text-[10px] text-white/60 font-bold uppercase tracking-wider block">Call Advisory Hotline</span>
-                <span className="text-sm font-bold text-white">+91 98765 43210 / +91 11 4000 8000</span>
+                <a href={`tel:${SITE.phoneTel}`} className="text-sm font-bold text-white hover:text-[#C9A96E] transition-colors">{SITE.phoneDisplay}</a>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-white/10 border border-white/15 flex items-center justify-center text-emerald-400 shrink-0">
+                <Phone className="w-5 h-5" />
+              </div>
+              <div>
+                <span className="text-[10px] text-white/60 font-bold uppercase tracking-wider block">Official WhatsApp Desk</span>
+                <a href={`https://wa.me/${SITE.whatsapp}`} target="_blank" rel="noopener noreferrer" className="text-sm font-bold text-emerald-400 hover:underline">{SITE.whatsappDisplay}</a>
               </div>
             </div>
 
@@ -96,7 +107,7 @@ export function HomepageContactSection() {
               </div>
               <div>
                 <span className="text-[10px] text-white/60 font-bold uppercase tracking-wider block">Official Advisory Desk</span>
-                <span className="text-sm font-bold text-white">plots@houseandsky.in</span>
+                <span className="text-sm font-bold text-white">{SITE.email}</span>
               </div>
             </div>
 
@@ -105,8 +116,10 @@ export function HomepageContactSection() {
                 <MapPin className="w-5 h-5" />
               </div>
               <div>
-                <span className="text-[10px] text-white/60 font-bold uppercase tracking-wider block">Corporate Gallery</span>
-                <span className="text-sm font-bold text-white">House & Sky Tower, Sector 150, Noida & Dholera SIR</span>
+                <span className="text-[10px] text-white/60 font-bold uppercase tracking-wider block">Corporate Office</span>
+                <a href={SITE.googleMapsUrl} target="_blank" rel="noopener noreferrer" className="text-xs font-bold text-white hover:text-[#C9A96E] transition-colors leading-tight block">
+                  {SITE.address}
+                </a>
               </div>
             </div>
           </div>

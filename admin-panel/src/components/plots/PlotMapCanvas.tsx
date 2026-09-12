@@ -1,6 +1,49 @@
-import React, { useState, useRef } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import { Plot, Project } from '../../types';
-import { ZoomIn, ZoomOut, RotateCcw, Search, Building2, Image as ImageIcon, Move, ScanText } from 'lucide-react';
+import { Search, Building2, ScanText, MapPin, MousePointerClick } from 'lucide-react';
+import api from '../../services/api';
+import { useToast } from '../../context/ToastContext';
+
+const DOT_GREEN = '#22C55E';
+const DOT_YELLOW = '#EAB308';
+const DOT_RED = '#EF4444';
+const PERCENT_MIN = 0;
+const PERCENT_MAX = 100;
+
+function statusDotColor(status: string): string {
+  if (status === 'SOLD') return DOT_RED;
+  if (status === 'AVAILABLE') return DOT_GREEN;
+  return DOT_YELLOW;
+}
+
+function hasPinnedMarker(plot: Plot): boolean {
+  const rawX = plot.marker?.xPercent;
+  const rawY = plot.marker?.yPercent;
+  if (rawX === null || rawX === undefined || rawY === null || rawY === undefined) return false;
+  const x = Number(rawX);
+  const y = Number(rawY);
+  return Number.isFinite(x) && Number.isFinite(y);
+}
+
+function clampPercent(value: number): number {
+  return Math.min(PERCENT_MAX, Math.max(PERCENT_MIN, value));
+}
+
+function deriveFacing(plot: Plot): string {
+  if (plot.facing) return plot.facing;
+  if (Number(plot.plcParkFacing) > 0) return 'Park / Garden Facing';
+  if (Number(plot.plcCorner) > 0) return 'Corner Plot';
+  if (Number(plot.plc12mtr) > 0) return '12m Road Facing';
+  if (Number(plot.plc9mtr) > 0) return '9m Road Facing';
+  return 'Standard';
+}
+
+function derivePlotType(plot: Plot): string {
+  if (plot.plotType && plot.plotType !== 'SIMPLE') return plot.plotType.replace(/_/g, ' ');
+  const facing = deriveFacing(plot);
+  if (facing !== 'Standard') return facing;
+  return 'Simple';
+}
 
 interface PlotMapCanvasProps {
   projects: Project[];
@@ -9,6 +52,7 @@ interface PlotMapCanvasProps {
   plots: Plot[];
   onSelectPlot: (plot: Plot) => void;
   onOpenNaksaModal?: () => void;
+  onRefresh?: () => void;
 }
 
 export const PlotMapCanvas: React.FC<PlotMapCanvasProps> = ({
@@ -17,70 +61,110 @@ export const PlotMapCanvas: React.FC<PlotMapCanvasProps> = ({
   onSelectProject,
   plots,
   onSelectPlot,
-  onOpenNaksaModal
+  onOpenNaksaModal,
+  onRefresh
 }) => {
-  const [zoom, setZoom] = useState<number>(1);
+  const toast = useToast();
+  const mapRef = useRef<HTMLDivElement>(null);
   const [activeFilter, setActiveFilter] = useState<string>('ALL');
   const [activeBlock, setActiveBlock] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [showMapBackground, setShowMapBackground] = useState<boolean>(true);
-
-  // Drag-to-pan state.
-  const [pan, setPan] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
-  const panRef = useRef<{ dragging: boolean; startX: number; startY: number; originX: number; originY: number }>({
-    dragging: false, startX: 0, startY: 0, originX: 0, originY: 0
-  });
-
-  const onPanStart = (e: React.MouseEvent) => {
-    panRef.current = { dragging: true, startX: e.clientX, startY: e.clientY, originX: pan.x, originY: pan.y };
-  };
-  const onPanMove = (e: React.MouseEvent) => {
-    if (!panRef.current.dragging) return;
-    setPan({
-      x: panRef.current.originX + (e.clientX - panRef.current.startX),
-      y: panRef.current.originY + (e.clientY - panRef.current.startY)
-    });
-  };
-  const onPanEnd = () => { panRef.current.dragging = false; };
-  const resetView = () => { setZoom(1); setPan({ x: 0, y: 0 }); };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'AVAILABLE': return '#0B4F3C';
-      case 'BOOKED': return '#0284C7';
-      case 'PENDING': return '#D97706';
-      case 'SOLD': return '#DC2626';
-      default: return '#64748B';
-    }
-  };
+  const [pinPlotId, setPinPlotId] = useState<string | null>(null);
+  const [hoveredId, setHoveredId] = useState<string | null>(null);
+  const [draggingId, setDraggingId] = useState<string | null>(null);
+  const [localMarkers, setLocalMarkers] = useState<Record<string, { xPercent: number; yPercent: number }>>({});
+  const justDraggedRef = useRef(false);
 
   const selectedProject = projects.find((p) => p._id === selectedProjectId) || projects[0];
+  const projectMapImage = selectedProject?.mapImageUrl || selectedProject?.bannerImage || '';
 
-  const filteredPlots = plots.filter((plot) => {
-    const matchesProject = !selectedProjectId || (
-      typeof plot.projectId === 'string'
-        ? plot.projectId === selectedProjectId
-        : plot.projectId?._id === selectedProjectId
-    );
+  const projectPlots = useMemo(() => plots.filter((plot) =>
+    !selectedProjectId || (typeof plot.projectId === 'string' ? plot.projectId === selectedProjectId : plot.projectId?._id === selectedProjectId)
+  ), [plots, selectedProjectId]);
+
+  const blocks = ['ALL', ...Array.from(new Set(projectPlots.map((p) => p.block).filter(Boolean))).sort()];
+
+  const filteredPlots = projectPlots.filter((plot) => {
     const matchesStatus = activeFilter === 'ALL' || plot.status === activeFilter;
     const matchesBlock = activeBlock === 'ALL' || plot.block === activeBlock;
     const matchesSearch =
       plot.plotNo.toLowerCase().includes(searchQuery.toLowerCase()) ||
       plot.block.toLowerCase().includes(searchQuery.toLowerCase());
-
-    return matchesProject && matchesStatus && matchesBlock && matchesSearch;
+    return matchesStatus && matchesBlock && matchesSearch;
   });
 
-  const projectPlots = plots.filter((plot) =>
-    !selectedProjectId || (typeof plot.projectId === 'string' ? plot.projectId === selectedProjectId : plot.projectId?._id === selectedProjectId)
+  const markerOf = (plot: Plot) => localMarkers[plot._id] || (
+    hasPinnedMarker(plot)
+      ? { xPercent: Number(plot.marker?.xPercent), yPercent: Number(plot.marker?.yPercent) }
+      : null
   );
-  const blocks = ['ALL', ...Array.from(new Set(projectPlots.map((p) => p.block).filter(Boolean))).sort()];
 
-  const projectMapImage = (selectedProject as any)?.bannerImage || 'https://images.unsplash.com/photo-1524813686514-a57563d77965?auto=format&fit=crop&w=1200&q=80';
+  const percentFromEvent = (clientX: number, clientY: number) => {
+    const el = mapRef.current;
+    if (!el) return null;
+    const rect = el.getBoundingClientRect();
+    if (rect.width === 0 || rect.height === 0) return null;
+    return {
+      xPercent: clampPercent(((clientX - rect.left) / rect.width) * PERCENT_MAX),
+      yPercent: clampPercent(((clientY - rect.top) / rect.height) * PERCENT_MAX)
+    };
+  };
+
+  const saveMarker = async (plotId: string, xPercent: number, yPercent: number) => {
+    setLocalMarkers((prev) => ({ ...prev, [plotId]: { xPercent, yPercent } }));
+    try {
+      await api.put(`/plots/${plotId}/marker`, { xPercent, yPercent });
+      onRefresh?.();
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Failed to save plot pin');
+    }
+  };
+
+  const handleMapClick = async (e: React.MouseEvent<HTMLDivElement>) => {
+    if (justDraggedRef.current) {
+      justDraggedRef.current = false;
+      return;
+    }
+    if (!pinPlotId || draggingId) return;
+    const point = percentFromEvent(e.clientX, e.clientY);
+    if (!point) return;
+    const plot = projectPlots.find((p) => p._id === pinPlotId);
+    await saveMarker(pinPlotId, point.xPercent, point.yPercent);
+    toast.success(`Pinned Plot ${plot?.plotNo || ''} on the naksha`);
+    setPinPlotId(null);
+  };
+
+  const handleDotMouseDown = (e: React.MouseEvent, plot: Plot) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDraggingId(plot._id);
+    setHoveredId(null);
+  };
+
+  const handleMapMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!draggingId) return;
+    const point = percentFromEvent(e.clientX, e.clientY);
+    if (!point) return;
+    setLocalMarkers((prev) => ({ ...prev, [draggingId]: point }));
+  };
+
+  const handleMapMouseUp = async () => {
+    if (!draggingId) return;
+    const marker = localMarkers[draggingId];
+    const plotId = draggingId;
+    justDraggedRef.current = true;
+    setDraggingId(null);
+    if (marker) {
+      await saveMarker(plotId, marker.xPercent, marker.yPercent);
+    }
+  };
+
+  const unpinnedPlots = filteredPlots.filter((plot) => !markerOf(plot));
+  const pinnedPlots = filteredPlots.filter((plot) => markerOf(plot));
+  const pinTarget = projectPlots.find((p) => p._id === pinPlotId);
 
   return (
     <div className="bg-white rounded-2xl border border-[#0B4F3C]/15 p-5 flex flex-col gap-4 shadow-sm">
-      {/* Top Project Selector & Title Bar */}
       <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#0B4F3C]/15 pb-4">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-[#0B4F3C] text-white flex items-center justify-center shadow-md">
@@ -102,46 +186,26 @@ export const PlotMapCanvas: React.FC<PlotMapCanvasProps> = ({
           </div>
         </div>
 
-        {/* Selected Project Summary & Blueprint Overlay Toggle */}
         {selectedProject && (
           <div className="flex items-center gap-3 bg-[#EAF3EF] px-4 py-2 rounded-xl border border-[#0B4F3C]/20 text-xs flex-wrap">
-            <button
-              onClick={() => setShowMapBackground(!showMapBackground)}
-              className={`px-3 py-1 rounded-lg font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
-                showMapBackground
-                  ? 'bg-[#0B4F3C] text-white shadow-md'
-                  : 'bg-white text-[#0B4F3C] border border-[#0B4F3C]/20'
-              }`}
-            >
-              <ImageIcon className="w-3.5 h-3.5" />
-              {showMapBackground ? 'Blueprint Image Active' : 'Show Blueprint Background'}
-            </button>
-
             {onOpenNaksaModal && (
               <button
                 onClick={onOpenNaksaModal}
-                className="px-3 py-1 rounded-lg font-bold bg-[#0B4F3C] text-white hover:bg-[#063B2D] flex items-center gap-1.5 transition-all cursor-pointer shadow-md border border-[#0B4F3C]"
+                className="px-3 py-1 rounded-lg font-bold bg-white text-[#0B4F3C] hover:bg-[#0B4F3C] hover:text-white flex items-center gap-1.5 transition-all cursor-pointer border border-[#0B4F3C]/20"
               >
-                <ScanText className="w-3.5 h-3.5 text-white" />
-                Upload Gov. Naksa (AI OCR)
+                <ScanText className="w-3.5 h-3.5" />
+                Import Plots (CSV / OCR)
               </button>
             )}
-
             <div className="border-l border-[#0B4F3C]/20 pl-3">
-              <p className="text-[#171A18]/70 font-semibold text-[10px]">Rate / Sqft</p>
-              <p className="font-bold text-[#0B4F3C]">₹{selectedProject.basePricePerSqft}</p>
-            </div>
-            <div className="border-l border-[#0B4F3C]/20 pl-3">
-              <p className="text-[#171A18]/70 font-semibold text-[10px]">Plots in View</p>
-              <p className="font-bold text-[#171A18]">{filteredPlots.length} Plots</p>
+              <p className="text-[#171A18]/70 font-semibold text-[10px]">Pinned on map</p>
+              <p className="font-bold text-[#0B4F3C]">{pinnedPlots.length} / {projectPlots.length}</p>
             </div>
           </div>
         )}
       </div>
 
-      {/* Controls & Filter Bar */}
       <div className="flex flex-wrap items-center justify-between gap-4 bg-[#FAF9F6] p-3 rounded-xl border border-[#0B4F3C]/15">
-        {/* Status Filters */}
         <div className="flex items-center gap-2 flex-wrap">
           {['ALL', 'AVAILABLE', 'BOOKED', 'PENDING', 'SOLD'].map((status) => (
             <button
@@ -154,14 +218,13 @@ export const PlotMapCanvas: React.FC<PlotMapCanvasProps> = ({
               }`}
             >
               {status === 'ALL' && 'All Statuses'}
-              {status === 'AVAILABLE' && <span>🟢 Available</span>}
-              {status === 'BOOKED' && <span>🔵 Booked</span>}
-              {status === 'PENDING' && <span>🟡 Pending</span>}
-              {status === 'SOLD' && <span>🔴 Sold</span>}
+              {status === 'AVAILABLE' && <span>Green Available</span>}
+              {status === 'BOOKED' && <span>Yellow Booked</span>}
+              {status === 'PENDING' && <span>Yellow Pending</span>}
+              {status === 'SOLD' && <span>Red Sold</span>}
             </button>
           ))}
 
-          {/* Block Selector */}
           <div className="flex items-center gap-1 ml-2 pl-2 border-l border-[#0B4F3C]/20">
             <span className="text-[10px] text-[#0B4F3C] font-bold">Block:</span>
             {blocks.map((b) => (
@@ -178,124 +241,155 @@ export const PlotMapCanvas: React.FC<PlotMapCanvasProps> = ({
           </div>
         </div>
 
-        {/* Search & Zoom Controls */}
-        <div className="flex items-center gap-3">
-          <div className="relative">
-            <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#0B4F3C]" />
-            <input
-              type="text"
-              placeholder="Search plot no..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="bg-white border border-[#0B4F3C]/20 rounded-lg pl-8 pr-3 py-1.5 text-xs text-[#171A18] font-bold focus:outline-none focus:border-[#0B4F3C]"
-            />
-          </div>
-
-          <div className="flex items-center bg-white rounded-lg border border-[#0B4F3C]/20 p-1 gap-1">
-            <button
-              onClick={() => setZoom((z) => Math.max(0.6, z - 0.2))}
-              className="p-1 text-[#0B4F3C] hover:bg-[#EAF3EF] rounded cursor-pointer"
-              title="Zoom Out"
-            >
-              <ZoomOut className="w-4 h-4" />
-            </button>
-            <span className="text-[10px] font-bold text-[#0B4F3C] px-1">{Math.round(zoom * 100)}%</span>
-            <button
-              onClick={() => setZoom((z) => Math.min(2.0, z + 0.2))}
-              className="p-1 text-[#0B4F3C] hover:bg-[#EAF3EF] rounded cursor-pointer"
-              title="Zoom In"
-            >
-              <ZoomIn className="w-4 h-4" />
-            </button>
-            <button
-              onClick={resetView}
-              className="p-1 text-[#0B4F3C] hover:bg-[#EAF3EF] border-l border-[#0B4F3C]/20 rounded cursor-pointer"
-              title="Reset View"
-            >
-              <RotateCcw className="w-3.5 h-3.5" />
-            </button>
-          </div>
+        <div className="relative">
+          <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#0B4F3C]" />
+          <input
+            type="text"
+            placeholder="Search plot no..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="bg-white border border-[#0B4F3C]/20 rounded-lg pl-8 pr-3 py-1.5 text-xs text-[#171A18] font-bold focus:outline-none focus:border-[#0B4F3C]"
+          />
         </div>
       </div>
 
-      {/* Hint */}
-      <div className="flex items-center gap-1.5 text-[10px] text-[#171A18]/70 -mb-2">
-        <Move className="w-3 h-3 text-[#0B4F3C]" /> Drag to pan · scroll controls to zoom · click a plot for details
+      <div className="flex items-center gap-4 text-[10px] font-bold text-[#171A18]/70">
+        <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: DOT_GREEN }} /> Available</span>
+        <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: DOT_YELLOW }} /> Booked / Pending</span>
+        <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: DOT_RED }} /> Sold</span>
+        <span className="ml-auto flex items-center gap-1 text-[#0B4F3C]">
+          <MousePointerClick className="w-3 h-3" />
+          Select a plot, click the exact box on the image, then drag to fine-tune
+        </span>
       </div>
 
-      {/* SVG Canvas Map Render with Blueprint Background Overlay */}
-      <div
-        className="w-full h-[520px] bg-[#FAF9F6] rounded-xl border border-[#0B4F3C]/20 overflow-hidden relative p-6 cursor-grab active:cursor-grabbing shadow-inner"
-        onMouseDown={onPanStart}
-        onMouseMove={onPanMove}
-        onMouseUp={onPanEnd}
-        onMouseLeave={onPanEnd}
-      >
-        <div
-          style={{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`, transformOrigin: 'top left' }}
-          className="relative min-w-[950px] min-h-[500px]"
-        >
-          {/* Project Blueprint Image Background */}
-          {showMapBackground && projectMapImage && (
-            <div className="absolute inset-0 z-0 opacity-75 rounded-xl overflow-hidden pointer-events-none border border-[#0B4F3C]/30 bg-white">
-              <img src={projectMapImage} alt="Masterplan Blueprint" className="w-full h-full object-contain" />
-            </div>
-          )}
-
-          <svg width="950" height="500" className="w-full h-full relative z-10">
-            {/* Background Grid Lines */}
-            <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-              <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#0B4F3C" strokeWidth="0.3" strokeOpacity="0.2" />
-            </pattern>
-            <rect width="100%" height="100%" fill="url(#grid)" />
-
-            {/* Plot Polygons */}
+      <div className="grid grid-cols-1 lg:grid-cols-[220px_1fr] gap-4">
+        <div className="border border-[#0B4F3C]/15 rounded-xl overflow-hidden max-h-[640px] flex flex-col">
+          <div className="px-3 py-2 bg-[#EAF3EF] text-[10px] font-extrabold uppercase tracking-wider text-[#0B4F3C]">
+            Pin plots on naksha
+          </div>
+          <div className="overflow-y-auto p-2 space-y-1">
             {filteredPlots.map((plot) => {
-              const points = plot.polygon?.points || [];
-              const hasPolygon = points.length >= 3;
-              const x = plot.coordinates?.x ?? 50;
-              const y = plot.coordinates?.y ?? 50;
-              const width = plot.coordinates?.width || 125;
-              const height = plot.coordinates?.height || 90;
-              const color = getStatusColor(plot.status);
-
-              const cx = hasPolygon ? points.reduce((s, p) => s + p.x, 0) / points.length : x + width / 2;
-              const cy = hasPolygon ? points.reduce((s, p) => s + p.y, 0) / points.length : y + height / 2;
-              const priceL = ((plot.totalCost || plot.price || 0) / 100000).toFixed(1);
-
+              const pinned = Boolean(markerOf(plot));
+              const isPinning = pinPlotId === plot._id;
               return (
-                <g key={plot._id} onClick={() => onSelectPlot(plot)} className="cursor-pointer group">
-                  {hasPolygon ? (
-                    <polygon
-                      points={points.map((p) => `${p.x},${p.y}`).join(' ')}
-                      fill={color}
-                      fillOpacity="0.25"
-                      stroke={color}
-                      strokeWidth="2.5"
-                      className="transition-all duration-200 group-hover:fill-opacity-50"
-                    />
-                  ) : (
-                    <rect
-                      x={x} y={y} width={width} height={height} rx="8"
-                      fill={color}
-                      fillOpacity="0.25"
-                      stroke={color}
-                      strokeWidth="2.5"
-                      className="transition-all duration-200 group-hover:fill-opacity-50"
-                    />
-                  )}
-                  <text x={cx} y={cy - 4} textAnchor="middle" fill="#171A18" fontSize="12" fontWeight="bold" className="pointer-events-none select-none">
+                <button
+                  key={plot._id}
+                  type="button"
+                  onClick={() => setPinPlotId(isPinning ? null : plot._id)}
+                  className={`w-full text-left px-2.5 py-1.5 rounded-lg text-[11px] font-bold flex items-center justify-between cursor-pointer ${
+                    isPinning
+                      ? 'bg-[#0B4F3C] text-white'
+                      : pinned
+                      ? 'bg-white border border-[#0B4F3C]/15 text-[#171A18]'
+                      : 'bg-[#FAF9F6] border border-dashed border-[#0B4F3C]/25 text-[#0B4F3C]'
+                  }`}
+                >
+                  <span className="flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full" style={{ backgroundColor: statusDotColor(plot.status) }} />
                     {plot.plotNo}
-                  </text>
-                  <text x={cx} y={cy + 12} textAnchor="middle" fill={color} fontSize="10" fontWeight="bold" className="pointer-events-none select-none">
-                    ₹{priceL}L
-                  </text>
-                </g>
+                  </span>
+                  <span className="text-[9px] opacity-70">{pinned ? 'Pinned' : 'Click to pin'}</span>
+                </button>
               );
             })}
-          </svg>
+            {filteredPlots.length === 0 && (
+              <p className="text-[11px] text-[#171A18]/50 p-3 text-center">No plots in this filter.</p>
+            )}
+          </div>
+        </div>
+
+        <div className="rounded-xl border border-[#0B4F3C]/20 overflow-auto bg-[#FAF9F6]">
+          {!projectMapImage ? (
+            <div className="h-[420px] flex flex-col items-center justify-center gap-2 text-center px-6">
+              <MapPin className="w-8 h-8 text-[#0B4F3C]/40" />
+              <p className="text-sm font-bold text-[#171A18]">Upload this project&apos;s naksha image first</p>
+              <p className="text-xs text-[#171A18]/60">Edit the project and set Layout / Map image. Pins sit on that exact photo.</p>
+            </div>
+          ) : (
+            <div
+              ref={mapRef}
+              className={`relative w-full ${pinPlotId ? 'cursor-crosshair' : 'cursor-default'}`}
+              onClick={handleMapClick}
+              onMouseMove={handleMapMouseMove}
+              onMouseUp={handleMapMouseUp}
+              onMouseLeave={handleMapMouseUp}
+            >
+              <img
+                src={projectMapImage}
+                alt={`${selectedProject?.name || 'Project'} naksha`}
+                className="w-full h-auto block select-none pointer-events-none"
+              />
+
+              {pinTarget && (
+                <div className="absolute top-3 left-3 z-20 bg-[#0B4F3C] text-white text-[11px] font-bold px-3 py-1.5 rounded-lg shadow-lg">
+                  Click the exact box for Plot {pinTarget.plotNo}
+                </div>
+              )}
+
+              {pinnedPlots.map((plot) => {
+                const marker = markerOf(plot);
+                if (!marker) return null;
+                const color = statusDotColor(plot.status);
+                const isHovered = hoveredId === plot._id && !draggingId;
+                const flipLeft = marker.xPercent > 70;
+                return (
+                  <div
+                    key={plot._id}
+                    className="absolute z-10 -translate-x-1/2 -translate-y-1/2"
+                    style={{ left: `${marker.xPercent}%`, top: `${marker.yPercent}%` }}
+                    onMouseDown={(e) => handleDotMouseDown(e, plot)}
+                    onMouseEnter={() => setHoveredId(plot._id)}
+                    onMouseLeave={() => setHoveredId(null)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onSelectPlot(plot);
+                    }}
+                  >
+                    <span className="relative flex h-4 w-4 items-center justify-center cursor-grab active:cursor-grabbing">
+                      {plot.status === 'AVAILABLE' && (
+                        <span className="absolute inline-flex h-full w-full rounded-full opacity-40 animate-ping" style={{ backgroundColor: color }} />
+                      )}
+                      <span
+                        className="relative inline-flex h-3.5 w-3.5 rounded-full border-2 border-white shadow-md"
+                        style={{ backgroundColor: color }}
+                      />
+                    </span>
+                    {isHovered && (
+                      <div className={`absolute top-1/2 -translate-y-1/2 w-56 bg-white rounded-xl shadow-xl border border-[#0B4F3C]/15 p-3 z-20 ${flipLeft ? 'right-5' : 'left-5'}`}>
+                        <p className="text-[10px] font-extrabold uppercase tracking-wider text-[#0B4F3C] mb-2">Plot {plot.plotNo}</p>
+                        <dl className="space-y-1 text-[11px] text-[#171A18]">
+                          <HoverRow label="Type" value={derivePlotType(plot)} />
+                          <HoverRow label="Facing" value={deriveFacing(plot)} />
+                          <HoverRow label="Area" value={`${plot.sizeSqft || '—'} sqft`} />
+                          <HoverRow label="Dimension" value={plot.dimensions || '—'} />
+                          <HoverRow label="Status" value={plot.status} />
+                        </dl>
+                        <p className="mt-2 text-[10px] text-[#171A18]/50">Drag to move · click for booking</p>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </div>
+
+      {unpinnedPlots.length > 0 && projectMapImage && (
+        <p className="text-[11px] text-[#171A18]/55">
+          {unpinnedPlots.length} plot{unpinnedPlots.length === 1 ? '' : 's'} still need a pin. Select from the left list, then click the matching box on the naksha.
+        </p>
+      )}
     </div>
   );
 };
+
+function HoverRow({ label, value }: { label: string; value: React.ReactNode }) {
+  return (
+    <div className="flex items-center justify-between gap-2">
+      <dt className="text-[#171A18]/50">{label}</dt>
+      <dd className="font-bold">{value}</dd>
+    </div>
+  );
+}

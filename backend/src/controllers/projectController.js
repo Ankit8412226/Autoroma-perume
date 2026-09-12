@@ -1,6 +1,8 @@
 const Project = require('../models/Project');
 const ProjectSettings = require('../models/ProjectSettings');
 const Plot = require('../models/Plot');
+const { applyProjectMaps } = require('../utils/googleMaps');
+const { normalizeExtractedPlot, buildPricedPlot, DEFAULT_STATUS } = require('../utils/plotFromOcr');
 
 exports.getProjects = async (req, res, next) => {
   try {
@@ -63,80 +65,53 @@ exports.getProjects = async (req, res, next) => {
 
 exports.createProject = async (req, res, next) => {
   try {
-    const project = await Project.create(req.body);
+    const maps = applyProjectMaps(req.body);
+    const ocrPlots = Array.isArray(req.body.ocrPlots) ? req.body.ocrPlots : [];
+    const normalizedPlots = ocrPlots
+      .map((plot, index) => normalizeExtractedPlot(plot, index))
+      .filter(Boolean);
+
+    const project = await Project.create({
+      ...req.body,
+      ...maps,
+      totalPlots: normalizedPlots.length || Number(req.body.totalPlots) || 0
+    });
     await ProjectSettings.create({ projectId: project._id });
 
-    // If custom OCR extracted plots were provided during project creation, save them directly!
-    const ocrPlots = req.body.ocrPlots;
-    if (Array.isArray(ocrPlots) && ocrPlots.length > 0) {
-      const plotsToInsert = ocrPlots.map((p, i) => {
-        const sizeSqft = p.sizeSqft || (p.sellableSqYrd ? p.sellableSqYrd * 9 : 1800);
-        const basePrice = req.body.basePricePerSqft || 4000;
-        const col = i % 5;
-        const row = Math.floor(i / 5);
-        const x = p.coordinates?.x ?? (50 + col * 150);
-        const y = p.coordinates?.y ?? (50 + row * 110);
-        const width = p.coordinates?.width || 130;
-        const height = p.coordinates?.height || 90;
-
+    if (normalizedPlots.length > 0) {
+      const plotsToInsert = normalizedPlots.map((plot) => {
+        const priced = buildPricedPlot(plot, project.basePricePerSqft);
         return {
           projectId: project._id,
-          block: p.plotNo ? p.plotNo.split('-')[0] : 'A',
-          plotNo: p.plotNo || `P-${101 + i}`,
-          sizeSqft,
-          sellableSqYrd: p.sellableSqYrd || 0,
-          carpetSqYrd: p.carpetSqYrd || 0,
-          price: p.totalCost || (sizeSqft * basePrice),
-          totalCost: p.totalCost || (sizeSqft * basePrice),
-          status: p.status || 'AVAILABLE',
-          coordinates: { x, y, width, height },
-          polygon: {
-            points: p.polygonPoints || p.polygon?.points || [
-              { x, y },
-              { x: x + width, y },
-              { x: x + width, y: y + height },
-              { x, y: y + height }
-            ]
-          }
+          block: priced.block,
+          plotNo: priced.plotNo,
+          sizeSqft: priced.sizeSqft,
+          sellableSqYrd: priced.sellableSqYrd,
+          carpetSqYrd: priced.carpetSqYrd,
+          plc12mtr: priced.plc12mtr,
+          plc9mtr: priced.plc9mtr,
+          plcCorner: priced.plcCorner,
+          plcParkFacing: priced.plcParkFacing,
+          totalPlc: priced.totalPlc,
+          discountedPlc: priced.discountedPlc,
+          otmc: priced.otmc,
+          baseRatePerSqYrd: priced.baseRatePerSqYrd,
+          gstOnOtherCharges: priced.gstOnOtherCharges,
+          totalCost: priced.totalCost,
+          price: priced.price,
+          plotType: priced.plotType,
+          facing: priced.facing,
+          dimensions: priced.dimensions,
+          superBuiltUpSqft: priced.superBuiltUpSqft,
+          marker: priced.marker,
+          coordinates: priced.coordinates,
+          polygon: { points: priced.polygonPoints },
+          status: DEFAULT_STATUS
         };
       });
-
       await Plot.insertMany(plotsToInsert);
-    } else {
-      // Automatically generate plots for new project if totalPlots provided
-      const totalPlots = req.body.totalPlots || 20;
-      const basePrice = req.body.basePricePerSqft || 4000;
-      const plotsToInsert = [];
-
-      for (let i = 1; i <= totalPlots; i++) {
-        const block = i <= Math.ceil(totalPlots / 2) ? 'A' : 'B';
-        const sizeSqft = 1200 + (i % 4) * 250;
-        const price = sizeSqft * basePrice;
-        const col = (i - 1) % 5;
-        const row = Math.floor((i - 1) / 5);
-        const x = 50 + col * 150;
-        const y = 50 + row * 110;
-
-        plotsToInsert.push({
-          projectId: project._id,
-          block,
-          plotNo: `${block}-${100 + i}`,
-          sizeSqft,
-          price,
-          status: 'AVAILABLE',
-          coordinates: { x, y, width: 130, height: 90 },
-          polygon: {
-            points: [
-              { x, y },
-              { x: x + 130, y },
-              { x: x + 130, y: y + 90 },
-              { x, y: y + 90 }
-            ]
-          }
-        });
-      }
-
-      await Plot.insertMany(plotsToInsert);
+      project.totalPlots = plotsToInsert.length;
+      await project.save();
     }
 
     res.status(201).json(project);
@@ -148,7 +123,8 @@ exports.createProject = async (req, res, next) => {
 exports.updateProject = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const project = await Project.findByIdAndUpdate(id, req.body, { new: true });
+    const maps = applyProjectMaps(req.body);
+    const project = await Project.findByIdAndUpdate(id, { ...req.body, ...maps }, { new: true });
     if (!project) return res.status(404).json({ message: 'Project not found' });
     res.json(project);
   } catch (error) {

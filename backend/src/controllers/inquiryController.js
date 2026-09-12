@@ -5,12 +5,30 @@ const Property = require('../models/Property');
 const User = require('../models/User');
 const Employee = require('../models/Employee');
 const bcrypt = require('bcryptjs');
+const { getPresignedUrl } = require('../services/s3Service');
+const { deriveMapEmbedUrl } = require('../utils/googleMaps');
+
+async function withFreshProjectMedia(project) {
+  if (!project) return project;
+  if (project.mapImageS3Key) {
+    const freshMap = await getPresignedUrl(project.mapImageS3Key);
+    if (freshMap) project.mapImageUrl = freshMap;
+  }
+  if (project.bannerImageS3Key) {
+    const freshBanner = await getPresignedUrl(project.bannerImageS3Key);
+    if (freshBanner) project.bannerImage = freshBanner;
+  }
+  if (!project.mapEmbedUrl && project.googleMapsUrl) {
+    project.mapEmbedUrl = deriveMapEmbedUrl(project.googleMapsUrl);
+  }
+  return project;
+}
 
 // 1. Public Project Listing (With Live MongoDB Plot Status Aggregation)
 exports.getPublicProjects = async (req, res, next) => {
   try {
     const projects = await Project.find({ status: { $ne: 'DELETED' } })
-      .select('name code location city state description highlights locationAdvantages amenities totalAreaSqft area totalPlots priceRange basePricePerSqft bannerImage mapImageUrl logoImage insetImage gallery surveyNumber village googleMapsUrl mapEmbedUrl brochureUrl videoUrl contactPhone contactEmail legalInfo legalDocuments launchDate status')
+      .select('name code location city state description highlights locationAdvantages amenities totalAreaSqft area totalPlots priceRange basePricePerSqft bannerImage bannerImageS3Key mapImageUrl mapImageS3Key logoImage insetImage gallery surveyNumber village googleMapsUrl mapEmbedUrl brochureUrl videoUrl contactPhone contactEmail legalInfo legalDocuments launchDate status')
       .sort({ createdAt: -1 })
       .lean();
 
@@ -30,8 +48,9 @@ exports.getPublicProjects = async (req, res, next) => {
 
         const totalPlotsInDB = Object.values(statsMap).reduce((a, b) => a + b, 0);
 
+        const hydrated = await withFreshProjectMedia(p);
         return {
-          ...p,
+          ...hydrated,
           totalPlots: Math.max(p.totalPlots || 0, totalPlotsInDB),
           availableCount: statsMap.AVAILABLE,
           bookedCount: statsMap.BOOKED,
@@ -70,7 +89,7 @@ exports.getPublicProjectById = async (req, res, next) => {
     const totalPlotsInDB = Object.values(statsMap).reduce((a, b) => a + b, 0);
 
     const plots = await Plot.find({ projectId: project._id })
-      .select('block plotNo sizeSqft sellableSqYrd carpetSqYrd price totalCost status coordinates polygon')
+      .select('block plotNo sizeSqft sellableSqYrd carpetSqYrd price totalCost status plotType facing dimensions superBuiltUpSqft plc12mtr plc9mtr plcCorner plcParkFacing totalPlc marker')
       .sort({ plotNo: 1 });
 
     const properties = await Property.find({
@@ -78,9 +97,10 @@ exports.getPublicProjectById = async (req, res, next) => {
       isPublished: { $ne: false }
     }).sort({ isFeatured: -1, createdAt: -1 });
 
+    const hydrated = await withFreshProjectMedia(project);
     res.json({
       project: {
-        ...project,
+        ...hydrated,
         totalPlots: Math.max(project.totalPlots || 0, totalPlotsInDB),
         availableCount: statsMap.AVAILABLE,
         bookedCount: statsMap.BOOKED,
@@ -112,7 +132,7 @@ exports.getPublicPlots = async (req, res, next) => {
     }
 
     const plots = await Plot.find(filter)
-      .select('projectId block plotNo sizeSqft sellableSqYrd carpetSqYrd price totalCost status coordinates polygon')
+      .select('projectId block plotNo sizeSqft sellableSqYrd carpetSqYrd price totalCost status plotType facing dimensions superBuiltUpSqft plc12mtr plc9mtr plcCorner plcParkFacing totalPlc marker')
       .populate('projectId', 'name location code');
 
     res.json(plots);

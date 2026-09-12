@@ -115,6 +115,10 @@ exports.updatePlotStatus = async (req, res, next) => {
     if (registryDate !== undefined) plot.registryDate = registryDate ? new Date(registryDate) : null;
     if (registryStatus !== undefined) plot.registryStatus = registryStatus;
     if (Array.isArray(paymentMilestones)) plot.paymentMilestones = paymentMilestones;
+    if (req.body.plotType !== undefined) plot.plotType = req.body.plotType;
+    if (req.body.facing !== undefined) plot.facing = req.body.facing;
+    if (req.body.dimensions !== undefined) plot.dimensions = req.body.dimensions;
+    if (req.body.superBuiltUpSqft !== undefined) plot.superBuiltUpSqft = Number(req.body.superBuiltUpSqft) || 0;
 
     const totalPlotPrice = plot.totalCost || plot.price || 0;
     plot.dueBalance = Math.max(0, totalPlotPrice - (plot.paidAmount || 0));
@@ -170,6 +174,34 @@ exports.updatePlotStatus = async (req, res, next) => {
       }
     }
 
+    res.json(plot);
+  } catch (error) {
+    next(error);
+  }
+};
+
+const MARKER_MIN = 0;
+const MARKER_MAX = 100;
+
+function clampPercent(value) {
+  const num = Number(value);
+  if (Number.isNaN(num)) return null;
+  return Math.min(MARKER_MAX, Math.max(MARKER_MIN, num));
+}
+
+exports.updatePlotMarker = async (req, res, next) => {
+  try {
+    const plot = await Plot.findById(req.params.id);
+    if (!plot) return res.status(404).json({ message: 'Plot not found' });
+
+    const xPercent = clampPercent(req.body.xPercent);
+    const yPercent = clampPercent(req.body.yPercent);
+    if (xPercent === null || yPercent === null) {
+      return res.status(400).json({ message: 'xPercent and yPercent are required (0-100)' });
+    }
+
+    plot.marker = { xPercent, yPercent };
+    await plot.save();
     res.json(plot);
   } catch (error) {
     next(error);
