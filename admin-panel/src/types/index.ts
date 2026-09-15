@@ -17,8 +17,43 @@ export const RANKS = [
   'Director Sales'
 ];
 
+export type KycStatus = 'DRAFT' | 'SUBMITTED' | 'APPROVED' | 'REJECTED';
+
+export interface AgentKyc {
+  _id?: string;
+  employeeId?: any;
+  firstName: string;
+  middleName: string;
+  surname: string;
+  dateOfBirth?: string | null;
+  address: string;
+  mobile: string;
+  alternatePhone: string;
+  email: string;
+  panNumber: string;
+  aadhaarNumber: string;
+  accountHolderName: string;
+  accountNumber: string;
+  ifscCode: string;
+  bankName: string;
+  branchName: string;
+  nomineeName: string;
+  nomineeDob?: string | null;
+  nomineeAddress: string;
+  nomineeRelation: string;
+  panDocUrl: string;
+  panDocS3Key: string;
+  aadhaarDocUrl: string;
+  aadhaarDocS3Key: string;
+  status: KycStatus;
+  rejectionReason?: string;
+  submittedAt?: string;
+  reviewedAt?: string;
+}
+
 export interface Employee {
   id: string;
+  _id?: string;
   employeeCode: string;
   currentRank: string;
   selfSalesCount: number;

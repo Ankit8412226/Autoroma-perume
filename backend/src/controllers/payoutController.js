@@ -1,8 +1,12 @@
 const Payout = require('../models/Payout');
 const Commission = require('../models/Commission');
+const AgentKyc = require('../models/AgentKyc');
 const { sendNotification } = require('../services/notificationService');
 const Employee = require('../models/Employee');
 const { getDownlineEmployeeIds } = require('../services/mlmEngine');
+
+const KYC_APPROVED = 'APPROVED';
+const KYC_REQUIRED_MESSAGE = 'KYC must be approved by a manager or admin before requesting a payout. Complete KYC first.';
 
 exports.getPayouts = async (req, res, next) => {
   try {
@@ -33,7 +37,7 @@ exports.getPayouts = async (req, res, next) => {
 
 exports.requestPayout = async (req, res, next) => {
   try {
-    const { employeeId: bodyEmployeeId, bankDetails } = req.body;
+    const { employeeId: bodyEmployeeId } = req.body;
 
     const isAdmin = req.user && ['ADMIN', 'DIRECTOR'].includes(req.user.role);
 
@@ -50,6 +54,19 @@ exports.requestPayout = async (req, res, next) => {
     if (!employeeId) {
       return res.status(400).json({ message: 'employeeId is required' });
     }
+
+    const approvedKyc = await AgentKyc.findOne({ employeeId, status: KYC_APPROVED });
+    if (!approvedKyc) {
+      return res.status(400).json({ message: KYC_REQUIRED_MESSAGE });
+    }
+
+    const bankDetails = {
+      accountNumber: approvedKyc.accountNumber,
+      ifscCode: approvedKyc.ifscCode,
+      bankName: approvedKyc.bankName,
+      branchName: approvedKyc.branchName,
+      accountHolderName: approvedKyc.accountHolderName
+    };
 
     // Settle exactly the employee's outstanding (unpaid) commissions. The payout
     // amount is derived from those records, never trusted from the request body.

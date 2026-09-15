@@ -7,8 +7,9 @@ import { EmptyState } from '../components/common/EmptyState';
 import { ErrorState } from '../components/common/ErrorState';
 import { Pagination } from '../components/common/Pagination';
 import { formatCurrency, formatDate } from '../utils/formatters';
-import { Plus, RefreshCw, CheckCircle2, CreditCard, Search, DollarSign, Clock, Filter } from 'lucide-react';
+import { Plus, RefreshCw, CheckCircle2, CreditCard, Search, DollarSign, Clock, Filter, ShieldAlert } from 'lucide-react';
 import { useToast } from '../context/ToastContext';
+import { Link } from 'react-router-dom';
 
 export const PayoutsPage: React.FC = () => {
   const toast = useToast();
@@ -19,6 +20,7 @@ export const PayoutsPage: React.FC = () => {
   const [isRequestModalOpen, setIsRequestModalOpen] = useState<boolean>(false);
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [kycEligible, setKycEligible] = useState<boolean>(true);
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -32,12 +34,14 @@ export const PayoutsPage: React.FC = () => {
     setIsLoading(true);
     setError(null);
     try {
-      const [payRes, empRes] = await Promise.all([
+      const [payRes, empRes, kycRes] = await Promise.all([
         api.get('/payouts'),
-        api.get('/employees')
+        api.get('/employees'),
+        api.get('/kyc/me').catch(() => ({ data: { payoutEligible: false } }))
       ]);
       setPayouts(payRes.data || []);
       setEmployees(empRes.data || []);
+      setKycEligible(Boolean(kycRes.data?.payoutEligible));
     } catch (e: any) {
       console.error(e);
       setError(e?.friendlyMessage || 'Failed to fetch payouts list.');
@@ -108,6 +112,21 @@ export const PayoutsPage: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {!kycEligible ? (
+        <div className="p-4 bg-amber-50 rounded-2xl border border-amber-200 text-amber-900 flex flex-wrap items-center justify-between gap-3 text-xs">
+          <div className="flex items-center gap-3">
+            <ShieldAlert className="w-5 h-5" />
+            <div>
+              <p className="font-bold">KYC approval required for payouts</p>
+              <p className="text-[11px] opacity-80 mt-0.5">Fill PAN, Aadhaar and bank details. A manager or admin must approve before you can request a payout.</p>
+            </div>
+          </div>
+          <Link to="/kyc" className="px-3.5 py-1.5 rounded-xl bg-amber-700 text-white font-bold">
+            Complete My KYC
+          </Link>
+        </div>
+      ) : null}
 
       {/* KPI Cards Ribbon */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

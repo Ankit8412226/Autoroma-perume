@@ -20,7 +20,9 @@ import {
   ShieldCheck,
   ChevronRight,
   X,
-  Home
+  Home,
+  Link2,
+  ClipboardCheck
 } from 'lucide-react';
 
 const ALL_ROLES = ['ADMIN', 'DIRECTOR', 'MANAGER', 'EMPLOYEE', 'AGENT'];
@@ -60,6 +62,7 @@ const navSections: NavSection[] = [
   {
     title: 'MLM AGENT NETWORK',
     items: [
+      { name: 'Invite Agents', path: '/invite', icon: Link2, allowedRoles: ALL_ROLES },
       { name: 'Employees & Agents', path: '/employees', icon: Users, allowedRoles: ALL_ROLES },
       { name: 'Downline MLM Tree', path: '/mlm-tree', icon: GitMerge, allowedRoles: ALL_ROLES },
     ]
@@ -67,6 +70,8 @@ const navSections: NavSection[] = [
   {
     title: 'FINANCIALS & PAYOUTS',
     items: [
+      { name: 'My KYC', path: '/kyc', icon: ShieldCheck, allowedRoles: ALL_ROLES },
+      { name: 'KYC Approvals', path: '/kyc-review', icon: ClipboardCheck, allowedRoles: ADMIN_DIRECTOR_MANAGER },
       { name: 'Commissions Ledger', path: '/commissions', icon: DollarSign, allowedRoles: ALL_ROLES },
       { name: 'Payout Requests', path: '/payouts', icon: CreditCard, allowedRoles: ALL_ROLES },
       { name: 'Financial Reports', path: '/reports', icon: FileBarChart, allowedRoles: ADMIN_DIRECTOR },

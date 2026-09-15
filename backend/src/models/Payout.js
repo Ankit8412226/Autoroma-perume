@@ -31,7 +31,9 @@ const payoutSchema = new mongoose.Schema({
   bankDetails: {
     accountNumber: String,
     ifscCode: String,
-    bankName: String
+    bankName: String,
+    branchName: String,
+    accountHolderName: String
   },
   // The exact commissions this payout settles — approving it marks only these
   // as PAID, keeping payout totals reconciled with commission records.

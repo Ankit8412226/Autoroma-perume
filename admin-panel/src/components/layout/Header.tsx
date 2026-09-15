@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { Search, Bell, LogOut, Menu, ChevronRight, Plus, Building2, Users, MapPin, ScanText, Home, Link2 } from 'lucide-react';
+import { Search, Bell, LogOut, Menu, ChevronRight, Plus, Building2, Users, MapPin, ScanText, Home, Link2, ShieldCheck } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 const ROLE_LABEL: Record<string, string> = {
@@ -20,6 +20,9 @@ const ROUTE_NAMES: Record<string, string> = {
   '/plot-maps': 'Plot Map Canvas',
   '/ocr-analyzer': 'Naksha AI Analyzer',
   '/employees': 'Employees & Agents',
+  '/invite': 'Invite Agents',
+  '/kyc': 'My KYC',
+  '/kyc-review': 'KYC Approvals',
   '/mlm-tree': 'Downline MLM Tree',
   '/commissions': 'Commissions Ledger',
   '/payouts': 'Payout Requests',
@@ -123,10 +126,16 @@ export const Header: React.FC<HeaderProps> = ({ onToggleMobileMenu }) => {
                 <Users className="w-4 h-4 text-[#0B4F3C]" /> Onboard Agent / Employee
               </button>
               <button
-                onClick={() => { navigate('/employees'); setShowQuickActions(false); }}
+                onClick={() => { navigate('/invite'); setShowQuickActions(false); }}
                 className="w-full px-3 py-2 rounded-xl text-xs font-bold text-left flex items-center gap-2 hover:bg-[#EAF3EF] text-[#171A18] cursor-pointer"
               >
-                <Link2 className="w-4 h-4 text-[#0B4F3C]" /> Generate agent invite link
+                <Link2 className="w-4 h-4 text-[#0B4F3C]" /> Copy agent invite link
+              </button>
+              <button
+                onClick={() => { navigate('/kyc'); setShowQuickActions(false); }}
+                className="w-full px-3 py-2 rounded-xl text-xs font-bold text-left flex items-center gap-2 hover:bg-[#EAF3EF] text-[#171A18] cursor-pointer"
+              >
+                <ShieldCheck className="w-4 h-4 text-[#0B4F3C]" /> Complete My KYC
               </button>
               <button
                 onClick={() => { navigate('/plots'); setShowQuickActions(false); }}

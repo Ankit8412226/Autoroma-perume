@@ -20,12 +20,17 @@ import { AIKnowledgePage } from './pages/AIKnowledgePage';
 import { LeadsInquiriesPage } from './pages/LeadsInquiriesPage';
 import { PropertiesPage } from './pages/PropertiesPage';
 import { JoinAgentPage } from './pages/JoinAgentPage';
+import { InviteAgentsPage } from './pages/InviteAgentsPage';
+import { AgentKycPage } from './pages/AgentKycPage';
+import { KycReviewPage } from './pages/KycReviewPage';
 
 const ADMIN_ROLES = ['ADMIN', 'DIRECTOR'];
+const KYC_REVIEW_ROLES = ['ADMIN', 'DIRECTOR', 'MANAGER'];
 
-const ProtectedRoute: React.FC<{ children: React.ReactNode; adminOnly?: boolean }> = ({
+const ProtectedRoute: React.FC<{ children: React.ReactNode; adminOnly?: boolean; roles?: string[] }> = ({
   children,
-  adminOnly
+  adminOnly,
+  roles
 }) => {
   const { token, user } = useAuth();
   if (!token) {
@@ -34,6 +39,9 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode; adminOnly?: boolean 
   const isAdmin = !!user && ADMIN_ROLES.includes(user.role);
   if (adminOnly && !isAdmin) {
     return <Navigate to="/mlm-tree" replace />;
+  }
+  if (roles && user && !roles.includes(user.role)) {
+    return <Navigate to="/kyc" replace />;
   }
   return <Layout>{children}</Layout>;
 };
@@ -56,6 +64,9 @@ export const App: React.FC = () => {
             <Route path="/dashboard" element={<ProtectedRoute adminOnly><DashboardPage /></ProtectedRoute>} />
             <Route path="/inquiries" element={<ProtectedRoute><LeadsInquiriesPage /></ProtectedRoute>} />
             <Route path="/employees" element={<ProtectedRoute><EmployeesPage /></ProtectedRoute>} />
+            <Route path="/invite" element={<ProtectedRoute><InviteAgentsPage /></ProtectedRoute>} />
+            <Route path="/kyc" element={<ProtectedRoute><AgentKycPage /></ProtectedRoute>} />
+            <Route path="/kyc-review" element={<ProtectedRoute roles={KYC_REVIEW_ROLES}><KycReviewPage /></ProtectedRoute>} />
             <Route path="/mlm-tree" element={<ProtectedRoute><MLMTreePage /></ProtectedRoute>} />
             <Route path="/projects" element={<ProtectedRoute adminOnly><ProjectsPage /></ProtectedRoute>} />
             <Route path="/properties" element={<ProtectedRoute adminOnly><PropertiesPage /></ProtectedRoute>} />

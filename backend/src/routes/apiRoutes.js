@@ -11,6 +11,7 @@ const plotMapController = require('../controllers/plotMapController');
 const ocrController = require('../controllers/ocrController');
 const commissionController = require('../controllers/commissionController');
 const payoutController = require('../controllers/payoutController');
+const kycController = require('../controllers/kycController');
 const dashboardController = require('../controllers/dashboardController');
 const notificationController = require('../controllers/notificationController');
 const reportController = require('../controllers/reportController');
@@ -212,6 +213,15 @@ router.post('/payouts/request', protect, validate({
   employeeId: { type: 'objectId' }
 }), payoutController.requestPayout);
 router.post('/payouts/:id/approve', protect, authorize('ADMIN', 'DIRECTOR'), payoutController.approvePayout);
+
+// --- Agent KYC (required before payout) ---
+router.get('/kyc/me', protect, kycController.getMyKyc);
+router.put('/kyc/me', protect, kycController.saveMyKyc);
+router.get('/kyc', protect, authorize('ADMIN', 'DIRECTOR', 'MANAGER'), kycController.listKyc);
+router.get('/kyc/employee/:employeeId', protect, kycController.getKycByEmployee);
+router.get('/kyc/:id', protect, authorize('ADMIN', 'DIRECTOR', 'MANAGER'), kycController.getKycById);
+router.post('/kyc/:id/approve', protect, authorize('ADMIN', 'DIRECTOR', 'MANAGER'), kycController.approveKyc);
+router.post('/kyc/:id/reject', protect, authorize('ADMIN', 'DIRECTOR', 'MANAGER'), kycController.rejectKyc);
 
 // --- Reports (admin / director only) ---
 router.get('/reports/commission-audit', protect, authorize('ADMIN', 'DIRECTOR'), reportController.commissionAuditReport);

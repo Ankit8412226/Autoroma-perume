@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import api from '../services/api';
 import { MLMTreeNode, Employee } from '../types';
 import { MLMTreeVisualizer } from '../components/mlm/MLMTreeVisualizer';
+import { InviteLinkCard } from '../components/employees/InviteLinkCard';
 import { Award, ShieldCheck, ChevronDown, ChevronUp, Users, Filter } from 'lucide-react';
 
 export const MLMTreePage: React.FC = () => {
@@ -59,6 +60,7 @@ export const MLMTreePage: React.FC = () => {
 
   return (
     <div className="space-y-5 animate-in fade-in duration-200">
+      <InviteLinkCard />
       {/* Sleek Page Header Toolbar */}
       <div className="bg-white p-5 rounded-2xl border border-[#0B4F3C]/10 shadow-xs flex flex-wrap items-center justify-between gap-4">
         <div>
