@@ -72,7 +72,7 @@ const navSections: NavSection[] = [
     items: [
       { name: 'My KYC', path: '/kyc', icon: ShieldCheck, allowedRoles: ALL_ROLES },
       { name: 'KYC Approvals', path: '/kyc-review', icon: ClipboardCheck, allowedRoles: ADMIN_DIRECTOR_MANAGER },
-      { name: 'Commissions Ledger', path: '/commissions', icon: DollarSign, allowedRoles: ALL_ROLES },
+      { name: 'Commissions Ledger', path: '/commissions', icon: DollarSign, allowedRoles: ADMIN_DIRECTOR_MANAGER },
       { name: 'Payout Requests', path: '/payouts', icon: CreditCard, allowedRoles: ALL_ROLES },
       { name: 'Financial Reports', path: '/reports', icon: FileBarChart, allowedRoles: ADMIN_DIRECTOR },
     ]
