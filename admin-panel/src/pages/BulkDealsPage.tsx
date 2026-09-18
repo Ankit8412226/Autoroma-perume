@@ -160,11 +160,18 @@ export const BulkDealsPage: React.FC = () => {
   const fetchOptions = async () => {
     try {
       const [projRes, propRes] = await Promise.all([
-        api.get('/projects'),
-        api.get('/properties')
+        api.get('/projects').catch(() => ({ data: [] })),
+        api.get('/properties').catch(() => ({ data: [] }))
       ]);
-      setProjects(Array.isArray(projRes.data) ? projRes.data : []);
-      setProperties(Array.isArray(propRes.data) ? propRes.data : []);
+      const projData = Array.isArray(projRes.data)
+        ? projRes.data
+        : (Array.isArray(projRes.data?.data) ? projRes.data.data : []);
+      const propData = Array.isArray(propRes.data)
+        ? propRes.data
+        : (Array.isArray(propRes.data?.data) ? propRes.data.data : []);
+
+      setProjects(projData);
+      setProperties(propData);
     } catch (error) {
       console.error('Error fetching options:', error);
     }
@@ -326,25 +333,33 @@ export const BulkDealsPage: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.title) {
+    if (!formData.title || !formData.title.trim()) {
       toast.error('Please enter a title for the bulk deal');
       return;
     }
 
     try {
       setIsSaving(true);
+      const payload = {
+        ...formData,
+        title: formData.title.trim(),
+        projectId: formData.dealType === 'PROJECT' ? (formData.projectId || null) : null,
+        propertyId: formData.dealType === 'PROPERTY' ? (formData.propertyId || null) : null
+      };
+
       if (editingDeal) {
-        await api.put(`/admin/bulk-deals/${editingDeal._id}`, formData);
+        await api.put(`/admin/bulk-deals/${editingDeal._id}`, payload);
         toast.success('Bulk deal updated successfully');
       } else {
-        await api.post('/admin/bulk-deals', formData);
+        await api.post('/admin/bulk-deals', payload);
         toast.success('Bulk deal created successfully');
       }
       setIsModalOpen(false);
       fetchDeals();
     } catch (error: any) {
       console.error('Error saving bulk deal:', error);
-      toast.error(error.response?.data?.message || 'Server error while saving deal');
+      const msg = error.response?.data?.message || 'Server error while saving deal';
+      toast.error(msg);
     } finally {
       setIsSaving(false);
     }

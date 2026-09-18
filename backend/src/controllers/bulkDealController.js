@@ -1,17 +1,33 @@
+const mongoose = require('mongoose');
 const BulkDeal = require('../models/BulkDeal');
 const BulkBuyInquiry = require('../models/BulkBuyInquiry');
 const Project = require('../models/Project');
 const Property = require('../models/Property');
 const { notifyAdmins } = require('../services/notificationService');
 
+function cleanObjectId(id) {
+  if (!id) return null;
+  const str = String(id).trim();
+  return mongoose.Types.ObjectId.isValid(str) ? str : null;
+}
+
+function parseValidDate(val) {
+  if (!val) return null;
+  const d = new Date(val);
+  return isNaN(d.getTime()) ? null : d;
+}
+
 function slugify(text) {
-  return text
-    .toString()
-    .toLowerCase()
-    .trim()
+  const raw = String(text || '').toLowerCase().trim();
+  let slug = raw
     .replace(/\s+/g, '-')
     .replace(/[^\w\-]+/g, '')
     .replace(/\-\-+/g, '-');
+
+  if (!slug || slug.length < 2) {
+    slug = `deal-${Date.now()}`;
+  }
+  return slug;
 }
 
 // GET /public/bulk-deals
@@ -62,7 +78,7 @@ exports.submitBulkDealRequest = async (req, res, next) => {
     }
 
     let resolvedTitle = dealTitle || '';
-    if (bulkDealId) {
+    if (bulkDealId && cleanObjectId(bulkDealId)) {
       const deal = await BulkDeal.findById(bulkDealId);
       if (deal && !resolvedTitle) {
         resolvedTitle = deal.title;
@@ -91,7 +107,7 @@ exports.submitBulkDealRequest = async (req, res, next) => {
     });
 
     res.status(201).json({
-      message: 'Bulk deal quote request submitted successfully. Our investment desk will get in touch shorty.',
+      message: 'Bulk deal quote request submitted successfully. Our investment desk will get in touch shortly.',
       inquiryId: inquiry._id
     });
   } catch (error) {
@@ -150,8 +166,8 @@ exports.createBulkDeal = async (req, res, next) => {
       order
     } = req.body;
 
-    if (!title) {
-      return res.status(400).json({ message: 'Title is required' });
+    if (!title || !String(title).trim()) {
+      return res.status(400).json({ message: 'Title is required to create a bulk deal' });
     }
 
     let baseSlug = slugify(title);
@@ -162,12 +178,15 @@ exports.createBulkDeal = async (req, res, next) => {
       counter++;
     }
 
+    const cleanProject = cleanObjectId(projectId);
+    const cleanProperty = cleanObjectId(propertyId);
+
     const newDeal = await BulkDeal.create({
       title: String(title).trim(),
       slug,
-      dealType: dealType || 'PROJECT',
-      projectId: projectId || null,
-      propertyId: propertyId || null,
+      dealType: ['PROJECT', 'PROPERTY', 'PACKAGE'].includes(dealType) ? dealType : 'PROJECT',
+      projectId: cleanProject,
+      propertyId: cleanProperty,
       location: String(location || '').trim(),
       city: String(city || '').trim(),
       state: String(state || '').trim(),
@@ -194,7 +213,7 @@ exports.createBulkDeal = async (req, res, next) => {
       description: String(description || '').trim(),
       isAvailable: isAvailable !== false,
       isFeatured: Boolean(isFeatured),
-      validTill: validTill ? new Date(validTill) : null,
+      validTill: parseValidDate(validTill),
       order: Number(order) || 0,
       createdBy: req.user ? req.user._id : null
     });
@@ -209,6 +228,10 @@ exports.createBulkDeal = async (req, res, next) => {
 exports.updateBulkDeal = async (req, res, next) => {
   try {
     const { id } = req.params;
+    if (!cleanObjectId(id)) {
+      return res.status(400).json({ message: 'Invalid Bulk Deal ID' });
+    }
+
     const deal = await BulkDeal.findById(id);
     if (!deal) {
       return res.status(404).json({ message: 'Bulk deal not found' });
@@ -249,7 +272,7 @@ exports.updateBulkDeal = async (req, res, next) => {
       order
     } = req.body;
 
-    if (title && title !== deal.title) {
+    if (title && String(title).trim() !== deal.title) {
       deal.title = String(title).trim();
       let baseSlug = slugify(deal.title);
       let slug = baseSlug;
@@ -261,9 +284,9 @@ exports.updateBulkDeal = async (req, res, next) => {
       deal.slug = slug;
     }
 
-    if (dealType !== undefined) deal.dealType = dealType;
-    if (projectId !== undefined) deal.projectId = projectId || null;
-    if (propertyId !== undefined) deal.propertyId = propertyId || null;
+    if (dealType !== undefined) deal.dealType = ['PROJECT', 'PROPERTY', 'PACKAGE'].includes(dealType) ? dealType : deal.dealType;
+    if (projectId !== undefined) deal.projectId = cleanObjectId(projectId);
+    if (propertyId !== undefined) deal.propertyId = cleanObjectId(propertyId);
     if (location !== undefined) deal.location = String(location).trim();
     if (city !== undefined) deal.city = String(city).trim();
     if (state !== undefined) deal.state = String(state).trim();
@@ -290,7 +313,7 @@ exports.updateBulkDeal = async (req, res, next) => {
     if (description !== undefined) deal.description = String(description).trim();
     if (isAvailable !== undefined) deal.isAvailable = Boolean(isAvailable);
     if (isFeatured !== undefined) deal.isFeatured = Boolean(isFeatured);
-    if (validTill !== undefined) deal.validTill = validTill ? new Date(validTill) : null;
+    if (validTill !== undefined) deal.validTill = parseValidDate(validTill);
     if (order !== undefined) deal.order = Number(order) || 0;
 
     await deal.save();
@@ -300,11 +323,13 @@ exports.updateBulkDeal = async (req, res, next) => {
   }
 };
 
-
 // DELETE /admin/bulk-deals/:id
 exports.deleteBulkDeal = async (req, res, next) => {
   try {
     const { id } = req.params;
+    if (!cleanObjectId(id)) {
+      return res.status(400).json({ message: 'Invalid Bulk Deal ID' });
+    }
     const deal = await BulkDeal.findByIdAndDelete(id);
     if (!deal) {
       return res.status(404).json({ message: 'Bulk deal not found' });
