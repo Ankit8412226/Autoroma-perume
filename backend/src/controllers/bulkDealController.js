@@ -114,6 +114,18 @@ exports.createBulkDeal = async (req, res, next) => {
       location,
       city,
       state,
+      surveyNumber,
+      finalPlotNo,
+      areaSize,
+      roadWidth,
+      tpSectorVillage,
+      landPlotType,
+      isCorner,
+      unitType,
+      zone,
+      naStatus,
+      conditionTime,
+      ratePerUnit,
       originalPriceDisplay,
       bulkPriceDisplay,
       discountPercentage,
@@ -150,6 +162,18 @@ exports.createBulkDeal = async (req, res, next) => {
       location: String(location || '').trim(),
       city: String(city || '').trim(),
       state: String(state || '').trim(),
+      surveyNumber: String(surveyNumber || '').trim(),
+      finalPlotNo: String(finalPlotNo || '').trim(),
+      areaSize: String(areaSize || '').trim(),
+      roadWidth: String(roadWidth || '').trim(),
+      tpSectorVillage: String(tpSectorVillage || '').trim(),
+      landPlotType: String(landPlotType || 'Land').trim(),
+      isCorner: String(isCorner || 'Corner').trim(),
+      unitType: String(unitType || 'SQYD').trim(),
+      zone: String(zone || 'HAC').trim(),
+      naStatus: String(naStatus || 'READY').trim(),
+      conditionTime: String(conditionTime || '3 MONTHS').trim(),
+      ratePerUnit: String(ratePerUnit || '').trim(),
       originalPriceDisplay: String(originalPriceDisplay || '').trim(),
       bulkPriceDisplay: String(bulkPriceDisplay || '').trim(),
       discountPercentage: Number(discountPercentage) || 0,
@@ -189,6 +213,18 @@ exports.updateBulkDeal = async (req, res, next) => {
       location,
       city,
       state,
+      surveyNumber,
+      finalPlotNo,
+      areaSize,
+      roadWidth,
+      tpSectorVillage,
+      landPlotType,
+      isCorner,
+      unitType,
+      zone,
+      naStatus,
+      conditionTime,
+      ratePerUnit,
       originalPriceDisplay,
       bulkPriceDisplay,
       discountPercentage,
@@ -222,6 +258,18 @@ exports.updateBulkDeal = async (req, res, next) => {
     if (location !== undefined) deal.location = String(location).trim();
     if (city !== undefined) deal.city = String(city).trim();
     if (state !== undefined) deal.state = String(state).trim();
+    if (surveyNumber !== undefined) deal.surveyNumber = String(surveyNumber).trim();
+    if (finalPlotNo !== undefined) deal.finalPlotNo = String(finalPlotNo).trim();
+    if (areaSize !== undefined) deal.areaSize = String(areaSize).trim();
+    if (roadWidth !== undefined) deal.roadWidth = String(roadWidth).trim();
+    if (tpSectorVillage !== undefined) deal.tpSectorVillage = String(tpSectorVillage).trim();
+    if (landPlotType !== undefined) deal.landPlotType = String(landPlotType).trim();
+    if (isCorner !== undefined) deal.isCorner = String(isCorner).trim();
+    if (unitType !== undefined) deal.unitType = String(unitType).trim();
+    if (zone !== undefined) deal.zone = String(zone).trim();
+    if (naStatus !== undefined) deal.naStatus = String(naStatus).trim();
+    if (conditionTime !== undefined) deal.conditionTime = String(conditionTime).trim();
+    if (ratePerUnit !== undefined) deal.ratePerUnit = String(ratePerUnit).trim();
     if (originalPriceDisplay !== undefined) deal.originalPriceDisplay = String(originalPriceDisplay).trim();
     if (bulkPriceDisplay !== undefined) deal.bulkPriceDisplay = String(bulkPriceDisplay).trim();
     if (discountPercentage !== undefined) deal.discountPercentage = Number(discountPercentage) || 0;
@@ -242,6 +290,7 @@ exports.updateBulkDeal = async (req, res, next) => {
     next(error);
   }
 };
+
 
 // DELETE /admin/bulk-deals/:id
 exports.deleteBulkDeal = async (req, res, next) => {

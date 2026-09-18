@@ -40,6 +40,56 @@ const bulkDealSchema = new mongoose.Schema({
     type: String,
     default: ''
   },
+  // --- Technical Land & Plot Spec Sheet Fields (matching House & Sky card) ---
+  surveyNumber: {
+    type: String,
+    default: ''
+  },
+  finalPlotNo: {
+    type: String,
+    default: ''
+  },
+  areaSize: {
+    type: String,
+    default: ''
+  },
+  roadWidth: {
+    type: String,
+    default: ''
+  },
+  tpSectorVillage: {
+    type: String,
+    default: ''
+  },
+  landPlotType: {
+    type: String,
+    default: 'Land'
+  },
+  isCorner: {
+    type: String,
+    default: 'Corner'
+  },
+  unitType: {
+    type: String,
+    default: 'SQYD'
+  },
+  zone: {
+    type: String,
+    default: 'HAC'
+  },
+  naStatus: {
+    type: String,
+    default: 'READY'
+  },
+  conditionTime: {
+    type: String,
+    default: '3 MONTHS'
+  },
+  ratePerUnit: {
+    type: String,
+    default: ''
+  },
+
   originalPriceDisplay: {
     type: String,
     default: ''

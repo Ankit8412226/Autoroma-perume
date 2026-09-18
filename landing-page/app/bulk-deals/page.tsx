@@ -30,6 +30,18 @@ interface PublicBulkDeal {
   location: string
   city: string
   state: string
+  surveyNumber?: string
+  finalPlotNo?: string
+  areaSize?: string
+  roadWidth?: string
+  tpSectorVillage?: string
+  landPlotType?: string
+  isCorner?: string
+  unitType?: string
+  zone?: string
+  naStatus?: string
+  conditionTime?: string
+  ratePerUnit?: string
   originalPriceDisplay: string
   bulkPriceDisplay: string
   discountPercentage: number
@@ -52,6 +64,7 @@ export default function BulkDealsPage() {
   const [deals, setDeals] = React.useState<PublicBulkDeal[]>([])
   const [isLoading, setIsLoading] = React.useState(true)
   const [selectedFilter, setSelectedFilter] = React.useState('ALL')
+  const [viewingSpecDeal, setViewingSpecDeal] = React.useState<PublicBulkDeal | null>(null)
 
   // Modal Quote Request State
   const [selectedDeal, setSelectedDeal] = React.useState<PublicBulkDeal | null>(null)
@@ -303,6 +316,59 @@ export default function BulkDealsPage() {
                         )}
                       </div>
 
+                      {/* HOUSE & SKY LAND SPECIFICATIONS SHEET TABLE */}
+                      <div className="bg-gradient-to-b from-[#0A2E23] to-[#051813] border border-amber-500/30 rounded-2xl p-3 space-y-2">
+                        <div className="flex items-center justify-between border-b border-amber-400/20 pb-1.5">
+                          <span className="text-[11px] font-serif font-bold text-amber-300 flex items-center gap-1">
+                            <Layers className="w-3.5 h-3.5" /> My Property Details Spec
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => setViewingSpecDeal(deal)}
+                            className="text-[9.5px] text-emerald-300 font-bold hover:underline"
+                          >
+                            Full Sheet →
+                          </button>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-1.5 text-[11px]">
+                          <div className="bg-black/40 px-2.5 py-1 rounded-lg border border-white/5 flex justify-between">
+                            <span className="text-neutral-400">Survey No:</span>
+                            <span className="font-bold text-white">{deal.surveyNumber || '427'}</span>
+                          </div>
+                          <div className="bg-black/40 px-2.5 py-1 rounded-lg border border-white/5 flex justify-between">
+                            <span className="text-neutral-400">Old FP No:</span>
+                            <span className="font-bold text-white">{deal.finalPlotNo || '521/1/1'}</span>
+                          </div>
+                          <div className="bg-black/40 px-2.5 py-1 rounded-lg border border-white/5 flex justify-between">
+                            <span className="text-neutral-400">Area:</span>
+                            <span className="font-bold text-white">{deal.areaSize || '6100 SQYD'}</span>
+                          </div>
+                          <div className="bg-black/40 px-2.5 py-1 rounded-lg border border-white/5 flex justify-between">
+                            <span className="text-neutral-400">Road:</span>
+                            <span className="font-bold text-white">{deal.roadWidth || '70 MTR'}</span>
+                          </div>
+                          <div className="bg-black/40 px-2.5 py-1 rounded-lg border border-white/5 flex justify-between col-span-2">
+                            <span className="text-neutral-400">TP / Sector:</span>
+                            <span className="font-bold text-white truncate max-w-[170px]">{deal.tpSectorVillage || '3C / Sector-12 / Rampura'}</span>
+                          </div>
+                          <div className="bg-black/40 px-2.5 py-1 rounded-lg border border-white/5 flex justify-between">
+                            <span className="text-neutral-400">Corner:</span>
+                            <span className="font-bold text-amber-300">{deal.isCorner || 'Corner'}</span>
+                          </div>
+                          <div className="bg-black/40 px-2.5 py-1 rounded-lg border border-white/5 flex justify-between">
+                            <span className="text-neutral-400">NA Status:</span>
+                            <span className="font-bold text-emerald-400">{deal.naStatus || 'READY'}</span>
+                          </div>
+                        </div>
+
+                        {/* Rate Highlight Bar */}
+                        <div className="bg-gradient-to-r from-amber-500 to-amber-600 rounded-xl p-2 px-3 text-slate-950 flex items-center justify-between font-extrabold text-xs">
+                          <span>{deal.areaSize || '6100 SQYD'}</span>
+                          <span className="text-sm">RATE: ₹{Number(deal.ratePerUnit || 18000).toLocaleString('en-IN')}</span>
+                        </div>
+                      </div>
+
                       {/* Pricing Comparison */}
                       <div className="bg-neutral-950 border border-white/10 rounded-2xl p-3 flex items-center justify-between">
                         <div>
@@ -316,18 +382,6 @@ export default function BulkDealsPage() {
                           <span className="text-base text-amber-400 font-extrabold">
                             {deal.bulkPriceDisplay || 'Special Quote'}
                           </span>
-                        </div>
-                      </div>
-
-                      {/* Quantities */}
-                      <div className="grid grid-cols-2 gap-2 text-xs">
-                        <div className="bg-neutral-950/60 p-2.5 rounded-xl border border-white/5">
-                          <span className="text-[10px] text-neutral-400 font-semibold uppercase block">Min Order</span>
-                          <span className="font-bold text-white">{deal.minQuantity || '5 Plots'}</span>
-                        </div>
-                        <div className="bg-neutral-950/60 p-2.5 rounded-xl border border-white/5">
-                          <span className="text-[10px] text-neutral-400 font-semibold uppercase block">Deal Stock</span>
-                          <span className="font-bold text-white">{deal.totalPackageUnits || 'Limited'}</span>
                         </div>
                       </div>
 
@@ -364,6 +418,88 @@ export default function BulkDealsPage() {
           </div>
         )}
       </div>
+
+      {/* FULL SPEC SHEET MODAL PREVIEW */}
+      {viewingSpecDeal && (
+        <div
+          className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200 overflow-y-auto"
+          onClick={() => setViewingSpecDeal(null)}
+        >
+          <div
+            className="relative max-w-lg w-full bg-gradient-to-b from-[#0B2C22] to-[#04140F] rounded-3xl overflow-hidden border-2 border-amber-400/60 shadow-2xl p-6 my-auto text-white space-y-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-amber-400/30 pb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="w-10 h-10 rounded-full bg-amber-400/20 text-amber-300 flex items-center justify-center font-serif font-bold text-base border border-amber-400/40">
+                  H&S
+                </div>
+                <div>
+                  <h3 className="font-serif font-bold text-lg text-white">House & Sky</h3>
+                  <span className="text-[10px] text-amber-300 uppercase tracking-widest font-bold block">BUILDING TRUST. DELIVERING VALUE.</span>
+                </div>
+              </div>
+              <button
+                onClick={() => setViewingSpecDeal(null)}
+                className="w-8 h-8 rounded-full bg-white/10 text-white hover:bg-white/20 flex items-center justify-center transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="bg-black/40 border border-white/10 rounded-2xl p-4 space-y-2">
+              <h4 className="text-sm font-bold text-amber-400 flex items-center gap-1.5 border-b border-white/10 pb-2">
+                <Layers className="w-4 h-4" /> My Property Details Sheet
+              </h4>
+
+              <div className="space-y-1.5 text-xs pt-1">
+                {[
+                  { label: 'Survey No', value: viewingSpecDeal.surveyNumber || '427' },
+                  { label: 'Old FP No', value: viewingSpecDeal.finalPlotNo || '521/1/1' },
+                  { label: 'Area', value: viewingSpecDeal.areaSize || '6100 SQYD' },
+                  { label: 'Road Width', value: viewingSpecDeal.roadWidth || '70 MTR' },
+                  { label: 'TP / Sector / Village', value: viewingSpecDeal.tpSectorVillage || '3C / Sector-12 / Rampura' },
+                  { label: 'City', value: viewingSpecDeal.city || 'Dholera City' },
+                  { label: 'State', value: viewingSpecDeal.state || 'Gujarat' },
+                  { label: 'Land / Plot', value: viewingSpecDeal.landPlotType || 'Land' },
+                  { label: 'Corner Status', value: viewingSpecDeal.isCorner || 'Corner' },
+                  { label: 'SQYD / SQMT', value: viewingSpecDeal.unitType || 'SQYD' },
+                  { label: 'Zone', value: viewingSpecDeal.zone || 'HAC' },
+                  { label: 'NA Status', value: viewingSpecDeal.naStatus || 'READY' },
+                  { label: 'Condition / Timeline', value: viewingSpecDeal.conditionTime || '3 MONTHS' },
+                  { label: 'Rate per Unit', value: viewingSpecDeal.ratePerUnit ? `₹${Number(viewingSpecDeal.ratePerUnit).toLocaleString('en-IN')}` : '₹18,000' }
+                ].map((item, idx) => (
+                  <div key={idx} className="flex items-center justify-between bg-white/5 px-3 py-1.5 rounded-lg border border-white/5">
+                    <span className="text-neutral-400 font-medium">{item.label}</span>
+                    <span className="font-bold text-white">{item.value}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Bottom Total Banner */}
+            <div className="bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 rounded-2xl p-4 text-slate-950 flex items-center justify-between font-extrabold shadow-xl">
+              <div>
+                <span className="text-2xl font-black block leading-none">{viewingSpecDeal.areaSize || '6100 SQYD'}</span>
+                <span className="text-[10px] tracking-wider uppercase opacity-80 font-bold">TOTAL AREA</span>
+              </div>
+              <div className="text-right">
+                <span className="text-[10px] tracking-wider uppercase opacity-80 font-bold block">BULK RATE</span>
+                <span className="text-xl font-black">₹{Number(viewingSpecDeal.ratePerUnit || 18000).toLocaleString('en-IN')}</span>
+              </div>
+            </div>
+
+            <button
+              onClick={() => { setViewingSpecDeal(null); handleOpenModal(viewingSpecDeal); }}
+              className="w-full py-3 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs uppercase tracking-wider rounded-xl transition-all shadow-lg flex items-center justify-center gap-2"
+            >
+              <Send className="w-4 h-4" /> Request Quote For This Property
+            </button>
+          </div>
+        </div>
+      )}
+
 
       {/* REQUEST QUOTE MODAL */}
       {selectedDeal && (

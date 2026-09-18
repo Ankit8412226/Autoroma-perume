@@ -53,6 +53,18 @@ interface BulkDealItem {
   location: string;
   city: string;
   state: string;
+  surveyNumber?: string;
+  finalPlotNo?: string;
+  areaSize?: string;
+  roadWidth?: string;
+  tpSectorVillage?: string;
+  landPlotType?: string;
+  isCorner?: string;
+  unitType?: string;
+  zone?: string;
+  naStatus?: string;
+  conditionTime?: string;
+  ratePerUnit?: string;
   originalPriceDisplay: string;
   bulkPriceDisplay: string;
   discountPercentage: number;
@@ -104,6 +116,18 @@ export const BulkDealsPage: React.FC = () => {
     location: '',
     city: '',
     state: '',
+    surveyNumber: '427',
+    finalPlotNo: '521/1/1',
+    areaSize: '6100 SQYD',
+    roadWidth: '70 MTR',
+    tpSectorVillage: '3C / Sector-12 / Rampura',
+    landPlotType: 'Land',
+    isCorner: 'Corner',
+    unitType: 'SQYD',
+    zone: 'HAC',
+    naStatus: 'READY',
+    conditionTime: '3 MONTHS',
+    ratePerUnit: '18000',
     originalPriceDisplay: '',
     bulkPriceDisplay: '',
     discountPercentage: 20,
@@ -116,6 +140,7 @@ export const BulkDealsPage: React.FC = () => {
     isFeatured: false,
     validTill: ''
   });
+
 
   const [customPerkInput, setCustomPerkInput] = useState('');
 
@@ -161,6 +186,18 @@ export const BulkDealsPage: React.FC = () => {
         location: deal.location || '',
         city: deal.city || '',
         state: deal.state || '',
+        surveyNumber: deal.surveyNumber || '',
+        finalPlotNo: deal.finalPlotNo || '',
+        areaSize: deal.areaSize || '',
+        roadWidth: deal.roadWidth || '',
+        tpSectorVillage: deal.tpSectorVillage || '',
+        landPlotType: deal.landPlotType || 'Land',
+        isCorner: deal.isCorner || 'Corner',
+        unitType: deal.unitType || 'SQYD',
+        zone: deal.zone || 'HAC',
+        naStatus: deal.naStatus || 'READY',
+        conditionTime: deal.conditionTime || '3 MONTHS',
+        ratePerUnit: deal.ratePerUnit || '18000',
         originalPriceDisplay: deal.originalPriceDisplay || '',
         bulkPriceDisplay: deal.bulkPriceDisplay || '',
         discountPercentage: deal.discountPercentage || 20,
@@ -181,10 +218,22 @@ export const BulkDealsPage: React.FC = () => {
         projectId: '',
         propertyId: '',
         location: 'Dholera SIR, Smart City Zone',
-        city: 'Dholera',
+        city: 'Dholera City',
         state: 'Gujarat',
+        surveyNumber: '427',
+        finalPlotNo: '521/1/1',
+        areaSize: '6100 SQYD',
+        roadWidth: '70 MTR',
+        tpSectorVillage: '3C / Sector-12 / Rampura',
+        landPlotType: 'Land',
+        isCorner: 'Corner',
+        unitType: 'SQYD',
+        zone: 'HAC',
+        naStatus: 'READY',
+        conditionTime: '3 MONTHS',
+        ratePerUnit: '18000',
         originalPriceDisplay: '₹22,000 / SQYD',
-        bulkPriceDisplay: '₹16,500 / SQYD',
+        bulkPriceDisplay: '₹18,000 / SQYD',
         discountPercentage: 25,
         minQuantity: '5 Plots / 2,000 SQYD',
         totalPackageUnits: '10 Investor Packages Available',
@@ -198,6 +247,7 @@ export const BulkDealsPage: React.FC = () => {
     }
     setIsModalOpen(true);
   };
+
 
   const handleSelectProject = (projId: string) => {
     const p = projects.find((x) => x._id === projId);
@@ -653,17 +703,211 @@ export const BulkDealsPage: React.FC = () => {
                 </div>
                 <div>
                   <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block mb-1">
-                    City & Zone
+                    City & Location Address
                   </label>
                   <input
                     type="text"
-                    placeholder="e.g. Dholera SIR, Gujarat"
+                    placeholder="e.g. Dholera City, Gujarat"
                     value={formData.location}
                     onChange={(e) => setFormData((prev) => ({ ...prev, location: e.target.value, city: e.target.value.split(',')[0] }))}
                     className="w-full px-3.5 py-2.5 text-xs border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-500 font-medium"
                   />
                 </div>
               </div>
+
+              {/* TECHNICAL LAND & PLOT SPECIFICATIONS (Matching House & Sky Spec Sheet) */}
+              <div className="bg-slate-900 border border-emerald-500/30 rounded-2xl p-4 text-white space-y-4">
+                <div className="flex items-center justify-between border-b border-white/10 pb-2">
+                  <span className="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
+                    <Layers className="w-4 h-4" /> Technical Land Spec Sheet Details
+                  </span>
+                  <span className="text-[10px] bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded font-bold">
+                    Official Card Fields
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 text-xs">
+                  <div>
+                    <label className="text-[10px] font-bold text-neutral-400 uppercase block mb-1">Survey No</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. 427"
+                      value={formData.surveyNumber}
+                      onChange={(e) => setFormData((prev) => ({ ...prev, surveyNumber: e.target.value }))}
+                      className="w-full px-3 py-1.5 bg-neutral-950 border border-white/15 rounded-lg text-white font-medium focus:border-emerald-400"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-neutral-400 uppercase block mb-1">Old FP No</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. 521/1/1"
+                      value={formData.finalPlotNo}
+                      onChange={(e) => setFormData((prev) => ({ ...prev, finalPlotNo: e.target.value }))}
+                      className="w-full px-3 py-1.5 bg-neutral-950 border border-white/15 rounded-lg text-white font-medium focus:border-emerald-400"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-neutral-400 uppercase block mb-1">Total Area</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. 6100 SQYD"
+                      value={formData.areaSize}
+                      onChange={(e) => setFormData((prev) => ({ ...prev, areaSize: e.target.value }))}
+                      className="w-full px-3 py-1.5 bg-neutral-950 border border-white/15 rounded-lg text-white font-medium focus:border-emerald-400"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-neutral-400 uppercase block mb-1">Road Width</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. 70 MTR"
+                      value={formData.roadWidth}
+                      onChange={(e) => setFormData((prev) => ({ ...prev, roadWidth: e.target.value }))}
+                      className="w-full px-3 py-1.5 bg-neutral-950 border border-white/15 rounded-lg text-white font-medium focus:border-emerald-400"
+                    />
+                  </div>
+
+                  <div className="col-span-2">
+                    <label className="text-[10px] font-bold text-neutral-400 uppercase block mb-1">TP / Sector / Village</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. 3C / Sector-12 / Rampura"
+                      value={formData.tpSectorVillage}
+                      onChange={(e) => setFormData((prev) => ({ ...prev, tpSectorVillage: e.target.value }))}
+                      className="w-full px-3 py-1.5 bg-neutral-950 border border-white/15 rounded-lg text-white font-medium focus:border-emerald-400"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-neutral-400 uppercase block mb-1">Land / Plot</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Land"
+                      value={formData.landPlotType}
+                      onChange={(e) => setFormData((prev) => ({ ...prev, landPlotType: e.target.value }))}
+                      className="w-full px-3 py-1.5 bg-neutral-950 border border-white/15 rounded-lg text-white font-medium focus:border-emerald-400"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-neutral-400 uppercase block mb-1">Corner Status</label>
+                    <select
+                      value={formData.isCorner}
+                      onChange={(e) => setFormData((prev) => ({ ...prev, isCorner: e.target.value }))}
+                      className="w-full px-3 py-1.5 bg-neutral-950 border border-white/15 rounded-lg text-white font-medium focus:border-emerald-400"
+                    >
+                      <option value="Corner">Corner</option>
+                      <option value="Normal">Normal</option>
+                      <option value="2-Side Open">2-Side Open</option>
+                      <option value="3-Side Open">3-Side Open</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-bold text-neutral-400 uppercase block mb-1">Unit Type</label>
+                    <select
+                      value={formData.unitType}
+                      onChange={(e) => setFormData((prev) => ({ ...prev, unitType: e.target.value }))}
+                      className="w-full px-3 py-1.5 bg-neutral-950 border border-white/15 rounded-lg text-white font-medium focus:border-emerald-400"
+                    >
+                      <option value="SQYD">SQYD</option>
+                      <option value="SQMT">SQMT</option>
+                      <option value="SQFT">SQFT</option>
+                      <option value="ACRE">ACRE</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-neutral-400 uppercase block mb-1">Zone</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. HAC / Residential"
+                      value={formData.zone}
+                      onChange={(e) => setFormData((prev) => ({ ...prev, zone: e.target.value }))}
+                      className="w-full px-3 py-1.5 bg-neutral-950 border border-white/15 rounded-lg text-white font-medium focus:border-emerald-400"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-neutral-400 uppercase block mb-1">NA Status</label>
+                    <select
+                      value={formData.naStatus}
+                      onChange={(e) => setFormData((prev) => ({ ...prev, naStatus: e.target.value }))}
+                      className="w-full px-3 py-1.5 bg-neutral-950 border border-white/15 rounded-lg text-white font-medium focus:border-emerald-400"
+                    >
+                      <option value="READY">READY</option>
+                      <option value="APPROVED">APPROVED</option>
+                      <option value="IN_PROCESS">IN_PROCESS</option>
+                      <option value="AGRICULTURAL">AGRICULTURAL</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-neutral-400 uppercase block mb-1">Possession Condition</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. 3 MONTHS / IMMEDIATE"
+                      value={formData.conditionTime}
+                      onChange={(e) => setFormData((prev) => ({ ...prev, conditionTime: e.target.value }))}
+                      className="w-full px-3 py-1.5 bg-neutral-950 border border-white/15 rounded-lg text-white font-medium focus:border-emerald-400"
+                    />
+                  </div>
+
+                  <div className="col-span-2">
+                    <label className="text-[10px] font-bold text-amber-400 uppercase block mb-1">Rate per Unit (₹)</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. 18000"
+                      value={formData.ratePerUnit}
+                      onChange={(e) => setFormData((prev) => ({ ...prev, ratePerUnit: e.target.value }))}
+                      className="w-full px-3 py-1.5 bg-neutral-950 border border-amber-400/50 rounded-lg text-amber-300 font-bold focus:border-amber-400"
+                    />
+                  </div>
+                </div>
+
+                {/* Spec Sheet Table Live Card Preview */}
+                <div className="mt-3 bg-gradient-to-b from-[#0A2E23] to-[#04140F] border border-amber-500/40 rounded-2xl p-4 shadow-lg">
+                  <div className="flex items-center justify-between border-b border-amber-400/30 pb-2 mb-3">
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 rounded-full bg-amber-400/20 text-amber-300 flex items-center justify-center text-xs font-serif font-bold">H&S</div>
+                      <span className="font-serif font-bold text-sm text-white">House & Sky - Spec Sheet Preview</span>
+                    </div>
+                    <span className="text-[10px] text-amber-300 font-bold uppercase tracking-widest">LIVE CARD PREVIEW</span>
+                  </div>
+
+                  <div className="space-y-1.5 text-xs">
+                    {[
+                      { label: 'Survey No', value: formData.surveyNumber || '427' },
+                      { label: 'Old FP No', value: formData.finalPlotNo || '521/1/1' },
+                      { label: 'Area', value: formData.areaSize || '6100 SQYD' },
+                      { label: 'Road', value: formData.roadWidth || '70 MTR' },
+                      { label: 'TP / Sector / Village', value: formData.tpSectorVillage || '3C / Sector-12 / Rampura' },
+                      { label: 'City / State', value: `${formData.city || 'Dholera City'}, ${formData.state || 'Gujarat'}` },
+                      { label: 'Land / Plot', value: formData.landPlotType || 'Land' },
+                      { label: 'Corner Status', value: formData.isCorner || 'Corner' },
+                      { label: 'Zone', value: formData.zone || 'HAC' },
+                      { label: 'NA Status', value: formData.naStatus || 'READY' },
+                      { label: 'Condition', value: formData.conditionTime || '3 MONTHS' },
+                      { label: 'Rate', value: formData.ratePerUnit ? `₹${Number(formData.ratePerUnit).toLocaleString('en-IN')}` : '₹18,000' }
+                    ].map((row, idx) => (
+                      <div key={idx} className="flex items-center justify-between bg-black/40 px-3 py-1.5 rounded-lg border border-white/5">
+                        <span className="text-neutral-400 font-medium text-[11px]">{row.label}</span>
+                        <span className="font-bold text-white text-[11px]">{row.value}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Highlight Banner */}
+                  <div className="mt-3 bg-gradient-to-r from-amber-500 to-amber-600 rounded-xl p-3 text-slate-950 flex items-center justify-between font-extrabold shadow-md">
+                    <div className="text-lg">
+                      {formData.areaSize || '6100 SQYD'}
+                    </div>
+                    <div className="text-right">
+                      <span className="text-[10px] uppercase block tracking-wider opacity-80">Bulk Rate</span>
+                      <span className="text-base">
+                        ₹{Number(formData.ratePerUnit || 18000).toLocaleString('en-IN')}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
 
               {/* Pricing & Discount */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-emerald-50/50 border border-emerald-100 p-4 rounded-2xl">
