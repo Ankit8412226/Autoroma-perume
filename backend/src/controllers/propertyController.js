@@ -650,3 +650,47 @@ exports.rejectProperty = async (req, res, next) => {
     next(error);
   }
 };
+
+exports.getPublicPropertyLocations = async (req, res, next) => {
+  try {
+    const Project = require('../models/Project');
+    
+    const properties = await Property.find({
+      isPublished: { $ne: false },
+      ...APPROVAL_FILTER
+    }).select('city location area state village').lean();
+
+    const projects = await Project.find({ status: { $ne: 'DELETED' } })
+      .select('city location state village name bannerImage')
+      .lean();
+
+    const citySet = new Set();
+    const areaSet = new Set();
+    const locationSet = new Set();
+
+    properties.forEach(p => {
+      if (p.city && p.city.trim()) citySet.add(p.city.trim());
+      if (p.area && p.area.trim()) areaSet.add(p.area.trim());
+      if (p.location && p.location.trim()) locationSet.add(p.location.trim());
+      if (p.village && p.village.trim()) locationSet.add(p.village.trim());
+    });
+
+    projects.forEach(p => {
+      if (p.city && p.city.trim()) citySet.add(p.city.trim());
+      if (p.location && p.location.trim()) locationSet.add(p.location.trim());
+      if (p.village && p.village.trim()) locationSet.add(p.village.trim());
+    });
+
+    const cities = Array.from(citySet).sort();
+    const areas = Array.from(areaSet).sort();
+    const locations = Array.from(locationSet).sort();
+
+    res.json({
+      cities,
+      areas,
+      locations
+    });
+  } catch (error) {
+    next(error);
+  }
+};

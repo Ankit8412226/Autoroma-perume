@@ -71,7 +71,9 @@ export default function BulkDealsPage() {
   const [minDiscount, setMinDiscount] = React.useState(0)
   const [viewingSpecDeal, setViewingSpecDeal] = React.useState<PublicBulkDeal | null>(null)
 
-  const BULK_CITIES = ['ALL', 'Dholera SIR', 'Noida', 'Goa', 'Mumbai', 'Gurgaon', 'Ahmedabad']
+  const [dbCities, setDbCities] = React.useState<string[]>([])
+  const [dbLocations, setDbLocations] = React.useState<string[]>([])
+  const [showLocationDropdown, setShowLocationDropdown] = React.useState(false)
 
   // Modal Quote Request State
   const [selectedDeal, setSelectedDeal] = React.useState<PublicBulkDeal | null>(null)
@@ -88,6 +90,53 @@ export default function BulkDealsPage() {
     budgetRange: '₹50 Lakhs - ₹1 Crore',
     message: ''
   })
+
+  // Fetch unique bulk deal location options from backend API
+  React.useEffect(() => {
+    const fetchLocations = async () => {
+      try {
+        const baseUrl = getApiBaseUrl()
+        const res = await fetch(`${baseUrl}/public/bulk-deals/locations`).catch(() => null)
+        if (res && res.ok) {
+          const data = await res.json().catch(() => ({}))
+          if (Array.isArray(data.cities)) setDbCities(data.cities)
+          if (Array.isArray(data.locations)) setDbLocations(data.locations)
+        }
+      } catch (e) {
+        console.error('Failed to fetch DB bulk deal locations:', e)
+      }
+    }
+    fetchLocations()
+  }, [])
+
+  // Dynamically computed list of cities from DB API + loaded bulk deals
+  const availableCities = React.useMemo(() => {
+    const set = new Set<string>(dbCities)
+    deals.forEach((d) => {
+      if (d.city && d.city.trim()) set.add(d.city.trim())
+    })
+    return ['ALL', ...Array.from(set).sort()]
+  }, [dbCities, deals])
+
+  // Autocomplete Location Suggestions matching user searchQuery
+  const locationSuggestions = React.useMemo(() => {
+    if (!searchQuery.trim()) return []
+    const q = searchQuery.toLowerCase().trim()
+    const pool = new Set<string>()
+
+    dbCities.forEach((c) => {
+      if (c.toLowerCase().includes(q)) pool.add(`City: ${c}`)
+    })
+    dbLocations.forEach((loc) => {
+      if (loc.toLowerCase().includes(q)) pool.add(`Location: ${loc}`)
+    })
+    deals.forEach((d) => {
+      if (d.tpSectorVillage && d.tpSectorVillage.toLowerCase().includes(q)) pool.add(`TP/Sector: ${d.tpSectorVillage}`)
+      if (d.surveyNumber && d.surveyNumber.toLowerCase().includes(q)) pool.add(`Survey: ${d.surveyNumber}`)
+    })
+
+    return Array.from(pool).slice(0, 8)
+  }, [searchQuery, dbCities, dbLocations, deals])
 
   React.useEffect(() => {
     const loadDeals = async () => {
@@ -211,7 +260,7 @@ export default function BulkDealsPage() {
             </h1>
 
             <p className="text-neutral-300 text-sm sm:text-base leading-relaxed">
-              Lock wholesale land rates, group syndicate packages, and direct builder pricing for high-yielding Dholera SIR & Gujarat growth corridors.
+              Lock wholesale land rates, group syndicate packages, and direct builder pricing for high-yielding growth corridors.
             </p>
 
             {/* Key Value Badges */}
@@ -249,26 +298,75 @@ export default function BulkDealsPage() {
             {/* 99acres-Style Location & Parameter Search Bar */}
             <div className="mt-8 bg-neutral-900/90 border border-emerald-500/30 rounded-3xl p-4 shadow-2xl space-y-3">
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                {/* Keyword / Location Input */}
+                {/* Keyword & Location Search Input with Autocomplete */}
                 <div className="relative">
                   <Search className="w-4 h-4 text-neutral-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                   <input
                     type="text"
                     value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onChange={(e) => {
+                      setSearchQuery(e.target.value)
+                      setShowLocationDropdown(true)
+                    }}
+                    onFocus={() => setShowLocationDropdown(true)}
                     placeholder="City, TP Sector, Survey No, Project..."
-                    className="w-full pl-10 pr-3 py-2.5 bg-neutral-950 border border-white/10 rounded-2xl text-xs font-semibold text-white focus:outline-none focus:border-amber-400 placeholder-neutral-500"
+                    className="w-full pl-10 pr-7 py-2.5 bg-neutral-950 border border-white/10 rounded-2xl text-xs font-semibold text-white focus:outline-none focus:border-amber-400 placeholder-neutral-500"
                   />
+                  {searchQuery && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSearchQuery('')
+                        setShowLocationDropdown(false)
+                      }}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-white"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+
+                  {/* 99acres Location Suggestions Popup */}
+                  {showLocationDropdown && locationSuggestions.length > 0 && (
+                    <div className="absolute top-full left-0 right-0 mt-1 bg-neutral-900 border border-white/10 rounded-2xl shadow-2xl z-30 max-h-60 overflow-y-auto divide-y divide-white/5">
+                      {locationSuggestions.map((item, i) => {
+                        const text = item.replace(/^(City|Location|TP\/Sector|Survey):\s*/, '')
+                        return (
+                          <button
+                            key={i}
+                            type="button"
+                            onClick={() => {
+                              if (item.startsWith('City:')) {
+                                setSelectedCity(text)
+                                setSearchQuery('')
+                              } else {
+                                setSearchQuery(text)
+                              }
+                              setShowLocationDropdown(false)
+                            }}
+                            className="w-full text-left px-4 py-2.5 hover:bg-neutral-800 text-xs flex items-center justify-between transition-colors cursor-pointer text-white"
+                          >
+                            <span className="font-semibold text-neutral-200 flex items-center gap-2">
+                              <MapPin className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                              {text}
+                            </span>
+                            <span className="text-[10px] font-extrabold text-amber-400 uppercase tracking-wider bg-black/40 px-2 py-0.5 rounded-full border border-amber-400/20">
+                              {item.split(':')[0]}
+                            </span>
+                          </button>
+                        )
+                      })}
+                    </div>
+                  )}
                 </div>
 
-                {/* City Picker */}
+                {/* Dynamic City Picker */}
                 <div>
                   <select
                     value={selectedCity}
                     onChange={(e) => setSelectedCity(e.target.value)}
                     className="w-full px-3.5 py-2.5 bg-neutral-950 border border-white/10 rounded-2xl text-xs font-bold text-white focus:outline-none focus:border-amber-400 cursor-pointer"
                   >
-                    {BULK_CITIES.map((c) => (
+                    {availableCities.map((c) => (
                       <option key={c} value={c} className="bg-neutral-900 text-white">
                         {c === 'ALL' ? '📍 All Cities' : `📍 ${c}`}
                       </option>
@@ -292,14 +390,14 @@ export default function BulkDealsPage() {
               </div>
 
               <div className="flex flex-wrap items-center justify-between gap-2 text-xs pt-2 border-t border-white/10">
-                <div className="flex items-center gap-2 overflow-x-auto">
-                  <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider">Quick Locations:</span>
-                  {['ALL', 'Dholera SIR', 'Noida', 'Goa', 'Mumbai', 'Gurgaon'].map((city) => (
+                <div className="flex items-center gap-2 overflow-x-auto scrollbar-none">
+                  <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider">Locations:</span>
+                  {availableCities.map((city) => (
                     <button
                       key={city}
                       type="button"
                       onClick={() => setSelectedCity(city)}
-                      className={`px-3 py-1 rounded-xl text-xs font-bold transition-all ${
+                      className={`px-3 py-1 rounded-xl text-xs font-bold transition-all shrink-0 ${
                         selectedCity === city
                           ? 'bg-amber-500 text-slate-950 shadow-sm'
                           : 'bg-neutral-800 text-neutral-300 hover:bg-neutral-700'

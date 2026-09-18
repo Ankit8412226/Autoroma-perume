@@ -32,38 +32,6 @@ import {
   Phone
 } from 'lucide-react'
 
-// Location Hub Definitions (99acres Featured Corridors)
-const FEATURED_LOCATIONS = [
-  {
-    city: 'Dholera SIR',
-    state: 'Gujarat',
-    tagline: 'India’s 1st Greenfield Smart City',
-    highlight: 'NA Ready Plots · 0% Brokerage',
-    bgGradient: 'from-[#061913] via-[#0A2E23] to-[#0B4F3C]'
-  },
-  {
-    city: 'Noida',
-    state: 'Uttar Pradesh',
-    tagline: 'Jewar International Airport Hub',
-    highlight: 'RERA Approved · High ROI Townships',
-    bgGradient: 'from-[#171A18] via-[#2A3B34] to-[#0B4F3C]'
-  },
-  {
-    city: 'Goa',
-    state: 'North Goa',
-    tagline: 'Assagao & Coastal Villa Estates',
-    highlight: 'Private Plunge Pools · Title Clear',
-    bgGradient: 'from-[#122A22] via-[#0F4735] to-[#166E53]'
-  },
-  {
-    city: 'Mumbai',
-    state: 'Maharashtra',
-    tagline: 'Bandra West Seaface Skyline',
-    highlight: 'Trophy Penthouses · Private Lifts',
-    bgGradient: 'from-[#0A1D16] via-[#143B2E] to-[#0B4F3C]'
-  }
-]
-
 const PROPERTY_TYPE_OPTIONS = [
   { label: 'All Types', value: 'ALL' },
   { label: 'Residential Plot', value: 'RESIDENTIAL_PLOT' },
@@ -83,8 +51,6 @@ const BUDGET_OPTIONS = [
   { label: 'Above ₹5 Crores', value: 'ABOVE_5CR', min: 50000000, max: Infinity }
 ]
 
-const POPULAR_CITIES = ['All Cities', 'Dholera SIR', 'Noida', 'Mumbai', 'Goa', 'Gurgaon', 'Ahmedabad']
-
 function PropertiesContent() {
   const searchParams = useSearchParams()
   const initialType = searchParams.get('type') || 'ALL'
@@ -101,8 +67,60 @@ function PropertiesContent() {
   const [viewMode, setViewMode] = React.useState<'grid' | 'list'>('grid')
 
   const [allProperties, setAllProperties] = React.useState<Property[]>([])
+  const [dbCities, setDbCities] = React.useState<string[]>([])
+  const [dbLocations, setDbLocations] = React.useState<string[]>([])
+  const [showLocationDropdown, setShowLocationDropdown] = React.useState(false)
   const [isLoading, setIsLoading] = React.useState(true)
   const [isBulkBuyOpen, setIsBulkBuyOpen] = React.useState(false)
+
+  // Fetch unique location options dynamically from database API
+  React.useEffect(() => {
+    const fetchLocations = async () => {
+      try {
+        const baseUrl = getApiBaseUrl()
+        const res = await fetch(`${baseUrl}/public/properties/locations`).catch(() => null)
+        if (res && res.ok) {
+          const data = await res.json().catch(() => ({}))
+          if (Array.isArray(data.cities)) setDbCities(data.cities)
+          if (Array.isArray(data.locations)) setDbLocations(data.locations)
+        }
+      } catch (e) {
+        console.error('Failed to fetch DB locations:', e)
+      }
+    }
+    fetchLocations()
+  }, [])
+
+  // Dynamically computed list of unique cities (combining API + loaded properties)
+  const availableCities = React.useMemo(() => {
+    const set = new Set<string>(dbCities)
+    allProperties.forEach((p) => {
+      if (p.location?.city && p.location.city.trim()) {
+        set.add(p.location.city.trim())
+      }
+    })
+    return ['All Cities', ...Array.from(set).sort()]
+  }, [dbCities, allProperties])
+
+  // Autocomplete Location Suggestions matching user searchQuery
+  const locationSuggestions = React.useMemo(() => {
+    if (!searchQuery.trim()) return []
+    const q = searchQuery.toLowerCase().trim()
+    const pool = new Set<string>()
+
+    dbCities.forEach((c) => {
+      if (c.toLowerCase().includes(q)) pool.add(`City: ${c}`)
+    })
+    dbLocations.forEach((loc) => {
+      if (loc.toLowerCase().includes(q)) pool.add(`Locality: ${loc}`)
+    })
+    allProperties.forEach((p) => {
+      if (p.location?.area && p.location.area.toLowerCase().includes(q)) pool.add(`Area: ${p.location.area}`)
+      if (p.title && p.title.toLowerCase().includes(q)) pool.add(`Project: ${p.title}`)
+    })
+
+    return Array.from(pool).slice(0, 8)
+  }, [searchQuery, dbCities, dbLocations, allProperties])
 
   // Fetch properties from backend API with location-wise & parameter query string
   React.useEffect(() => {
@@ -218,39 +236,88 @@ function PropertiesContent() {
         <div className="max-w-7xl mx-auto relative z-10 space-y-6">
           <div className="text-center max-w-3xl mx-auto space-y-2">
             <span className="px-3 py-1 bg-emerald-500/20 text-emerald-300 rounded-full text-xs font-extrabold uppercase tracking-widest border border-emerald-500/30 inline-flex items-center gap-1.5 shadow-sm">
-              <Sparkles className="w-3.5 h-3.5 text-emerald-400" /> 99acres Style Real Estate Finder
+              <Sparkles className="w-3.5 h-3.5 text-emerald-400" /> 99acres Style Dynamic Real Estate Finder
             </span>
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-serif font-bold text-white tracking-tight">
               Location-Wise Property Directory
             </h1>
             <p className="text-white/70 text-xs sm:text-sm max-w-2xl mx-auto font-normal">
-              Find verified residential plots, commercial spaces, villas, and showrooms across Dholera SIR, Noida Smart City, Mumbai, Goa, and Gurgaon.
+              Search verified residential plots, commercial spaces, luxury villas, and showrooms by typing any city, locality, sector, or project name.
             </p>
           </div>
 
           {/* 99acres-Style Multi-Option Search Bar */}
           <div className="bg-white rounded-3xl p-3 sm:p-4 shadow-2xl border border-emerald-500/20 max-w-5xl mx-auto text-slate-800">
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2.5">
-              {/* Keyword Search */}
+              {/* Keyword & Location Search Box with Autocomplete Dropdown */}
               <div className="relative">
                 <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Locality, landmark, project..."
-                  className="w-full pl-10 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-semibold focus:outline-none focus:border-emerald-600 focus:bg-white text-slate-900"
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value)
+                    setShowLocationDropdown(true)
+                  }}
+                  onFocus={() => setShowLocationDropdown(true)}
+                  placeholder="City, locality, landmark, project..."
+                  className="w-full pl-10 pr-7 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-semibold focus:outline-none focus:border-emerald-600 focus:bg-white text-slate-900"
                 />
+                {searchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSearchQuery('')
+                      setShowLocationDropdown(false)
+                    }}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
+
+                {/* 99acres Location Suggestions Popup */}
+                {showLocationDropdown && locationSuggestions.length > 0 && (
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-2xl shadow-xl z-30 max-h-60 overflow-y-auto divide-y divide-slate-100">
+                    {locationSuggestions.map((item, i) => {
+                      const text = item.replace(/^(City|Locality|Area|Project):\s*/, '')
+                      return (
+                        <button
+                          key={i}
+                          type="button"
+                          onClick={() => {
+                            if (item.startsWith('City:')) {
+                              setSelectedCity(text)
+                              setSearchQuery('')
+                            } else {
+                              setSearchQuery(text)
+                            }
+                            setShowLocationDropdown(false)
+                          }}
+                          className="w-full text-left px-4 py-2.5 hover:bg-emerald-50 text-xs flex items-center justify-between transition-colors cursor-pointer"
+                        >
+                          <span className="font-semibold text-slate-800 flex items-center gap-2">
+                            <MapPin className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                            {text}
+                          </span>
+                          <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider bg-slate-100 px-2 py-0.5 rounded-full">
+                            {item.split(':')[0]}
+                          </span>
+                        </button>
+                      )
+                    })}
+                  </div>
+                )}
               </div>
 
-              {/* City Picker */}
+              {/* Dynamic City Picker */}
               <div>
                 <select
                   value={selectedCity}
                   onChange={(e) => setSelectedCity(e.target.value)}
                   className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-bold text-slate-800 focus:outline-none focus:border-emerald-600 cursor-pointer"
                 >
-                  {POPULAR_CITIES.map((c) => (
+                  {availableCities.map((c) => (
                     <option key={c} value={c}>{c === 'All Cities' ? '📍 All Cities' : `📍 ${c}`}</option>
                   ))}
                 </select>
@@ -333,21 +400,21 @@ function PropertiesContent() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
-        {/* Popular Cities Horizontal Selector (99acres Location Bar) */}
+        {/* Dynamic Popular Cities Horizontal Selector (99acres Location Bar) */}
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
-              <MapPin className="w-4 h-4 text-emerald-600" /> Popular City Hubs
+              <MapPin className="w-4 h-4 text-emerald-600" /> Active City Destinations
             </h3>
-            <span className="text-[11px] text-slate-400 font-medium">Click to filter properties</span>
+            <span className="text-[11px] text-slate-400 font-medium">Click any city to filter</span>
           </div>
 
-          <div className="flex items-center gap-2 overflow-x-auto pb-1">
-            {POPULAR_CITIES.map((city) => {
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+            {availableCities.map((city) => {
               const isSelected = selectedCity === city
               const count = city === 'All Cities'
                 ? allProperties.length
-                : allProperties.filter((p) => p.location.city.toLowerCase().includes(city.toLowerCase())).length
+                : allProperties.filter((p) => (p.location?.city || '').toLowerCase().includes(city.toLowerCase())).length
 
               return (
                 <button
@@ -372,31 +439,44 @@ function PropertiesContent() {
           </div>
         </div>
 
-        {/* Featured Location Corridors Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {FEATURED_LOCATIONS.map((loc) => (
-            <div
-              key={loc.city}
-              onClick={() => setSelectedCity(loc.city)}
-              className={`bg-gradient-to-br ${loc.bgGradient} p-4 rounded-3xl text-white border border-white/10 shadow-lg hover:shadow-2xl hover:scale-[1.02] transition-all cursor-pointer group flex flex-col justify-between h-36`}
-            >
-              <div>
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-amber-300 bg-amber-400/20 px-2.5 py-0.5 rounded-full border border-amber-400/30">
-                    {loc.state}
-                  </span>
-                  <ArrowRight className="w-4 h-4 text-emerald-300 group-hover:translate-x-1 transition-transform" />
-                </div>
-                <h4 className="font-serif text-lg font-bold text-white mt-2">{loc.city} Corridor</h4>
-                <p className="text-[11px] text-white/70 line-clamp-1">{loc.tagline}</p>
-              </div>
+        {/* Dynamic Location Corridor Cards */}
+        {availableCities.filter(c => c !== 'All Cities').length > 0 && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {availableCities.filter(c => c !== 'All Cities').slice(0, 4).map((cityName, idx) => {
+              const propCount = allProperties.filter(p => (p.location?.city || '').toLowerCase().includes(cityName.toLowerCase())).length
+              const gradients = [
+                'from-[#061913] via-[#0A2E23] to-[#0B4F3C]',
+                'from-[#171A18] via-[#2A3B34] to-[#0B4F3C]',
+                'from-[#122A22] via-[#0F4735] to-[#166E53]',
+                'from-[#0A1D16] via-[#143B2E] to-[#0B4F3C]'
+              ]
+              const bgGrad = gradients[idx % gradients.length]
 
-              <div className="text-[10px] text-emerald-300 font-bold flex items-center gap-1 border-t border-white/10 pt-2">
-                <CheckCircle2 className="w-3 h-3 text-emerald-400" /> {loc.highlight}
-              </div>
-            </div>
-          ))}
-        </div>
+              return (
+                <div
+                  key={cityName}
+                  onClick={() => setSelectedCity(cityName)}
+                  className={`bg-gradient-to-br ${bgGrad} p-4 rounded-3xl text-white border border-white/10 shadow-lg hover:shadow-2xl hover:scale-[1.02] transition-all cursor-pointer group flex flex-col justify-between h-36`}
+                >
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-amber-300 bg-amber-400/20 px-2.5 py-0.5 rounded-full border border-amber-400/30">
+                        {cityName}
+                      </span>
+                      <ArrowRight className="w-4 h-4 text-emerald-300 group-hover:translate-x-1 transition-transform" />
+                    </div>
+                    <h4 className="font-serif text-lg font-bold text-white mt-2">{cityName} Corridor</h4>
+                    <p className="text-[11px] text-white/70 line-clamp-1">{propCount} Verified Properties Listed</p>
+                  </div>
+
+                  <div className="text-[10px] text-emerald-300 font-bold flex items-center gap-1 border-t border-white/10 pt-2">
+                    <CheckCircle2 className="w-3 h-3 text-emerald-400" /> NA Approved Townships · 0% Brokerage
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
 
         {/* Callout Action Banners (Bulk Buy & List Property) */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

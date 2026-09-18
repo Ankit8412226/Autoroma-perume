@@ -390,3 +390,30 @@ exports.deleteBulkDeal = async (req, res, next) => {
     next(error);
   }
 };
+
+exports.getPublicBulkDealLocations = async (req, res, next) => {
+  try {
+    const deals = await BulkDeal.find({ isAvailable: true })
+      .select('city location state tpSectorVillage landPlotType')
+      .lean();
+
+    const citySet = new Set();
+    const stateSet = new Set();
+    const locationSet = new Set();
+
+    deals.forEach(d => {
+      if (d.city && d.city.trim()) citySet.add(d.city.trim());
+      if (d.state && d.state.trim()) stateSet.add(d.state.trim());
+      if (d.location && d.location.trim()) locationSet.add(d.location.trim());
+      if (d.tpSectorVillage && d.tpSectorVillage.trim()) locationSet.add(d.tpSectorVillage.trim());
+    });
+
+    res.json({
+      cities: Array.from(citySet).sort(),
+      states: Array.from(stateSet).sort(),
+      locations: Array.from(locationSet).sort()
+    });
+  } catch (error) {
+    next(error);
+  }
+};

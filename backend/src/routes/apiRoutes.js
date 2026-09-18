@@ -54,9 +54,11 @@ router.get('/public/agents', inquiryController.getPublicAgents);
 router.get('/public/agent-invite/:code', employeeController.getPublicInvite);
 router.get('/public/locations', inquiryController.getPublicLocations);
 router.get('/public/properties', propertyController.getPublicProperties);
+router.get('/public/properties/locations', propertyController.getPublicPropertyLocations);
 router.get('/public/properties/:slug', propertyController.getPublicPropertyBySlug);
 router.get('/public/gallery', galleryController.getPublicGallery);
 router.get('/public/bulk-deals', bulkDealController.getPublicBulkDeals);
+router.get('/public/bulk-deals/locations', bulkDealController.getPublicBulkDealLocations);
 router.get('/public/bulk-deals/:slug', bulkDealController.getPublicBulkDealBySlug);
 router.post('/public/bulk-deals/request', inquiryLimiter, validate({
   name: { required: true, type: 'string', minLength: 2, maxLength: 80 },
@@ -183,9 +185,6 @@ router.put('/projects/:id', protect, authorize('ADMIN', 'DIRECTOR'), validate({
 router.delete('/projects/:id', protect, authorize('ADMIN'), projectController.deleteProject);
 router.put('/projects/:projectId/settings', protect, authorize('ADMIN'), projectController.updateProjectSettings);
 
-// --- Property Listings (separate from township Projects) ---
-// IMPORTANT: /properties/my and /properties/:id/approve|reject MUST come before
-// /properties/:id to avoid route conflicts.
 router.get('/properties/my', protect, propertyController.getMyProperties);
 router.get('/properties/my/:id', protect, propertyController.getMyPropertyById);
 router.put('/properties/my/:id', protect, propertyController.updateMyProperty);
