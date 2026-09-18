@@ -197,6 +197,22 @@ const propertySchema = new mongoose.Schema({
   },
   submittedAt: {
     type: Date
+  },
+
+  // --- Seller Identity & Property Title KYC Verification ---
+  kycInfo: {
+    fullName: { type: String, default: '' },
+    idType: { type: String, enum: ['PAN', 'AADHAAR', 'PASSPORT', 'VOTER_ID', 'DRIVING_LICENSE'], default: 'PAN' },
+    idNumber: { type: String, default: '' },
+    idDocumentUrl: { type: String, default: '' },
+    idDocumentS3Key: { type: String, default: '' },
+    ownershipType: { type: String, enum: ['OWNER', 'JOINT_OWNER', 'AGENT_POA', 'BUILDER'], default: 'OWNER' },
+    ownershipDocumentUrl: { type: String, default: '' },
+    ownershipDocumentS3Key: { type: String, default: '' },
+    propertyTaxId: { type: String, default: '' },
+    declarationSigned: { type: Boolean, default: false },
+    verifiedStatus: { type: String, enum: ['PENDING', 'VERIFIED', 'REJECTED'], default: 'PENDING' },
+    submittedAt: { type: Date }
   }
 }, { timestamps: true });
 

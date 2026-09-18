@@ -143,6 +143,21 @@ export const PROPERTY_TYPES = [
 
 export type PropertyType = typeof PROPERTY_TYPES[number];
 
+export interface PropertyKycInfo {
+  fullName: string;
+  idType: 'PAN' | 'AADHAAR' | 'PASSPORT' | 'VOTER_ID' | 'DRIVING_LICENSE';
+  idNumber: string;
+  idDocumentUrl?: string;
+  idDocumentS3Key?: string;
+  ownershipType: 'OWNER' | 'JOINT_OWNER' | 'AGENT_POA' | 'BUILDER';
+  ownershipDocumentUrl?: string;
+  ownershipDocumentS3Key?: string;
+  propertyTaxId?: string;
+  declarationSigned: boolean;
+  verifiedStatus?: 'PENDING' | 'VERIFIED' | 'REJECTED';
+  submittedAt?: string;
+}
+
 export interface ListingProperty {
   _id: string;
   title: string;
@@ -188,6 +203,7 @@ export interface ListingProperty {
     titleType?: string;
     approvalAuthority?: string;
   };
+  kycInfo?: PropertyKycInfo;
   // Approval workflow fields (added for public submission feature)
   approvalStatus?: 'PENDING' | 'APPROVED' | 'REJECTED';
   source?: 'ADMIN' | 'PUBLIC';

@@ -3,47 +3,76 @@
 import * as React from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { motion, AnimatePresence } from 'framer-motion'
 import { getApiBaseUrl } from '@/utils/api'
 import { useOwnerAuth } from '@/stores/auth.store'
 import {
   Home, MapPin, IndianRupee, Camera, CheckCircle2,
-  ChevronRight, LogIn, UserPlus, Upload, X, Loader2,
-  Phone, Mail, Building2, BedDouble, Bath, Car
+  ChevronRight, ChevronLeft, LogIn, UserPlus, Upload, X, Loader2,
+  Phone, Mail, Building2, BedDouble, Bath, Car, ShieldCheck,
+  FileText, Sparkles, AlertCircle, Eye, Check, Info, Lock
 } from 'lucide-react'
 
-// --- Type mappings: display label → backend enum value ---
-const PROPERTY_TYPE_OPTIONS: { label: string; value: string }[] = [
-  { label: 'Residential Plot', value: 'RESIDENTIAL_PLOT' },
-  { label: 'Apartment / Flat', value: 'APARTMENT' },
-  { label: 'Villa', value: 'VILLA' },
-  { label: 'Independent House', value: 'VILLA' }, // maps to VILLA
-  { label: 'Commercial Space', value: 'COMMERCIAL' },
-  { label: 'Office', value: 'COMMERCIAL' }, // maps to COMMERCIAL
-  { label: 'Showroom', value: 'SHOWROOM' },
-  { label: 'Shop', value: 'SHOWROOM' }, // maps to SHOWROOM
-  { label: 'Land / Agriculture', value: 'LAND' },
-  { label: 'Warehouse / Industrial', value: 'COMMERCIAL' }, // maps to COMMERCIAL
+// --- Option sets & Constants ---
+const PROPERTY_TYPE_OPTIONS: { label: string; value: string; desc: string; icon: string }[] = [
+  { label: 'Apartment / Flat', value: 'APARTMENT', desc: 'Modern living in multi-story residential complexes', icon: '🏢' },
+  { label: 'Villa / Independent House', value: 'VILLA', desc: 'Luxury standalone homes with private land', icon: '🏡' },
+  { label: 'Residential Plot', value: 'RESIDENTIAL_PLOT', desc: 'Approved housing land ready for construction', icon: '📐' },
+  { label: 'Commercial Space', value: 'COMMERCIAL', desc: 'Offices, retail hubs & business plazas', icon: '🏙️' },
+  { label: 'Showroom / Shop', value: 'SHOWROOM', desc: 'Prime street-facing retail units', icon: '🏬' },
+  { label: 'Land / Agricultural', value: 'LAND', desc: 'Farmland, agricultural plots & raw land', icon: '🌾' },
 ]
 
 const LISTING_TYPE_OPTIONS = [
-  { label: 'For Sale', value: 'SALE' },
-  { label: 'For Rent', value: 'RENT' },
-  { label: 'For Lease', value: 'LEASE' },
+  { label: 'For Sale', value: 'SALE', badge: 'Direct Sale', desc: 'Sell your property to verified buyers' },
+  { label: 'For Rent', value: 'RENT', badge: 'Monthly Rent', desc: 'Lease out monthly to prospective tenants' },
+  { label: 'For Lease', value: 'LEASE', badge: 'Long-term Lease', desc: 'Commercial or long-duration residential lease' },
 ]
 
 const FURNISHING_OPTIONS = ['Unfurnished', 'Semi-Furnished', 'Fully Furnished']
 const FACING_OPTIONS = ['East', 'West', 'North', 'South', 'North-East', 'North-West', 'South-East', 'South-West']
 
 const COMMON_AMENITIES = [
-  'Car Parking', 'Power Backup', 'Security', 'Lift / Elevator', 'Swimming Pool', 'Gym / Fitness',
-  'Garden / Park', 'Clubhouse', 'CCTV', 'Children Play Area', 'Water Supply 24x7', 'Servant Quarter'
+  'Car Parking', '24x7 Power Backup', '3-Tier Security', 'High-speed Elevator',
+  'Swimming Pool', 'Gym & Fitness Center', 'Landscaped Garden', 'Clubhouse',
+  'CCTV Surveillance', 'Children Play Zone', '24x7 Water Supply', 'Servant Quarters',
+  'EV Charging Station', 'Intercom Facility', 'Fire Safety Systems'
 ]
+
+const ID_TYPE_OPTIONS = [
+  { label: 'PAN Card (Permanent Account Number)', value: 'PAN' },
+  { label: 'Aadhaar Card', value: 'AADHAAR' },
+  { label: 'Passport', value: 'PASSPORT' },
+  { label: 'Voter ID Card', value: 'VOTER_ID' },
+  { label: 'Driving License', value: 'DRIVING_LICENSE' },
+]
+
+const OWNERSHIP_TYPE_OPTIONS = [
+  { label: 'Sole Individual Owner', value: 'OWNER' },
+  { label: 'Joint / Co-Owner', value: 'JOINT_OWNER' },
+  { label: 'Authorized Agent (Power of Attorney)', value: 'AGENT_POA' },
+  { label: 'Builder / Commercial Developer', value: 'BUILDER' },
+]
+
+interface KycState {
+  fullName: string
+  idType: string
+  idNumber: string
+  idDocumentUrl: string
+  idDocumentS3Key: string
+  ownershipType: string
+  ownershipDocumentUrl: string
+  ownershipDocumentS3Key: string
+  propertyTaxId: string
+  declarationSigned: boolean
+}
 
 interface FormState {
   displayType: string
   propertyType: string
   listingType: string
   title: string
+  tagline: string
   description: string
   state: string
   city: string
@@ -69,13 +98,15 @@ interface FormState {
   contactEmail: string
   heroImage: string
   gallery: { url: string; s3Key: string }[]
+  kyc: KycState
 }
 
 const EMPTY_FORM: FormState = {
-  displayType: '',
-  propertyType: 'RESIDENTIAL_PLOT',
+  displayType: 'Apartment / Flat',
+  propertyType: 'APARTMENT',
   listingType: 'SALE',
   title: '',
+  tagline: '',
   description: '',
   state: '',
   city: '',
@@ -84,93 +115,92 @@ const EMPTY_FORM: FormState = {
   pincode: '',
   googleMapsUrl: '',
   areaSqft: '',
-  bedrooms: '',
-  bathrooms: '',
-  parkingSpaces: '',
+  bedrooms: '2',
+  bathrooms: '2',
+  parkingSpaces: '1',
   floor: '',
   totalFloors: '',
-  facing: '',
-  furnishing: '',
-  amenities: [],
+  facing: 'North-East',
+  furnishing: 'Semi-Furnished',
+  amenities: ['Car Parking', '24x7 Power Backup', '3-Tier Security'],
   price: '',
   priceRange: '',
-  isNegotiable: false,
+  isNegotiable: true,
   monthlyRent: '',
   securityDeposit: '',
   contactPhone: '',
   contactEmail: '',
   heroImage: '',
-  gallery: []
+  gallery: [],
+  kyc: {
+    fullName: '',
+    idType: 'PAN',
+    idNumber: '',
+    idDocumentUrl: '',
+    idDocumentS3Key: '',
+    ownershipType: 'OWNER',
+    ownershipDocumentUrl: '',
+    ownershipDocumentS3Key: '',
+    propertyTaxId: '',
+    declarationSigned: false
+  }
 }
 
-// --- Section wrapper ---
-function Section({ title, icon: Icon, children }: { title: string; icon: React.ElementType; children: React.ReactNode }) {
-  return (
-    <div className="bg-white rounded-2xl border border-brand-green/15 p-6 space-y-4">
-      <div className="flex items-center gap-3">
-        <div className="w-8 h-8 rounded-xl bg-brand-soft flex items-center justify-center shrink-0">
-          <Icon className="w-4 h-4 text-brand-green" />
-        </div>
-        <h2 className="font-serif text-lg font-bold text-brand-charcoal">{title}</h2>
-      </div>
-      <div>{children}</div>
-    </div>
-  )
-}
+const WIZARD_STEPS = [
+  { id: 1, name: 'Overview', icon: Home, short: 'Type & Purpose' },
+  { id: 2, name: 'Location', icon: MapPin, short: 'Address & City' },
+  { id: 3, name: 'Specs', icon: Building2, short: 'Area & Amenities' },
+  { id: 4, name: 'Pricing', icon: IndianRupee, short: 'Price & Contact' },
+  { id: 5, name: 'Photos', icon: Camera, short: 'Gallery Upload' },
+  { id: 6, name: 'KYC & Legal', icon: ShieldCheck, short: 'ID & Title Deed' },
+  { id: 7, name: 'Review', icon: CheckCircle2, short: 'Final Submit' }
+]
 
-// --- Input helper ---
-function FieldInput({ label, required, error, children }: { label: string; required?: boolean; error?: string; children: React.ReactNode }) {
-  return (
-    <div className="space-y-1.5">
-      <label className="text-xs font-bold text-brand-charcoal/70 block">
-        {label} {required && <span className="text-red-500">*</span>}
-      </label>
-      {children}
-      {error && <p className="text-[11px] text-red-600 font-medium">{error}</p>}
-    </div>
-  )
-}
-
-const inputCls = 'w-full bg-[#FAF9F6] border border-brand-green/20 text-brand-charcoal text-xs px-3 py-2.5 rounded-xl focus:outline-none focus:border-brand-green focus:ring-2 focus:ring-brand-green/10 transition-all'
-const selectCls = inputCls + ' cursor-pointer'
-
-// --- Auth Gate (shown when user is not logged in) ---
+// --- Auth Gate ---
 function AuthGate() {
   return (
-    <div className="min-h-[70vh] flex items-center justify-center px-4">
-      <div className="w-full max-w-md text-center space-y-6">
-        <div className="w-16 h-16 rounded-2xl bg-brand-soft flex items-center justify-center mx-auto">
-          <Home className="w-8 h-8 text-brand-green" />
+    <div className="min-h-[75vh] flex items-center justify-center px-4 py-12">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="w-full max-w-lg bg-white/90 backdrop-blur-xl border border-brand-green/20 rounded-3xl p-8 sm:p-10 text-center space-y-6 shadow-2xl"
+      >
+        <div className="w-20 h-20 rounded-3xl bg-gradient-to-tr from-brand-green/10 via-brand-green/20 to-amber-500/10 border border-brand-green/20 flex items-center justify-center mx-auto shadow-inner">
+          <Home className="w-10 h-10 text-brand-green" />
         </div>
         <div className="space-y-2">
-          <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-brand-green">Property Listing Portal</p>
+          <span className="inline-block px-3 py-1 rounded-full bg-brand-soft border border-brand-green/15 text-[10px] uppercase tracking-[0.2em] font-extrabold text-brand-green">
+            Property Portal
+          </span>
           <h1 className="font-serif text-3xl font-bold text-brand-charcoal">List Your Property</h1>
-          <p className="text-sm text-brand-charcoal/60 leading-relaxed">
-            Create a free account or login to list your property with House & Sky and reach verified buyers and tenants.
+          <p className="text-xs text-brand-charcoal/70 leading-relaxed max-w-md mx-auto">
+            Please login or register to complete mandatory Seller & Property KYC verification and showcase your property to buyers and tenants.
           </p>
         </div>
 
-        <div className="bg-white rounded-2xl border border-brand-green/15 p-6 space-y-3">
+        <div className="space-y-3 pt-2">
           <Link
             href="/owner-register?redirect=/list-your-property"
-            className="w-full inline-flex items-center justify-center gap-2 py-3 rounded-xl bg-brand-green text-white text-xs font-bold hover:bg-brand-dark transition-colors"
+            className="w-full inline-flex items-center justify-center gap-2.5 py-3.5 px-6 rounded-2xl bg-brand-green text-white text-xs font-bold uppercase tracking-wider hover:bg-brand-dark transition-all shadow-md hover:shadow-lg"
           >
             <UserPlus className="w-4 h-4" />
             Create Free Account
           </Link>
           <Link
             href="/owner-login?redirect=/list-your-property"
-            className="w-full inline-flex items-center justify-center gap-2 py-3 rounded-xl border border-brand-green/20 text-brand-charcoal text-xs font-bold hover:bg-brand-soft transition-colors"
+            className="w-full inline-flex items-center justify-center gap-2.5 py-3.5 px-6 rounded-2xl border border-brand-green/25 bg-white text-brand-charcoal text-xs font-bold uppercase tracking-wider hover:bg-brand-soft transition-all shadow-sm"
           >
-            <LogIn className="w-4 h-4" />
+            <LogIn className="w-4 h-4 text-brand-green" />
             Login to Existing Account
           </Link>
         </div>
 
-        <p className="text-[11px] text-brand-charcoal/40">
-          Free to list · No brokerage · Admin reviewed before going live
-        </p>
-      </div>
+        <div className="pt-2 border-t border-brand-green/10 flex items-center justify-center gap-4 text-[10px] text-brand-charcoal/50 font-semibold">
+          <span className="flex items-center gap-1"><ShieldCheck className="w-3.5 h-3.5 text-brand-green" /> Verified KYC Security</span>
+          <span>•</span>
+          <span>Direct Owner Listing</span>
+        </div>
+      </motion.div>
     </div>
   )
 }
@@ -178,178 +208,176 @@ function AuthGate() {
 // --- Success Screen ---
 function SuccessScreen({ referenceId }: { referenceId: string }) {
   return (
-    <div className="min-h-[70vh] flex items-center justify-center px-4">
-      <div className="w-full max-w-md text-center space-y-6">
-        <div className="w-16 h-16 rounded-full bg-emerald-50 border-2 border-emerald-200 flex items-center justify-center mx-auto">
-          <CheckCircle2 className="w-8 h-8 text-emerald-600" />
+    <div className="min-h-[75vh] flex items-center justify-center px-4 py-12">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="w-full max-w-lg bg-white/95 backdrop-blur-xl border border-emerald-500/20 rounded-3xl p-8 sm:p-10 text-center space-y-6 shadow-2xl"
+      >
+        <div className="w-20 h-20 rounded-full bg-emerald-50 border-2 border-emerald-500/30 flex items-center justify-center mx-auto shadow-inner text-emerald-600">
+          <CheckCircle2 className="w-10 h-10" />
         </div>
         <div className="space-y-2">
-          <h2 className="font-serif text-2xl font-bold text-brand-charcoal">Property Submitted!</h2>
-          <p className="text-sm text-brand-charcoal/60 leading-relaxed">
-            Your property has been submitted successfully. Our team will review it and update you shortly.
+          <span className="inline-block px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 text-[10px] uppercase tracking-[0.2em] font-extrabold">
+            Submission Received
+          </span>
+          <h2 className="font-serif text-3xl font-bold text-brand-charcoal">Property Submitted!</h2>
+          <p className="text-xs text-brand-charcoal/70 leading-relaxed">
+            Your property and KYC documents have been securely uploaded. Our review team will verify your title deed and publish the listing within 24 hours.
           </p>
         </div>
-        <div className="bg-brand-soft rounded-2xl p-5 border border-brand-green/15 text-left space-y-1">
-          <p className="text-[10px] uppercase tracking-[0.15em] font-bold text-brand-green">Reference ID</p>
-          <p className="font-mono font-extrabold text-xl text-brand-charcoal">{referenceId}</p>
-          <p className="text-xs text-brand-charcoal/50">Keep this for your records</p>
+
+        <div className="bg-gradient-to-br from-brand-soft to-emerald-50/50 rounded-2xl p-5 border border-brand-green/15 text-left space-y-1">
+          <p className="text-[10px] uppercase tracking-[0.15em] font-extrabold text-brand-green">Listing Reference Code</p>
+          <p className="font-mono font-extrabold text-2xl text-brand-charcoal">{referenceId}</p>
+          <p className="text-[11px] text-brand-charcoal/50">KYC Status: <span className="font-bold text-emerald-700">Verification Pending</span></p>
         </div>
-        <div className="flex items-center gap-3">
+
+        <div className="flex flex-col sm:flex-row items-center gap-3 pt-2">
           <Link
             href="/my-properties"
-            className="flex-1 inline-flex items-center justify-center gap-2 py-3 rounded-xl bg-brand-green text-white text-xs font-bold hover:bg-brand-dark transition-colors"
+            className="w-full sm:flex-1 inline-flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-brand-green text-white text-xs font-bold uppercase tracking-wider hover:bg-brand-dark transition-colors shadow-sm"
           >
             View My Properties
           </Link>
-          <Link
-            href="/list-your-property"
-            className="flex-1 inline-flex items-center justify-center gap-2 py-3 rounded-xl border border-brand-green/20 text-brand-charcoal text-xs font-bold hover:bg-brand-soft transition-colors"
-            onClick={() => window.location.reload()}
-          >
-            List Another
-          </Link>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// --- Image Uploader (for public form — uses the existing /public/upload endpoint) ---
-function ImageUploader({
-  images,
-  onChange,
-  heroImage,
-  onHeroChange
-}: {
-  images: { url: string; s3Key: string }[]
-  onChange: (images: { url: string; s3Key: string }[]) => void
-  heroImage: string
-  onHeroChange: (url: string) => void
-}) {
-  const inputRef = React.useRef<HTMLInputElement>(null)
-  const [isUploading, setIsUploading] = React.useState(false)
-  const [uploadError, setUploadError] = React.useState('')
-  const baseUrl = getApiBaseUrl()
-  const MAX_IMAGES = 10
-  const MAX_SIZE_MB = 5
-
-  const handleFiles = async (files: FileList | null) => {
-    if (!files || files.length === 0) return
-    setUploadError('')
-
-    const remaining = MAX_IMAGES - images.length
-    if (remaining <= 0) {
-      setUploadError(`Maximum ${MAX_IMAGES} images allowed.`)
-      return
-    }
-
-    const selected = Array.from(files).slice(0, remaining)
-    const oversized = selected.filter((f) => f.size > MAX_SIZE_MB * 1024 * 1024)
-    if (oversized.length > 0) {
-      setUploadError(`${oversized.map((f) => f.name).join(', ')} exceed ${MAX_SIZE_MB}MB limit.`)
-      return
-    }
-
-    setIsUploading(true)
-    const uploaded: { url: string; s3Key: string }[] = []
-
-    for (const file of selected) {
-      try {
-        const formData = new FormData()
-        formData.append('file', file)
-        formData.append('folder', 'public-property-listings')
-        const res = await fetch(`${baseUrl}/public/upload`, {
-          method: 'POST',
-          body: formData
-        })
-        const data = await res.json().catch(() => ({}))
-        if (data.url) {
-          uploaded.push({ url: data.url, s3Key: data.s3Key || '' })
-        }
-      } catch {
-        setUploadError(`Failed to upload ${file.name}`)
-      }
-    }
-
-    if (uploaded.length > 0) {
-      const newImages = [...images, ...uploaded]
-      onChange(newImages)
-      // Auto-set hero image if not set
-      if (!heroImage && uploaded[0]) {
-        onHeroChange(uploaded[0].url)
-      }
-    }
-    setIsUploading(false)
-    if (inputRef.current) inputRef.current.value = ''
-  }
-
-  const removeImage = (index: number) => {
-    const updated = images.filter((_, i) => i !== index)
-    onChange(updated)
-    if (heroImage === images[index]?.url) {
-      onHeroChange(updated[0]?.url || '')
-    }
-  }
-
-  return (
-    <div className="space-y-3">
-      <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-        {images.map((img, index) => (
-          <div
-            key={`${img.url}-${index}`}
-            className={`relative aspect-square rounded-xl overflow-hidden border-2 ${heroImage === img.url ? 'border-brand-green' : 'border-brand-green/15'} bg-brand-soft group cursor-pointer`}
-            onClick={() => onHeroChange(img.url)}
-            title="Click to set as main photo"
-          >
-            <img src={img.url} alt={`Photo ${index + 1}`} className="w-full h-full object-cover" />
-            {heroImage === img.url && (
-              <div className="absolute bottom-0 left-0 right-0 bg-brand-green/90 text-white text-[9px] font-bold text-center py-0.5">MAIN</div>
-            )}
-            <button
-              type="button"
-              onClick={(e) => { e.stopPropagation(); removeImage(index) }}
-              className="absolute top-1 right-1 p-1 rounded-lg bg-white/90 text-red-600 opacity-0 group-hover:opacity-100 transition-opacity"
-            >
-              <X className="w-3 h-3" />
-            </button>
-          </div>
-        ))}
-        {images.length < MAX_IMAGES && (
           <button
             type="button"
-            onClick={() => inputRef.current?.click()}
-            disabled={isUploading}
-            className="aspect-square rounded-xl border-2 border-dashed border-brand-green/25 bg-brand-soft text-brand-green flex flex-col items-center justify-center gap-1 hover:bg-brand-green hover:text-white transition-colors disabled:opacity-60"
+            onClick={() => window.location.reload()}
+            className="w-full sm:flex-1 inline-flex items-center justify-center gap-2 py-3.5 rounded-2xl border border-brand-green/20 text-brand-charcoal text-xs font-bold uppercase tracking-wider hover:bg-brand-soft transition-colors"
           >
-            {isUploading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Upload className="w-5 h-5" />}
-            <span className="text-[10px] font-bold">{isUploading ? 'Uploading…' : 'Add photos'}</span>
+            List Another Property
           </button>
-        )}
-      </div>
-      {uploadError && <p className="text-[11px] text-red-600 font-medium">{uploadError}</p>}
-      <p className="text-[11px] text-brand-charcoal/50">{images.length}/{MAX_IMAGES} photos · Click a photo to set it as the main listing image · Max {MAX_SIZE_MB}MB each</p>
-      <input ref={inputRef} type="file" accept="image/*" multiple className="hidden" onChange={(e) => handleFiles(e.target.files)} />
+        </div>
+      </motion.div>
     </div>
   )
 }
 
-// --- Main Form Page ---
+// --- Universal File/Document Uploader ---
+function SingleDocUploader({
+  label,
+  description,
+  accept = "image/*,application/pdf",
+  currentUrl,
+  onUpload
+}: {
+  label: string
+  description: string
+  accept?: string
+  currentUrl: string
+  onUpload: (url: string, s3Key: string) => void
+}) {
+  const inputRef = React.useRef<HTMLInputElement>(null)
+  const [uploading, setUploading] = React.useState(false)
+  const [error, setError] = React.useState('')
+  const baseUrl = getApiBaseUrl()
+
+  const handleFile = async (file: File) => {
+    if (file.size > 8 * 1024 * 1024) {
+      setError('File size exceeds 8MB limit')
+      return
+    }
+    setError('')
+    setUploading(true)
+
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('folder', 'kyc-documents')
+
+      const res = await fetch(`${baseUrl}/public/upload`, {
+        method: 'POST',
+        body: formData
+      })
+      const data = await res.json().catch(() => ({}))
+      if (res.ok && data.url) {
+        onUpload(data.url, data.s3Key || '')
+      } else {
+        setError(data.message || 'Upload failed. Please try again.')
+      }
+    } catch {
+      setError('Network error uploading document')
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  const isPdf = currentUrl.toLowerCase().endsWith('.pdf')
+
+  return (
+    <div className="space-y-1.5">
+      <label className="text-xs font-bold text-brand-charcoal/80 block">
+        {label} <span className="text-red-500">*</span>
+      </label>
+      <div
+        onClick={() => !uploading && inputRef.current?.click()}
+        className={`border-2 border-dashed rounded-2xl p-4 transition-all cursor-pointer flex flex-col items-center justify-center text-center gap-2 ${
+          currentUrl
+            ? 'border-emerald-500/40 bg-emerald-50/40 hover:bg-emerald-50/70'
+            : 'border-brand-green/20 bg-[#FAF9F6] hover:border-brand-green hover:bg-brand-soft/40'
+        }`}
+      >
+        <input
+          ref={inputRef}
+          type="file"
+          accept={accept}
+          className="hidden"
+          onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])}
+        />
+        {uploading ? (
+          <div className="py-2 flex flex-col items-center gap-1.5 text-brand-green">
+            <Loader2 className="w-6 h-6 animate-spin" />
+            <span className="text-xs font-bold">Uploading proof document…</span>
+          </div>
+        ) : currentUrl ? (
+          <div className="flex items-center gap-3 w-full justify-between px-2">
+            <div className="flex items-center gap-2 text-emerald-800 text-left overflow-hidden">
+              <FileText className="w-6 h-6 text-emerald-600 shrink-0" />
+              <div className="truncate">
+                <p className="text-xs font-bold truncate">{label} Uploaded</p>
+                <p className="text-[10px] text-emerald-600 font-mono truncate">{currentUrl.split('/').pop()}</p>
+              </div>
+            </div>
+            <span className="px-3 py-1 rounded-xl bg-emerald-600 text-white text-[10px] font-bold shrink-0">
+              Uploaded ✓
+            </span>
+          </div>
+        ) : (
+          <div className="space-y-1 py-1">
+            <Upload className="w-6 h-6 text-brand-green/60 mx-auto" />
+            <p className="text-xs font-bold text-brand-charcoal">Click to upload document proof</p>
+            <p className="text-[10px] text-brand-charcoal/50">{description} · JPG, PNG, PDF (Max 8MB)</p>
+          </div>
+        )}
+      </div>
+      {error && <p className="text-[11px] font-semibold text-red-600">{error}</p>}
+    </div>
+  )
+}
+
+// --- Main Page Component ---
 export default function ListPropertyPage() {
   const router = useRouter()
   const { isAuthenticated, user, token } = useOwnerAuth()
   const [form, setForm] = React.useState<FormState>({ ...EMPTY_FORM })
+  const [step, setStep] = React.useState<number>(1)
   const [fieldErrors, setFieldErrors] = React.useState<Record<string, string>>({})
   const [isSubmitting, setIsSubmitting] = React.useState(false)
   const [submitError, setSubmitError] = React.useState('')
   const [successRefId, setSuccessRefId] = React.useState('')
+  const [showLivePreview, setShowLivePreview] = React.useState(false)
 
-  // Pre-fill contact details from logged-in user
+  // Auto pre-fill user info
   React.useEffect(() => {
     if (user) {
       setForm((prev) => ({
         ...prev,
         contactPhone: prev.contactPhone || user.phone || '',
-        contactEmail: prev.contactEmail || user.email || ''
+        contactEmail: prev.contactEmail || user.email || '',
+        kyc: {
+          ...prev.kyc,
+          fullName: prev.kyc.fullName || user.fullName || ''
+        }
       }))
     }
   }, [user])
@@ -362,6 +390,14 @@ export default function ListPropertyPage() {
     setFieldErrors((prev) => ({ ...prev, [key]: '' }))
   }
 
+  const updateKyc = (key: keyof KycState, value: any) => {
+    setForm((prev) => ({
+      ...prev,
+      kyc: { ...prev.kyc, [key]: value }
+    }))
+    setFieldErrors((prev) => ({ ...prev, [`kyc.${key}`]: '' }))
+  }
+
   const toggleAmenity = (item: string) => {
     setForm((prev) => ({
       ...prev,
@@ -371,26 +407,56 @@ export default function ListPropertyPage() {
     }))
   }
 
+  const isRent = form.listingType === 'RENT' || form.listingType === 'LEASE'
   const showBedBath = ['APARTMENT', 'VILLA'].includes(form.propertyType)
   const showFloor = ['APARTMENT', 'COMMERCIAL', 'SHOWROOM'].includes(form.propertyType)
-  const isRent = form.listingType === 'RENT' || form.listingType === 'LEASE'
 
-  const validate = () => {
+  // Step Validation logic
+  const validateStep = (currentStep: number): boolean => {
     const errors: Record<string, string> = {}
-    if (!form.displayType) errors.displayType = 'Please select property type.'
-    if (!form.title.trim() || form.title.trim().length < 3) errors.title = 'Title must be at least 3 characters.'
-    if (!form.city.trim()) errors.city = 'City is required.'
-    if (!form.contactPhone.trim() || form.contactPhone.trim().length < 7) errors.contactPhone = 'Valid phone number is required.'
+
+    if (currentStep === 1) {
+      if (!form.displayType) errors.displayType = 'Property type is required.'
+      if (!form.title.trim() || form.title.trim().length < 4) errors.title = 'Title must be at least 4 characters.'
+    } else if (currentStep === 2) {
+      if (!form.city.trim()) errors.city = 'City is required.'
+      if (!form.area.trim()) errors.area = 'Locality / Area is required.'
+    } else if (currentStep === 3) {
+      if (!form.areaSqft || Number(form.areaSqft) <= 0) errors.areaSqft = 'Valid area in sq.ft is required.'
+    } else if (currentStep === 4) {
+      if (isRent && (!form.monthlyRent || Number(form.monthlyRent) <= 0)) errors.monthlyRent = 'Monthly rent amount is required.'
+      if (!isRent && (!form.price || Number(form.price) <= 0)) errors.price = 'Expected price amount is required.'
+      if (!form.contactPhone.trim() || form.contactPhone.trim().length < 8) errors.contactPhone = 'Valid 10-digit phone number is required.'
+    } else if (currentStep === 6) {
+      if (!form.kyc.fullName.trim()) errors['kyc.fullName'] = 'Legal full name is required for KYC.'
+      if (!form.kyc.idNumber.trim()) errors['kyc.idNumber'] = 'Government ID number is required.'
+      if (!form.kyc.idDocumentUrl) errors['kyc.idDocumentUrl'] = 'Please upload a photo of your Government ID proof.'
+      if (!form.kyc.ownershipDocumentUrl) errors['kyc.ownershipDocumentUrl'] = 'Please upload your property title deed or registry copy.'
+      if (!form.kyc.declarationSigned) errors['kyc.declarationSigned'] = 'You must accept the legal owner declaration to proceed.'
+    }
+
     setFieldErrors(errors)
     return Object.keys(errors).length === 0
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const nextStep = () => {
+    if (validateStep(step)) {
+      setStep((prev) => Math.min(prev + 1, WIZARD_STEPS.length))
+      window.scrollTo({ top: 120, behavior: 'smooth' })
+    }
+  }
+
+  const prevStep = () => {
+    setStep((prev) => Math.max(prev - 1, 1))
+    window.scrollTo({ top: 120, behavior: 'smooth' })
+  }
+
+  const handleSubmit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault()
     setSubmitError('')
-    if (!validate()) {
-      const firstError = document.querySelector('[data-field-error]')
-      firstError?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+
+    if (!validateStep(6)) {
+      setStep(6)
       return
     }
 
@@ -398,6 +464,7 @@ export default function ListPropertyPage() {
     try {
       const payload = {
         title: form.title.trim(),
+        tagline: form.tagline.trim(),
         description: form.description.trim(),
         propertyType: form.propertyType,
         listingType: form.listingType,
@@ -419,7 +486,19 @@ export default function ListPropertyPage() {
         heroImage: form.heroImage,
         gallery: form.gallery.map((img) => ({ url: img.url, s3Key: img.s3Key })),
         contactPhone: form.contactPhone.trim(),
-        contactEmail: form.contactEmail.trim()
+        contactEmail: form.contactEmail.trim(),
+        kycInfo: {
+          fullName: form.kyc.fullName.trim(),
+          idType: form.kyc.idType,
+          idNumber: form.kyc.idNumber.trim(),
+          idDocumentUrl: form.kyc.idDocumentUrl,
+          idDocumentS3Key: form.kyc.idDocumentS3Key,
+          ownershipType: form.kyc.ownershipType,
+          ownershipDocumentUrl: form.kyc.ownershipDocumentUrl,
+          ownershipDocumentS3Key: form.kyc.ownershipDocumentS3Key,
+          propertyTaxId: form.kyc.propertyTaxId.trim(),
+          declarationSigned: form.kyc.declarationSigned
+        }
       }
 
       const res = await fetch(`${getApiBaseUrl()}/properties/submit`, {
@@ -430,315 +509,934 @@ export default function ListPropertyPage() {
         },
         body: JSON.stringify(payload)
       })
-      const data = await res.json().catch(() => ({}))
 
+      const data = await res.json().catch(() => ({}))
       if (!res.ok) {
-        setSubmitError(data.message || 'Failed to submit property. Please try again.')
+        setSubmitError(data.message || 'Property submission failed. Please verify form details.')
         return
       }
 
-      setSuccessRefId(data.data?.referenceId || 'HS-PROP-000000')
+      setSuccessRefId(data.data?.referenceId || 'HS-PROP-SUCCESS')
     } catch {
-      setSubmitError('Network error. Please check your connection and try again.')
+      setSubmitError('Network connectivity error. Please check your connection and retry.')
     } finally {
       setIsSubmitting(false)
     }
   }
 
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 py-10 space-y-6 bg-bg-primary">
-      {/* Page header */}
-      <div>
-        <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-brand-green">Property Listing Portal</p>
-        <h1 className="font-serif text-3xl font-bold text-brand-charcoal mt-1">List Your Property</h1>
-        <p className="text-xs text-brand-charcoal/60 mt-1">
-          Logged in as <span className="font-bold text-brand-charcoal">{user?.fullName}</span> ·{' '}
-          <button
-            type="button"
-            onClick={() => router.push('/my-properties')}
-            className="text-brand-green font-bold hover:underline"
-          >
-            My Properties
-          </button>
-        </p>
+    <div className="min-h-screen bg-gradient-to-b from-[#FAF9F6] via-white to-[#F4F8F6] pb-24">
+      {/* Header banner */}
+      <div className="bg-brand-charcoal text-white pt-10 pb-16 px-4 sm:px-6 relative overflow-hidden">
+        <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#0B4F3C_1px,transparent_1px)] [background-size:16px_16px]" />
+        <div className="max-w-5xl mx-auto space-y-3 relative z-10">
+          <div className="flex items-center justify-between">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-brand-green/30 border border-brand-green/40 text-[10px] uppercase tracking-[0.2em] font-extrabold text-white">
+              <Sparkles className="w-3.5 h-3.5 text-amber-400" /> Owner Portal
+            </span>
+            <button
+              type="button"
+              onClick={() => setShowLivePreview(!showLivePreview)}
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 text-xs font-bold transition-all"
+            >
+              <Eye className="w-3.5 h-3.5" />
+              {showLivePreview ? 'Hide Listing Card' : 'Live Card Preview'}
+            </button>
+          </div>
+          <h1 className="font-serif text-3xl sm:text-4xl font-bold tracking-tight">List Your Property</h1>
+          <p className="text-xs sm:text-sm text-white/70 max-w-2xl">
+            Step-by-step listing wizard with integrated Seller & Title Deed KYC verification for instant buyer trust.
+          </p>
+        </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-5">
-        {/* Section 1 — Basic Details */}
-        <Section title="Basic Details" icon={Home}>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <FieldInput label="Property Type" required error={fieldErrors.displayType}>
-              <select
-                className={selectCls}
-                value={form.displayType}
-                onChange={(e) => {
-                  const opt = PROPERTY_TYPE_OPTIONS.find((o) => o.label === e.target.value)
-                  update('displayType', e.target.value)
-                  if (opt) update('propertyType', opt.value)
-                }}
+      {/* Stepper Navigation */}
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 -mt-8 relative z-20">
+        <div className="bg-white/95 backdrop-blur-xl border border-brand-green/15 rounded-3xl p-4 shadow-xl overflow-x-auto">
+          <div className="flex items-center justify-between min-w-[640px] gap-2">
+            {WIZARD_STEPS.map((s, idx) => {
+              const Icon = s.icon
+              const isDone = step > s.id
+              const isCurrent = step === s.id
+              return (
+                <React.Fragment key={s.id}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (s.id < step) setStep(s.id)
+                    }}
+                    className={`flex items-center gap-2 px-3 py-2 rounded-2xl transition-all ${
+                      isCurrent
+                        ? 'bg-brand-green text-white shadow-md font-bold'
+                        : isDone
+                        ? 'bg-emerald-50 text-emerald-800 font-semibold hover:bg-emerald-100/70'
+                        : 'text-brand-charcoal/50 hover:text-brand-charcoal font-medium'
+                    }`}
+                  >
+                    <div className={`w-7 h-7 rounded-xl flex items-center justify-center shrink-0 ${
+                      isCurrent ? 'bg-white/20 text-white' : isDone ? 'bg-emerald-600 text-white' : 'bg-brand-soft text-brand-charcoal/60'
+                    }`}>
+                      {isDone ? <Check className="w-4 h-4" /> : <Icon className="w-3.5 h-3.5" />}
+                    </div>
+                    <div className="text-left leading-tight hidden md:block">
+                      <p className="text-[11px] uppercase tracking-wider">{s.name}</p>
+                      <p className={`text-[9px] opacity-80 font-normal ${isCurrent ? 'text-white' : 'text-brand-charcoal/60'}`}>{s.short}</p>
+                    </div>
+                  </button>
+                  {idx < WIZARD_STEPS.length - 1 && (
+                    <div className={`h-0.5 flex-1 min-w-[16px] rounded-full transition-colors ${
+                      step > s.id ? 'bg-emerald-500' : 'bg-brand-green/10'
+                    }`} />
+                  )}
+                </React.Fragment>
+              )
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* Main Form Container */}
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 mt-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          
+          {/* Main Wizard Form Area */}
+          <div className={`${showLivePreview ? 'lg:col-span-7' : 'lg:col-span-12'} space-y-6 transition-all duration-300`}>
+            
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={step}
+                initial={{ opacity: 0, x: 15 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -15 }}
+                transition={{ duration: 0.2 }}
+                className="bg-white rounded-3xl border border-brand-green/15 p-6 sm:p-8 shadow-sm space-y-6"
               >
-                <option value="">Select type…</option>
-                {PROPERTY_TYPE_OPTIONS.map((opt) => (
-                  <option key={opt.label} value={opt.label}>{opt.label}</option>
-                ))}
-              </select>
-            </FieldInput>
+                {/* STEP 1: OVERVIEW */}
+                {step === 1 && (
+                  <div className="space-y-6">
+                    <div className="border-b border-brand-green/10 pb-4">
+                      <h2 className="font-serif text-2xl font-bold text-brand-charcoal">Property Purpose & Type</h2>
+                      <p className="text-xs text-brand-charcoal/60 mt-0.5">Select whether you are selling or renting, and pick your property category.</p>
+                    </div>
 
-            <FieldInput label="Listing Type" required>
-              <select
-                className={selectCls}
-                value={form.listingType}
-                onChange={(e) => update('listingType', e.target.value)}
+                    {/* Listing Type cards */}
+                    <div className="space-y-2">
+                      <label className="text-xs font-bold text-brand-charcoal/80 block">Listing Purpose <span className="text-red-500">*</span></label>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        {LISTING_TYPE_OPTIONS.map((opt) => (
+                          <div
+                            key={opt.value}
+                            onClick={() => update('listingType', opt.value)}
+                            className={`p-4 rounded-2xl border-2 transition-all cursor-pointer space-y-1 ${
+                              form.listingType === opt.value
+                                ? 'border-brand-green bg-brand-soft/60 shadow-sm'
+                                : 'border-brand-green/15 bg-[#FAF9F6] hover:border-brand-green/40'
+                            }`}
+                          >
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs font-bold text-brand-charcoal">{opt.label}</span>
+                              <span className="text-[9px] font-extrabold px-2 py-0.5 rounded-full bg-brand-green/10 text-brand-green">{opt.badge}</span>
+                            </div>
+                            <p className="text-[10px] text-brand-charcoal/60">{opt.desc}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Property Type Grid */}
+                    <div className="space-y-2 pt-2">
+                      <label className="text-xs font-bold text-brand-charcoal/80 block">Property Category <span className="text-red-500">*</span></label>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                        {PROPERTY_TYPE_OPTIONS.map((opt) => (
+                          <div
+                            key={opt.label}
+                            onClick={() => {
+                              update('displayType', opt.label)
+                              update('propertyType', opt.value)
+                            }}
+                            className={`p-3.5 rounded-2xl border-2 transition-all cursor-pointer flex flex-col justify-between gap-2 ${
+                              form.displayType === opt.label
+                                ? 'border-brand-green bg-brand-soft/60 shadow-sm'
+                                : 'border-brand-green/15 bg-[#FAF9F6] hover:border-brand-green/40'
+                            }`}
+                          >
+                            <span className="text-2xl">{opt.icon}</span>
+                            <div>
+                              <p className="text-xs font-bold text-brand-charcoal leading-snug">{opt.label}</p>
+                              <p className="text-[9px] text-brand-charcoal/50 mt-0.5 line-clamp-1">{opt.desc}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      {fieldErrors.displayType && <p className="text-[11px] text-red-600 font-semibold">{fieldErrors.displayType}</p>}
+                    </div>
+
+                    {/* Title & Description */}
+                    <div className="space-y-4 pt-2 border-t border-brand-green/10">
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-bold text-brand-charcoal/80 block">
+                          Property Listing Title <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          className="w-full bg-[#FAF9F6] border border-brand-green/20 text-brand-charcoal text-xs px-4 py-3 rounded-xl focus:outline-none focus:border-brand-green focus:ring-2 focus:ring-brand-green/10"
+                          value={form.title}
+                          onChange={(e) => update('title', e.target.value)}
+                          placeholder="e.g. Luxurious 3BHK Apartment in Bandra West with Sea View"
+                          maxLength={150}
+                        />
+                        {fieldErrors.title && <p className="text-[11px] text-red-600 font-semibold">{fieldErrors.title}</p>}
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-bold text-brand-charcoal/80 block">Tagline / Short Highlight</label>
+                        <input
+                          type="text"
+                          className="w-full bg-[#FAF9F6] border border-brand-green/20 text-brand-charcoal text-xs px-4 py-3 rounded-xl focus:outline-none focus:border-brand-green"
+                          value={form.tagline}
+                          onChange={(e) => update('tagline', e.target.value)}
+                          placeholder="e.g. Corner plot facing lush green garden, 100% Vastu compliant"
+                        />
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-bold text-brand-charcoal/80 block">Detailed Property Description</label>
+                        <textarea
+                          rows={4}
+                          className="w-full bg-[#FAF9F6] border border-brand-green/20 text-brand-charcoal text-xs p-4 rounded-xl focus:outline-none focus:border-brand-green resize-none"
+                          value={form.description}
+                          onChange={(e) => update('description', e.target.value)}
+                          placeholder="Provide details about natural lighting, connectivity, nearby schools, hospitals, security features..."
+                          maxLength={2000}
+                        />
+                        <p className="text-[10px] text-brand-charcoal/40 text-right">{form.description.length}/2000 characters</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* STEP 2: LOCATION */}
+                {step === 2 && (
+                  <div className="space-y-6">
+                    <div className="border-b border-brand-green/10 pb-4">
+                      <h2 className="font-serif text-2xl font-bold text-brand-charcoal">Location & Address Details</h2>
+                      <p className="text-xs text-brand-charcoal/60 mt-0.5">Accurate location details increase buyer inquiry conversion by over 40%.</p>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-bold text-brand-charcoal/80 block">State</label>
+                        <input
+                          type="text"
+                          className="w-full bg-[#FAF9F6] border border-brand-green/20 text-brand-charcoal text-xs px-4 py-3 rounded-xl focus:outline-none focus:border-brand-green"
+                          value={form.state}
+                          onChange={(e) => update('state', e.target.value)}
+                          placeholder="e.g. Maharashtra"
+                        />
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-bold text-brand-charcoal/80 block">City <span className="text-red-500">*</span></label>
+                        <input
+                          type="text"
+                          className="w-full bg-[#FAF9F6] border border-brand-green/20 text-brand-charcoal text-xs px-4 py-3 rounded-xl focus:outline-none focus:border-brand-green"
+                          value={form.city}
+                          onChange={(e) => update('city', e.target.value)}
+                          placeholder="e.g. Mumbai"
+                        />
+                        {fieldErrors.city && <p className="text-[11px] text-red-600 font-semibold">{fieldErrors.city}</p>}
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-bold text-brand-charcoal/80 block">Locality / Area <span className="text-red-500">*</span></label>
+                        <input
+                          type="text"
+                          className="w-full bg-[#FAF9F6] border border-brand-green/20 text-brand-charcoal text-xs px-4 py-3 rounded-xl focus:outline-none focus:border-brand-green"
+                          value={form.area}
+                          onChange={(e) => update('area', e.target.value)}
+                          placeholder="e.g. Bandra West"
+                        />
+                        {fieldErrors.area && <p className="text-[11px] text-red-600 font-semibold">{fieldErrors.area}</p>}
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-bold text-brand-charcoal/80 block">Pincode</label>
+                        <input
+                          type="text"
+                          className="w-full bg-[#FAF9F6] border border-brand-green/20 text-brand-charcoal text-xs px-4 py-3 rounded-xl focus:outline-none focus:border-brand-green"
+                          value={form.pincode}
+                          onChange={(e) => update('pincode', e.target.value)}
+                          placeholder="e.g. 400050"
+                          maxLength={6}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-brand-charcoal/80 block">Full Property Address</label>
+                      <textarea
+                        rows={2}
+                        className="w-full bg-[#FAF9F6] border border-brand-green/20 text-brand-charcoal text-xs p-4 rounded-xl focus:outline-none focus:border-brand-green resize-none"
+                        value={form.address}
+                        onChange={(e) => update('address', e.target.value)}
+                        placeholder="Building name, Flat/Plot number, Road name, Landmark..."
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-brand-charcoal/80 block">Google Maps Location URL (optional)</label>
+                      <input
+                        type="url"
+                        className="w-full bg-[#FAF9F6] border border-brand-green/20 text-brand-charcoal text-xs px-4 py-3 rounded-xl focus:outline-none focus:border-brand-green"
+                        value={form.googleMapsUrl}
+                        onChange={(e) => update('googleMapsUrl', e.target.value)}
+                        placeholder="https://maps.google.com/..."
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* STEP 3: SPECS & AMENITIES */}
+                {step === 3 && (
+                  <div className="space-y-6">
+                    <div className="border-b border-brand-green/10 pb-4">
+                      <h2 className="font-serif text-2xl font-bold text-brand-charcoal">Property Dimensions & Amenities</h2>
+                      <p className="text-xs text-brand-charcoal/60 mt-0.5">Specify carpet/super area, room counts, and available community amenities.</p>
+                    </div>
+
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                      <div className="space-y-1.5 col-span-2 sm:col-span-1">
+                        <label className="text-xs font-bold text-brand-charcoal/80 block">Super Area (sq. ft.) <span className="text-red-500">*</span></label>
+                        <input
+                          type="number"
+                          min="1"
+                          className="w-full bg-[#FAF9F6] border border-brand-green/20 text-brand-charcoal text-xs px-4 py-3 rounded-xl focus:outline-none focus:border-brand-green font-bold"
+                          value={form.areaSqft}
+                          onChange={(e) => update('areaSqft', e.target.value)}
+                          placeholder="e.g. 1450"
+                        />
+                        {fieldErrors.areaSqft && <p className="text-[11px] text-red-600 font-semibold">{fieldErrors.areaSqft}</p>}
+                      </div>
+
+                      {showBedBath && (
+                        <>
+                          <div className="space-y-1.5">
+                            <label className="text-xs font-bold text-brand-charcoal/80 block">Bedrooms</label>
+                            <div className="relative">
+                              <BedDouble className="w-4 h-4 text-brand-charcoal/40 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                              <input
+                                type="number"
+                                min="0"
+                                max="20"
+                                className="w-full bg-[#FAF9F6] border border-brand-green/20 text-brand-charcoal text-xs pl-10 pr-4 py-3 rounded-xl focus:outline-none focus:border-brand-green font-bold"
+                                value={form.bedrooms}
+                                onChange={(e) => update('bedrooms', e.target.value)}
+                              />
+                            </div>
+                          </div>
+
+                          <div className="space-y-1.5">
+                            <label className="text-xs font-bold text-brand-charcoal/80 block">Bathrooms</label>
+                            <div className="relative">
+                              <Bath className="w-4 h-4 text-brand-charcoal/40 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                              <input
+                                type="number"
+                                min="0"
+                                max="20"
+                                className="w-full bg-[#FAF9F6] border border-brand-green/20 text-brand-charcoal text-xs pl-10 pr-4 py-3 rounded-xl focus:outline-none focus:border-brand-green font-bold"
+                                value={form.bathrooms}
+                                onChange={(e) => update('bathrooms', e.target.value)}
+                              />
+                            </div>
+                          </div>
+                        </>
+                      )}
+
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-bold text-brand-charcoal/80 block">Parking Spaces</label>
+                        <div className="relative">
+                          <Car className="w-4 h-4 text-brand-charcoal/40 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                          <input
+                            type="number"
+                            min="0"
+                            max="10"
+                            className="w-full bg-[#FAF9F6] border border-brand-green/20 text-brand-charcoal text-xs pl-10 pr-4 py-3 rounded-xl focus:outline-none focus:border-brand-green font-bold"
+                            value={form.parkingSpaces}
+                            onChange={(e) => update('parkingSpaces', e.target.value)}
+                          />
+                        </div>
+                      </div>
+
+                      {showFloor && (
+                        <>
+                          <div className="space-y-1.5">
+                            <label className="text-xs font-bold text-brand-charcoal/80 block">Floor Number</label>
+                            <input
+                              type="number"
+                              min="0"
+                              className="w-full bg-[#FAF9F6] border border-brand-green/20 text-brand-charcoal text-xs px-4 py-3 rounded-xl focus:outline-none focus:border-brand-green"
+                              value={form.floor}
+                              onChange={(e) => update('floor', e.target.value)}
+                              placeholder="e.g. 5"
+                            />
+                          </div>
+                          <div className="space-y-1.5">
+                            <label className="text-xs font-bold text-brand-charcoal/80 block">Total Floors</label>
+                            <input
+                              type="number"
+                              min="1"
+                              className="w-full bg-[#FAF9F6] border border-brand-green/20 text-brand-charcoal text-xs px-4 py-3 rounded-xl focus:outline-none focus:border-brand-green"
+                              value={form.totalFloors}
+                              onChange={(e) => update('totalFloors', e.target.value)}
+                              placeholder="e.g. 14"
+                            />
+                          </div>
+                        </>
+                      )}
+
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-bold text-brand-charcoal/80 block">Facing Direction</label>
+                        <select
+                          className="w-full bg-[#FAF9F6] border border-brand-green/20 text-brand-charcoal text-xs px-4 py-3 rounded-xl focus:outline-none focus:border-brand-green cursor-pointer font-medium"
+                          value={form.facing}
+                          onChange={(e) => update('facing', e.target.value)}
+                        >
+                          <option value="">Select facing...</option>
+                          {FACING_OPTIONS.map((f) => <option key={f} value={f}>{f}</option>)}
+                        </select>
+                      </div>
+
+                      {showBedBath && (
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-bold text-brand-charcoal/80 block">Furnishing Status</label>
+                          <select
+                            className="w-full bg-[#FAF9F6] border border-brand-green/20 text-brand-charcoal text-xs px-4 py-3 rounded-xl focus:outline-none focus:border-brand-green cursor-pointer font-medium"
+                            value={form.furnishing}
+                            onChange={(e) => update('furnishing', e.target.value)}
+                          >
+                            {FURNISHING_OPTIONS.map((f) => <option key={f} value={f}>{f}</option>)}
+                          </select>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Amenities multi-select */}
+                    <div className="space-y-3 pt-4 border-t border-brand-green/10">
+                      <label className="text-xs font-bold text-brand-charcoal/80 block">Key Amenities & Society Features</label>
+                      <div className="flex flex-wrap gap-2">
+                        {COMMON_AMENITIES.map((item) => {
+                          const active = form.amenities.includes(item)
+                          return (
+                            <button
+                              key={item}
+                              type="button"
+                              onClick={() => toggleAmenity(item)}
+                              className={`px-3.5 py-2 rounded-2xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                                active
+                                  ? 'bg-brand-green text-white shadow-sm scale-[1.02]'
+                                  : 'bg-[#FAF9F6] border border-brand-green/20 text-brand-charcoal/70 hover:bg-brand-soft'
+                              }`}
+                            >
+                              <span>{active ? '✓' : '+'}</span> {item}
+                            </button>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* STEP 4: PRICING & CONTACT */}
+                {step === 4 && (
+                  <div className="space-y-6">
+                    <div className="border-b border-brand-green/10 pb-4">
+                      <h2 className="font-serif text-2xl font-bold text-brand-charcoal">Pricing & Verified Contact</h2>
+                      <p className="text-xs text-brand-charcoal/60 mt-0.5">Set expected pricing and phone number for verified inquiries.</p>
+                    </div>
+
+                    {isRent ? (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-bold text-brand-charcoal/80 block">Expected Monthly Rent (₹) <span className="text-red-500">*</span></label>
+                          <div className="relative">
+                            <IndianRupee className="w-4 h-4 text-brand-charcoal/40 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                            <input
+                              type="number"
+                              min="0"
+                              className="w-full bg-[#FAF9F6] border border-brand-green/20 text-brand-charcoal text-sm font-extrabold pl-10 pr-4 py-3 rounded-xl focus:outline-none focus:border-brand-green"
+                              value={form.monthlyRent}
+                              onChange={(e) => update('monthlyRent', e.target.value)}
+                              placeholder="e.g. 35000"
+                            />
+                          </div>
+                          {fieldErrors.monthlyRent && <p className="text-[11px] text-red-600 font-semibold">{fieldErrors.monthlyRent}</p>}
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-bold text-brand-charcoal/80 block">Security Deposit (₹)</label>
+                          <div className="relative">
+                            <IndianRupee className="w-4 h-4 text-brand-charcoal/40 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                            <input
+                              type="number"
+                              min="0"
+                              className="w-full bg-[#FAF9F6] border border-brand-green/20 text-brand-charcoal text-sm font-extrabold pl-10 pr-4 py-3 rounded-xl focus:outline-none focus:border-brand-green"
+                              value={form.securityDeposit}
+                              onChange={(e) => update('securityDeposit', e.target.value)}
+                              placeholder="e.g. 100000"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-bold text-brand-charcoal/80 block">Expected Sale Price (₹) <span className="text-red-500">*</span></label>
+                          <div className="relative">
+                            <IndianRupee className="w-4 h-4 text-brand-charcoal/40 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                            <input
+                              type="number"
+                              min="0"
+                              className="w-full bg-[#FAF9F6] border border-brand-green/20 text-brand-charcoal text-sm font-extrabold pl-10 pr-4 py-3 rounded-xl focus:outline-none focus:border-brand-green"
+                              value={form.price}
+                              onChange={(e) => update('price', e.target.value)}
+                              placeholder="e.g. 12500000"
+                            />
+                          </div>
+                          {fieldErrors.price && <p className="text-[11px] text-red-600 font-semibold">{fieldErrors.price}</p>}
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-bold text-brand-charcoal/80 block">Display Price Label (optional)</label>
+                          <input
+                            type="text"
+                            className="w-full bg-[#FAF9F6] border border-brand-green/20 text-brand-charcoal text-xs px-4 py-3 rounded-xl focus:outline-none focus:border-brand-green"
+                            value={form.priceRange}
+                            onChange={(e) => update('priceRange', e.target.value)}
+                            placeholder="e.g. ₹1.25 Crore"
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="pt-2">
+                      <label className="inline-flex items-center gap-2 cursor-pointer bg-brand-soft/60 border border-brand-green/15 px-4 py-3 rounded-2xl w-full">
+                        <input
+                          type="checkbox"
+                          className="w-4 h-4 rounded accent-brand-green cursor-pointer"
+                          checked={form.isNegotiable}
+                          onChange={(e) => update('isNegotiable', e.target.checked)}
+                        />
+                        <span className="text-xs font-bold text-brand-charcoal">Price is negotiable for serious buyers</span>
+                      </label>
+                    </div>
+
+                    <div className="space-y-4 pt-4 border-t border-brand-green/10">
+                      <h3 className="text-xs font-extrabold uppercase tracking-wider text-brand-green">Direct Contact Info</h3>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-bold text-brand-charcoal/80 block">Contact Mobile Number <span className="text-red-500">*</span></label>
+                          <div className="relative">
+                            <Phone className="w-4 h-4 text-brand-charcoal/40 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                            <input
+                              type="tel"
+                              className="w-full bg-[#FAF9F6] border border-brand-green/20 text-brand-charcoal text-xs pl-10 pr-4 py-3 rounded-xl focus:outline-none focus:border-brand-green font-bold"
+                              value={form.contactPhone}
+                              onChange={(e) => update('contactPhone', e.target.value)}
+                              placeholder="10-digit mobile"
+                            />
+                          </div>
+                          {fieldErrors.contactPhone && <p className="text-[11px] text-red-600 font-semibold">{fieldErrors.contactPhone}</p>}
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-bold text-brand-charcoal/80 block">Contact Email</label>
+                          <div className="relative">
+                            <Mail className="w-4 h-4 text-brand-charcoal/40 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                            <input
+                              type="email"
+                              className="w-full bg-[#FAF9F6] border border-brand-green/20 text-brand-charcoal text-xs pl-10 pr-4 py-3 rounded-xl focus:outline-none focus:border-brand-green"
+                              value={form.contactEmail}
+                              onChange={(e) => update('contactEmail', e.target.value)}
+                              placeholder="your@email.com"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* STEP 5: PHOTOS */}
+                {step === 5 && (
+                  <div className="space-y-6">
+                    <div className="border-b border-brand-green/10 pb-4">
+                      <h2 className="font-serif text-2xl font-bold text-brand-charcoal">Property Photo Gallery</h2>
+                      <p className="text-xs text-brand-charcoal/60 mt-0.5">Listings with 4+ high quality photos receive 3x more buyer responses.</p>
+                    </div>
+
+                    {/* Photo Uploader */}
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        {form.gallery.map((img, idx) => (
+                          <div
+                            key={`${img.url}-${idx}`}
+                            onClick={() => update('heroImage', img.url)}
+                            className={`relative aspect-square rounded-2xl overflow-hidden border-2 cursor-pointer group transition-all ${
+                              form.heroImage === img.url ? 'border-brand-green ring-4 ring-brand-green/10' : 'border-brand-green/15'
+                            }`}
+                          >
+                            <img src={img.url} alt={`Photo ${idx + 1}`} className="w-full h-full object-cover" />
+                            {form.heroImage === img.url && (
+                              <span className="absolute bottom-0 left-0 right-0 bg-brand-green text-white text-[9px] font-extrabold text-center py-1 uppercase tracking-wider">
+                                Main Photo ★
+                              </span>
+                            )}
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                const nextGallery = form.gallery.filter((_, i) => i !== idx)
+                                update('gallery', nextGallery)
+                                if (form.heroImage === img.url) {
+                                  update('heroImage', nextGallery[0]?.url || '')
+                                }
+                              }}
+                              className="absolute top-2 right-2 p-1.5 rounded-full bg-black/60 text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                              <X className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+
+                      <SingleDocUploader
+                        label="Upload Property Photos"
+                        description="Add up to 10 photos of living room, exterior, kitchen & bedrooms"
+                        accept="image/*"
+                        currentUrl=""
+                        onUpload={(url, s3Key) => {
+                          const nextGallery = [...form.gallery, { url, s3Key }]
+                          update('gallery', nextGallery)
+                          if (!form.heroImage) update('heroImage', url)
+                        }}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* STEP 6: MANDATORY KYC & LEGAL VERIFICATION */}
+                {step === 6 && (
+                  <div className="space-y-6">
+                    <div className="border-b border-brand-green/10 pb-4 flex items-start justify-between">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <ShieldCheck className="w-6 h-6 text-brand-green" />
+                          <h2 className="font-serif text-2xl font-bold text-brand-charcoal">Seller Identity & Title KYC</h2>
+                        </div>
+                        <p className="text-xs text-brand-charcoal/60 mt-1">
+                          Mandatory legal verification to prevent fraudulent property listings and protect real estate buyers.
+                        </p>
+                      </div>
+                      <span className="px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-extrabold uppercase tracking-wider">
+                        Required
+                      </span>
+                    </div>
+
+                    <div className="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-4 flex items-start gap-3">
+                      <Lock className="w-5 h-5 text-amber-700 shrink-0 mt-0.5" />
+                      <p className="text-xs text-amber-900 leading-relaxed font-medium">
+                        Your government ID number and title deed documents are encrypted and kept strictly confidential. They are viewed solely by our compliance team for listing approval.
+                      </p>
+                    </div>
+
+                    {/* Seller Personal KYC */}
+                    <div className="space-y-4 pt-2">
+                      <h3 className="text-xs font-extrabold uppercase tracking-wider text-brand-green">1. Seller Identity Proof</h3>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-bold text-brand-charcoal/80 block">
+                            Full Legal Name (as per ID) <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            className="w-full bg-[#FAF9F6] border border-brand-green/20 text-brand-charcoal text-xs px-4 py-3 rounded-xl focus:outline-none focus:border-brand-green font-semibold"
+                            value={form.kyc.fullName}
+                            onChange={(e) => updateKyc('fullName', e.target.value)}
+                            placeholder="e.g. Ankit Kumar"
+                          />
+                          {fieldErrors['kyc.fullName'] && <p className="text-[11px] text-red-600 font-semibold">{fieldErrors['kyc.fullName']}</p>}
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-bold text-brand-charcoal/80 block">Identity Document Type <span className="text-red-500">*</span></label>
+                          <select
+                            className="w-full bg-[#FAF9F6] border border-brand-green/20 text-brand-charcoal text-xs px-4 py-3 rounded-xl focus:outline-none focus:border-brand-green font-medium cursor-pointer"
+                            value={form.kyc.idType}
+                            onChange={(e) => updateKyc('idType', e.target.value)}
+                          >
+                            {ID_TYPE_OPTIONS.map((opt) => (
+                              <option key={opt.value} value={opt.value}>{opt.label}</option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-bold text-brand-charcoal/80 block">
+                          Government ID Number ({form.kyc.idType}) <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          className="w-full bg-[#FAF9F6] border border-brand-green/20 text-brand-charcoal text-xs px-4 py-3 rounded-xl focus:outline-none focus:border-brand-green uppercase font-mono font-bold tracking-wider"
+                          value={form.kyc.idNumber}
+                          onChange={(e) => updateKyc('idNumber', e.target.value)}
+                          placeholder="e.g. ABCDE1234F"
+                        />
+                        {fieldErrors['kyc.idNumber'] && <p className="text-[11px] text-red-600 font-semibold">{fieldErrors['kyc.idNumber']}</p>}
+                      </div>
+
+                      {/* ID Document Upload */}
+                      <SingleDocUploader
+                        label="Government ID Document Proof Upload"
+                        description="Upload clear photo or PDF scan of your PAN, Aadhaar or Passport"
+                        currentUrl={form.kyc.idDocumentUrl}
+                        onUpload={(url, s3Key) => {
+                          updateKyc('idDocumentUrl', url)
+                          updateKyc('idDocumentS3Key', s3Key)
+                        }}
+                      />
+                      {fieldErrors['kyc.idDocumentUrl'] && <p className="text-[11px] text-red-600 font-semibold">{fieldErrors['kyc.idDocumentUrl']}</p>}
+                    </div>
+
+                    {/* Property Ownership Title Deed KYC */}
+                    <div className="space-y-4 pt-4 border-t border-brand-green/10">
+                      <h3 className="text-xs font-extrabold uppercase tracking-wider text-brand-green">2. Property Ownership & Title Deed Verification</h3>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-bold text-brand-charcoal/80 block">Ownership Status <span className="text-red-500">*</span></label>
+                          <select
+                            className="w-full bg-[#FAF9F6] border border-brand-green/20 text-brand-charcoal text-xs px-4 py-3 rounded-xl focus:outline-none focus:border-brand-green font-medium cursor-pointer"
+                            value={form.kyc.ownershipType}
+                            onChange={(e) => updateKyc('ownershipType', e.target.value)}
+                          >
+                            {OWNERSHIP_TYPE_OPTIONS.map((opt) => (
+                              <option key={opt.value} value={opt.value}>{opt.label}</option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-bold text-brand-charcoal/80 block">Property Tax / Khata / Survey Number (optional)</label>
+                          <input
+                            type="text"
+                            className="w-full bg-[#FAF9F6] border border-brand-green/20 text-brand-charcoal text-xs px-4 py-3 rounded-xl focus:outline-none focus:border-brand-green font-mono"
+                            value={form.kyc.propertyTaxId}
+                            onChange={(e) => updateKyc('propertyTaxId', e.target.value)}
+                            placeholder="e.g. TAX-2026-88910"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Title Deed Upload */}
+                      <SingleDocUploader
+                        label="Property Title Deed / Sale Registry / Allotment Letter Proof"
+                        description="Upload copy of Registry, Title Deed, or Allotment Certificate proving ownership right"
+                        currentUrl={form.kyc.ownershipDocumentUrl}
+                        onUpload={(url, s3Key) => {
+                          updateKyc('ownershipDocumentUrl', url)
+                          updateKyc('ownershipDocumentS3Key', s3Key)
+                        }}
+                      />
+                      {fieldErrors['kyc.ownershipDocumentUrl'] && <p className="text-[11px] text-red-600 font-semibold">{fieldErrors['kyc.ownershipDocumentUrl']}</p>}
+                    </div>
+
+                    {/* Legal Declaration */}
+                    <div className="pt-4 border-t border-brand-green/10 space-y-2">
+                      <label className="inline-flex items-start gap-3 cursor-pointer bg-brand-soft/50 border border-brand-green/20 p-4 rounded-2xl w-full">
+                        <input
+                          type="checkbox"
+                          className="w-5 h-5 rounded accent-brand-green cursor-pointer mt-0.5 shrink-0"
+                          checked={form.kyc.declarationSigned}
+                          onChange={(e) => updateKyc('declarationSigned', e.target.checked)}
+                        />
+                        <div className="text-xs text-brand-charcoal space-y-1">
+                          <p className="font-bold">Self-Declaration of Legitimate Ownership & Verification</p>
+                          <p className="text-[11px] text-brand-charcoal/70 leading-relaxed">
+                            I hereby solemnly affirm and declare that I am the rightful legal owner or authorized agent (with valid Power of Attorney) of the property described herein. All provided documents and information are true and authentic.
+                          </p>
+                        </div>
+                      </label>
+                      {fieldErrors['kyc.declarationSigned'] && <p className="text-[11px] text-red-600 font-semibold">{fieldErrors['kyc.declarationSigned']}</p>}
+                    </div>
+                  </div>
+                )}
+
+                {/* STEP 7: REVIEW & SUBMIT */}
+                {step === 7 && (
+                  <div className="space-y-6">
+                    <div className="border-b border-brand-green/10 pb-4">
+                      <h2 className="font-serif text-2xl font-bold text-brand-charcoal">Review Listing & Final Submit</h2>
+                      <p className="text-xs text-brand-charcoal/60 mt-0.5">Please review your property summary and attached KYC status before submitting.</p>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                      <div className="bg-[#FAF9F6] border border-brand-green/15 rounded-2xl p-4 space-y-2">
+                        <span className="text-[10px] uppercase font-bold text-brand-green">Overview</span>
+                        <p className="font-bold text-brand-charcoal text-sm">{form.title}</p>
+                        <p className="text-brand-charcoal/70">{form.displayType} · {form.listingType}</p>
+                        <p className="font-extrabold text-brand-green text-sm">
+                          {isRent ? `₹${Number(form.monthlyRent).toLocaleString('en-IN')}/mo` : `₹${Number(form.price).toLocaleString('en-IN')}`}
+                        </p>
+                      </div>
+
+                      <div className="bg-[#FAF9F6] border border-brand-green/15 rounded-2xl p-4 space-y-2">
+                        <span className="text-[10px] uppercase font-bold text-brand-green">Location & Contact</span>
+                        <p className="font-bold text-brand-charcoal">{form.area}, {form.city}</p>
+                        <p className="text-brand-charcoal/70">{form.address || 'Address provided'}</p>
+                        <p className="text-brand-charcoal">Phone: <span className="font-bold">{form.contactPhone}</span></p>
+                      </div>
+
+                      <div className="bg-emerald-50 border border-emerald-500/20 rounded-2xl p-4 space-y-2 col-span-1 sm:col-span-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[10px] uppercase font-bold text-emerald-800 flex items-center gap-1">
+                            <ShieldCheck className="w-4 h-4 text-emerald-600" /> KYC Status Summary
+                          </span>
+                          <span className="px-2.5 py-0.5 rounded-full bg-emerald-600 text-white font-bold text-[10px]">
+                            Verified & Signed ✓
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-1 text-[11px] text-emerald-900">
+                          <p>Legal Name: <span className="font-bold">{form.kyc.fullName}</span></p>
+                          <p>ID Type: <span className="font-bold">{form.kyc.idType} ({form.kyc.idNumber})</span></p>
+                          <p>Ownership: <span className="font-bold">{form.kyc.ownershipType}</span></p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {submitError && (
+                      <div className="bg-red-50 border border-red-200 rounded-2xl p-4 flex items-center gap-3 text-red-700 text-xs font-semibold">
+                        <AlertCircle className="w-5 h-5 shrink-0" />
+                        <p>{submitError}</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </motion.div>
+            </AnimatePresence>
+
+            {/* Stepper Navigation Buttons */}
+            <div className="flex items-center justify-between gap-4 bg-white/90 backdrop-blur-xl border border-brand-green/15 rounded-3xl p-5 shadow-lg">
+              <button
+                type="button"
+                onClick={prevStep}
+                disabled={step === 1}
+                className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl border border-brand-green/20 text-brand-charcoal text-xs font-bold hover:bg-brand-soft disabled:opacity-30 disabled:cursor-not-allowed transition-all"
               >
-                {LISTING_TYPE_OPTIONS.map((opt) => (
-                  <option key={opt.value} value={opt.value}>{opt.label}</option>
-                ))}
-              </select>
-            </FieldInput>
-          </div>
+                <ChevronLeft className="w-4 h-4" /> Previous
+              </button>
 
-          <div className="mt-4">
-            <FieldInput label="Property Title" required error={fieldErrors.title}>
-              <input
-                type="text"
-                className={inputCls}
-                value={form.title}
-                onChange={(e) => update('title', e.target.value)}
-                placeholder="e.g. Spacious 3BHK in Sector 62 Noida"
-                maxLength={160}
-              />
-            </FieldInput>
-          </div>
-
-          <div className="mt-4">
-            <FieldInput label="Description">
-              <textarea
-                className={`${inputCls} resize-none`}
-                rows={4}
-                value={form.description}
-                onChange={(e) => update('description', e.target.value)}
-                placeholder="Describe the property — key highlights, nearby landmarks, special features…"
-                maxLength={2000}
-              />
-              <p className="text-[10px] text-brand-charcoal/40 mt-1">{form.description.length}/2000</p>
-            </FieldInput>
-          </div>
-        </Section>
-
-        {/* Section 2 — Location */}
-        <Section title="Location" icon={MapPin}>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <FieldInput label="State">
-              <input type="text" className={inputCls} value={form.state} onChange={(e) => update('state', e.target.value)} placeholder="e.g. Uttar Pradesh" />
-            </FieldInput>
-            <FieldInput label="City" required error={fieldErrors.city}>
-              <input type="text" className={inputCls} value={form.city} onChange={(e) => update('city', e.target.value)} placeholder="e.g. Noida" />
-            </FieldInput>
-            <FieldInput label="Locality / Area">
-              <input type="text" className={inputCls} value={form.area} onChange={(e) => update('area', e.target.value)} placeholder="e.g. Sector 62" />
-            </FieldInput>
-            <FieldInput label="Pincode">
-              <input type="text" className={inputCls} value={form.pincode} onChange={(e) => update('pincode', e.target.value)} placeholder="6-digit pincode" maxLength={6} />
-            </FieldInput>
-          </div>
-          <div className="mt-4">
-            <FieldInput label="Full Address">
-              <textarea
-                className={`${inputCls} resize-none`}
-                rows={2}
-                value={form.address}
-                onChange={(e) => update('address', e.target.value)}
-                placeholder="Plot number, street name, landmark…"
-              />
-            </FieldInput>
-          </div>
-          <div className="mt-4">
-            <FieldInput label="Google Maps Link">
-              <input
-                type="url"
-                className={inputCls}
-                value={form.googleMapsUrl}
-                onChange={(e) => update('googleMapsUrl', e.target.value)}
-                placeholder="https://maps.google.com/..."
-              />
-            </FieldInput>
-          </div>
-        </Section>
-
-        {/* Section 3 — Property Details */}
-        <Section title="Property Details" icon={Building2}>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-            <FieldInput label="Total Area (sq. ft.)">
-              <input type="number" min="0" className={inputCls} value={form.areaSqft} onChange={(e) => update('areaSqft', e.target.value)} placeholder="e.g. 1200" />
-            </FieldInput>
-            {showBedBath && (
-              <>
-                <FieldInput label="Bedrooms">
-                  <div className="relative">
-                    <BedDouble className="w-4 h-4 text-brand-charcoal/30 absolute left-3 top-1/2 -translate-y-1/2" />
-                    <input type="number" min="0" max="20" className={`${inputCls} pl-9`} value={form.bedrooms} onChange={(e) => update('bedrooms', e.target.value)} placeholder="0" />
-                  </div>
-                </FieldInput>
-                <FieldInput label="Bathrooms">
-                  <div className="relative">
-                    <Bath className="w-4 h-4 text-brand-charcoal/30 absolute left-3 top-1/2 -translate-y-1/2" />
-                    <input type="number" min="0" max="20" className={`${inputCls} pl-9`} value={form.bathrooms} onChange={(e) => update('bathrooms', e.target.value)} placeholder="0" />
-                  </div>
-                </FieldInput>
-              </>
-            )}
-            <FieldInput label="Parking Spaces">
-              <div className="relative">
-                <Car className="w-4 h-4 text-brand-charcoal/30 absolute left-3 top-1/2 -translate-y-1/2" />
-                <input type="number" min="0" max="10" className={`${inputCls} pl-9`} value={form.parkingSpaces} onChange={(e) => update('parkingSpaces', e.target.value)} placeholder="0" />
+              <div className="text-center hidden sm:block">
+                <p className="text-xs font-bold text-brand-charcoal">Step {step} of {WIZARD_STEPS.length}</p>
+                <p className="text-[10px] text-brand-charcoal/50">{WIZARD_STEPS[step - 1]?.name}</p>
               </div>
-            </FieldInput>
-            {showFloor && (
-              <>
-                <FieldInput label="Floor Number">
-                  <input type="number" min="0" className={inputCls} value={form.floor} onChange={(e) => update('floor', e.target.value)} placeholder="e.g. 3" />
-                </FieldInput>
-                <FieldInput label="Total Floors">
-                  <input type="number" min="1" className={inputCls} value={form.totalFloors} onChange={(e) => update('totalFloors', e.target.value)} placeholder="e.g. 10" />
-                </FieldInput>
-              </>
-            )}
-            <FieldInput label="Facing">
-              <select className={selectCls} value={form.facing} onChange={(e) => update('facing', e.target.value)}>
-                <option value="">Any</option>
-                {FACING_OPTIONS.map((f) => <option key={f}>{f}</option>)}
-              </select>
-            </FieldInput>
-            {showBedBath && (
-              <FieldInput label="Furnishing">
-                <select className={selectCls} value={form.furnishing} onChange={(e) => update('furnishing', e.target.value)}>
-                  <option value="">Not specified</option>
-                  {FURNISHING_OPTIONS.map((f) => <option key={f}>{f}</option>)}
-                </select>
-              </FieldInput>
-            )}
-          </div>
 
-          {/* Amenities */}
-          <div className="mt-5">
-            <p className="text-xs font-bold text-brand-charcoal/70 mb-2">Amenities</p>
-            <div className="flex flex-wrap gap-2">
-              {COMMON_AMENITIES.map((item) => (
+              {step < WIZARD_STEPS.length ? (
                 <button
-                  key={item}
                   type="button"
-                  onClick={() => toggleAmenity(item)}
-                  className={`px-3 py-1.5 rounded-full text-[11px] font-bold transition-all cursor-pointer ${
-                    form.amenities.includes(item)
-                      ? 'bg-brand-green text-white'
-                      : 'bg-brand-soft text-brand-charcoal hover:bg-brand-green/10'
-                  }`}
+                  onClick={nextStep}
+                  className="inline-flex items-center gap-2 px-7 py-3 rounded-2xl bg-brand-green text-white text-xs font-bold uppercase tracking-wider hover:bg-brand-dark transition-all shadow-md"
                 >
-                  {item}
+                  Next Step <ChevronRight className="w-4 h-4" />
                 </button>
-              ))}
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => handleSubmit()}
+                  disabled={isSubmitting}
+                  className="inline-flex items-center gap-2 px-8 py-3.5 rounded-2xl bg-gradient-to-r from-emerald-600 to-brand-green text-white text-xs font-extrabold uppercase tracking-wider hover:from-emerald-700 hover:to-brand-dark transition-all shadow-lg disabled:opacity-60 cursor-pointer"
+                >
+                  {isSubmitting ? (
+                    <><Loader2 className="w-4 h-4 animate-spin" /> Submitting Listing…</>
+                  ) : (
+                    <><CheckCircle2 className="w-4 h-4" /> Submit Property For Approval</>
+                  )}
+                </button>
+              )}
             </div>
           </div>
-        </Section>
 
-        {/* Section 4 — Pricing */}
-        <Section title="Pricing" icon={IndianRupee}>
-          {isRent ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <FieldInput label="Monthly Rent (₹)">
-                <input type="number" min="0" className={inputCls} value={form.monthlyRent} onChange={(e) => update('monthlyRent', e.target.value)} placeholder="e.g. 25000" />
-              </FieldInput>
-              <FieldInput label="Security Deposit (₹)">
-                <input type="number" min="0" className={inputCls} value={form.securityDeposit} onChange={(e) => update('securityDeposit', e.target.value)} placeholder="e.g. 75000" />
-              </FieldInput>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <FieldInput label="Expected Price (₹)">
-                <input type="number" min="0" className={inputCls} value={form.price} onChange={(e) => update('price', e.target.value)} placeholder="e.g. 7500000" />
-              </FieldInput>
-              <FieldInput label="Price Display (optional)">
-                <input type="text" className={inputCls} value={form.priceRange} onChange={(e) => update('priceRange', e.target.value)} placeholder="e.g. ₹75 Lakh" />
-              </FieldInput>
+          {/* Optional Live Public Card Preview Drawer/Panel */}
+          {showLivePreview && (
+            <div className="lg:col-span-5 sticky top-28 space-y-4">
+              <div className="bg-white rounded-3xl border border-brand-green/20 p-5 shadow-xl space-y-4">
+                <div className="flex items-center justify-between border-b border-brand-green/10 pb-3">
+                  <div className="flex items-center gap-2 text-brand-green font-bold text-xs">
+                    <Eye className="w-4 h-4" /> Public Card Preview
+                  </div>
+                  <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-brand-soft text-brand-green">
+                    Live Demo
+                  </span>
+                </div>
+
+                {/* Simulated Public Listing Card */}
+                <div className="bg-white border border-brand-green/15 rounded-3xl overflow-hidden shadow-sm space-y-3">
+                  <div className="h-48 bg-brand-soft relative overflow-hidden">
+                    {form.heroImage || form.gallery[0]?.url ? (
+                      <img src={form.heroImage || form.gallery[0]?.url} alt="Preview" className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex flex-col items-center justify-center text-brand-green/40 gap-2">
+                        <Home className="w-10 h-10" />
+                        <span className="text-[10px] font-bold uppercase">Photo Preview</span>
+                      </div>
+                    )}
+                    <span className="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-white/90 text-[10px] font-extrabold text-brand-charcoal shadow-sm">
+                      {form.displayType}
+                    </span>
+                    <span className="absolute top-3 right-3 px-2.5 py-1 rounded-full bg-brand-green text-white text-[10px] font-extrabold shadow-sm">
+                      {form.listingType}
+                    </span>
+                  </div>
+
+                  <div className="p-4 space-y-2">
+                    <h4 className="font-serif font-bold text-brand-charcoal leading-snug line-clamp-2">
+                      {form.title || 'Your Property Title Will Appear Here'}
+                    </h4>
+                    <p className="text-xs text-brand-charcoal/60 flex items-center gap-1">
+                      <MapPin className="w-3.5 h-3.5 text-brand-green" />
+                      {[form.area, form.city].filter(Boolean).join(', ') || 'City, Area'}
+                    </p>
+
+                    <div className="flex items-center justify-between pt-2 border-t border-brand-green/10">
+                      <p className="text-base font-extrabold text-brand-green">
+                        {isRent
+                          ? (form.monthlyRent ? `₹${Number(form.monthlyRent).toLocaleString('en-IN')}/mo` : '₹ Rent')
+                          : (form.priceRange || (form.price ? `₹${Number(form.price).toLocaleString('en-IN')}` : '₹ Price'))}
+                      </p>
+                      <span className="text-[10px] font-bold text-brand-charcoal/50">
+                        {form.areaSqft ? `${form.areaSqft} sq.ft` : 'Sq.ft'}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between text-[10px] text-brand-charcoal/60 pt-1">
+                      <span>{showBedBath ? `${form.bedrooms} Beds · ${form.bathrooms} Baths` : 'Plot / Unit'}</span>
+                      <span className="text-emerald-700 font-extrabold flex items-center gap-1">
+                        <ShieldCheck className="w-3.5 h-3.5" /> Title KYC Verified
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <p className="text-[11px] text-brand-charcoal/50 text-center italic">
+                  This preview updates automatically as you complete each step of the form.
+                </p>
+              </div>
             </div>
           )}
-          <label className="flex items-center gap-2 cursor-pointer mt-3">
-            <input
-              type="checkbox"
-              className="w-4 h-4 rounded accent-brand-green"
-              checked={form.isNegotiable}
-              onChange={(e) => update('isNegotiable', e.target.checked)}
-            />
-            <span className="text-xs font-semibold text-brand-charcoal/70">Price is negotiable</span>
-          </label>
-        </Section>
 
-        {/* Section 5 — Contact */}
-        <Section title="Your Contact Details" icon={Phone}>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <FieldInput label="Contact Phone" required error={fieldErrors.contactPhone}>
-              <div className="relative">
-                <Phone className="w-4 h-4 text-brand-charcoal/30 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                <input
-                  type="tel"
-                  className={`${inputCls} pl-10`}
-                  value={form.contactPhone}
-                  onChange={(e) => update('contactPhone', e.target.value)}
-                  placeholder="10-digit mobile"
-                />
-              </div>
-            </FieldInput>
-            <FieldInput label="Contact Email">
-              <div className="relative">
-                <Mail className="w-4 h-4 text-brand-charcoal/30 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                <input
-                  type="email"
-                  className={`${inputCls} pl-10`}
-                  value={form.contactEmail}
-                  onChange={(e) => update('contactEmail', e.target.value)}
-                  placeholder="your@email.com"
-                />
-              </div>
-            </FieldInput>
-          </div>
-          <p className="text-[11px] text-brand-charcoal/50 mt-2">This is shown to interested buyers/tenants only after admin approval.</p>
-        </Section>
-
-        {/* Section 6 — Photos */}
-        <Section title="Property Photos" icon={Camera}>
-          <ImageUploader
-            images={form.gallery}
-            onChange={(imgs) => update('gallery', imgs)}
-            heroImage={form.heroImage}
-            onHeroChange={(url) => update('heroImage', url)}
-          />
-        </Section>
-
-        {/* Submit */}
-        {submitError && (
-          <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3">
-            <p className="text-xs font-semibold text-red-700">{submitError}</p>
-          </div>
-        )}
-
-        <div className="flex items-center justify-between gap-4 bg-white rounded-2xl border border-brand-green/15 p-5">
-          <div>
-            <p className="text-xs font-bold text-brand-charcoal">Ready to submit?</p>
-            <p className="text-[11px] text-brand-charcoal/50 mt-0.5">Our team will review and approve your listing within 24–48 hrs.</p>
-          </div>
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-brand-green text-white text-xs font-bold hover:bg-brand-dark transition-colors disabled:opacity-60 disabled:cursor-not-allowed shrink-0"
-          >
-            {isSubmitting ? (
-              <><Loader2 className="w-4 h-4 animate-spin" /> Submitting…</>
-            ) : (
-              <><ChevronRight className="w-4 h-4" /> Submit Property</>
-            )}
-          </button>
         </div>
-      </form>
+      </div>
     </div>
   )
 }

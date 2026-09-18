@@ -331,6 +331,29 @@ exports.registerPublicProperty = async (req, res, next) => {
     const allowedListingTypes = LISTING_TYPES;
     const allowedStatuses = PROPERTY_STATUSES;
 
+    // Parse & Validate mandatory KYC Verification Info
+    const rawKyc = body.kycInfo || {};
+    const kycInfo = {
+      fullName: String(rawKyc.fullName || '').trim().substring(0, 100),
+      idType: ['PAN', 'AADHAAR', 'PASSPORT', 'VOTER_ID', 'DRIVING_LICENSE'].includes(rawKyc.idType) ? rawKyc.idType : 'PAN',
+      idNumber: String(rawKyc.idNumber || '').trim().toUpperCase().substring(0, 50),
+      idDocumentUrl: String(rawKyc.idDocumentUrl || '').trim(),
+      idDocumentS3Key: String(rawKyc.idDocumentS3Key || '').trim(),
+      ownershipType: ['OWNER', 'JOINT_OWNER', 'AGENT_POA', 'BUILDER'].includes(rawKyc.ownershipType) ? rawKyc.ownershipType : 'OWNER',
+      ownershipDocumentUrl: String(rawKyc.ownershipDocumentUrl || '').trim(),
+      ownershipDocumentS3Key: String(rawKyc.ownershipDocumentS3Key || '').trim(),
+      propertyTaxId: String(rawKyc.propertyTaxId || '').trim().substring(0, 50),
+      declarationSigned: Boolean(rawKyc.declarationSigned),
+      verifiedStatus: 'PENDING',
+      submittedAt: new Date()
+    };
+
+    if (!kycInfo.fullName || !kycInfo.idNumber || !kycInfo.declarationSigned) {
+      return res.status(400).json({
+        message: 'KYC Verification incomplete: Full legal name, valid Government ID number, and declaration agreement are required.'
+      });
+    }
+
     const payload = {
       title,
       slug,
@@ -361,6 +384,7 @@ exports.registerPublicProperty = async (req, res, next) => {
       gallery: sanitizeGallery(body.gallery).slice(0, 10),
       contactPhone: String(body.contactPhone || '').substring(0, 20),
       contactEmail: String(body.contactEmail || '').substring(0, 100),
+      kycInfo,
       // Forced fields — never accepted from body
       status: 'AVAILABLE',
       approvalStatus: 'PENDING',
@@ -465,6 +489,20 @@ exports.updateMyProperty = async (req, res, next) => {
       gallery: body.gallery !== undefined ? sanitizeGallery(body.gallery).slice(0, 10) : property.gallery,
       contactPhone: String(body.contactPhone || property.contactPhone || '').substring(0, 20),
       contactEmail: String(body.contactEmail || property.contactEmail || '').substring(0, 100),
+      kycInfo: body.kycInfo ? {
+        fullName: String(body.kycInfo.fullName || property.kycInfo?.fullName || '').trim().substring(0, 100),
+        idType: ['PAN', 'AADHAAR', 'PASSPORT', 'VOTER_ID', 'DRIVING_LICENSE'].includes(body.kycInfo.idType) ? body.kycInfo.idType : (property.kycInfo?.idType || 'PAN'),
+        idNumber: String(body.kycInfo.idNumber || property.kycInfo?.idNumber || '').trim().toUpperCase().substring(0, 50),
+        idDocumentUrl: String(body.kycInfo.idDocumentUrl || property.kycInfo?.idDocumentUrl || '').trim(),
+        idDocumentS3Key: String(body.kycInfo.idDocumentS3Key || property.kycInfo?.idDocumentS3Key || '').trim(),
+        ownershipType: ['OWNER', 'JOINT_OWNER', 'AGENT_POA', 'BUILDER'].includes(body.kycInfo.ownershipType) ? body.kycInfo.ownershipType : (property.kycInfo?.ownershipType || 'OWNER'),
+        ownershipDocumentUrl: String(body.kycInfo.ownershipDocumentUrl || property.kycInfo?.ownershipDocumentUrl || '').trim(),
+        ownershipDocumentS3Key: String(body.kycInfo.ownershipDocumentS3Key || property.kycInfo?.ownershipDocumentS3Key || '').trim(),
+        propertyTaxId: String(body.kycInfo.propertyTaxId || property.kycInfo?.propertyTaxId || '').trim().substring(0, 50),
+        declarationSigned: body.kycInfo.declarationSigned !== undefined ? Boolean(body.kycInfo.declarationSigned) : Boolean(property.kycInfo?.declarationSigned),
+        verifiedStatus: 'PENDING',
+        submittedAt: new Date()
+      } : property.kycInfo,
       // Reset to pending on resubmit
       approvalStatus: 'PENDING',
       rejectionReason: '',

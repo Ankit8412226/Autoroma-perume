@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { Edit, Home, Plus, RefreshCw, Trash2, CheckCircle, XCircle, Clock, ExternalLink } from 'lucide-react';
+import { Edit, Home, Plus, RefreshCw, Trash2, CheckCircle, XCircle, Clock, ExternalLink, ShieldCheck, X, FileText, UserCheck } from 'lucide-react';
 import { ListingProperty } from '../types';
 import { deleteProperty, fetchProperties, approveProperty, rejectProperty } from '../services/propertiesService';
 import { AddPropertyModal } from '../components/properties/AddPropertyModal';
@@ -45,6 +45,138 @@ function ApprovalBadge({ status }: { status?: string }) {
     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-50 text-red-700 text-[10px] font-bold uppercase">
       <XCircle className="w-3 h-3" /> Rejected
     </span>
+  );
+}
+
+interface KycModalProps {
+  property: ListingProperty;
+  onClose: () => void;
+  onApprove: (property: ListingProperty) => void;
+  onReject: (property: ListingProperty) => void;
+}
+
+function KycModal({ property, onClose, onApprove, onReject }: KycModalProps) {
+  const kyc = property.kycInfo;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+      <div className="bg-white rounded-3xl border border-[#0B4F3C]/20 w-full max-w-xl p-6 space-y-5 shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+        <div className="flex items-center justify-between border-b border-[#0B4F3C]/15 pb-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-[#EAF3EF] flex items-center justify-center text-[#0B4F3C]">
+              <ShieldCheck className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="font-serif text-lg font-bold text-[#171A18]">Listing KYC & Verification</h3>
+              <p className="text-xs text-[#171A18]/60 truncate max-w-sm">{property.title}</p>
+            </div>
+          </div>
+          <button onClick={onClose} className="p-2 text-[#171A18]/40 hover:text-[#171A18] rounded-xl hover:bg-[#EAF3EF] cursor-pointer">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {!kyc || !kyc.fullName ? (
+          <div className="py-8 text-center space-y-2">
+            <FileText className="w-8 h-8 text-[#171A18]/30 mx-auto" />
+            <p className="text-xs font-bold text-[#171A18]/60">No explicit KYC document attached</p>
+            <p className="text-[11px] text-[#171A18]/40">This listing was created directly via admin panel or legacy route.</p>
+          </div>
+        ) : (
+          <div className="overflow-y-auto space-y-4 pr-1 flex-1 text-xs">
+            {/* Owner Identity */}
+            <div className="bg-[#FAF9F6] border border-[#0B4F3C]/10 rounded-2xl p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-[#0B4F3C] uppercase text-[10px] tracking-wider">Owner / Submitter Identity</span>
+                <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold">
+                  {kyc.verifiedStatus || 'PENDING'}
+                </span>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <p className="text-[10px] text-[#171A18]/50">Full Legal Name</p>
+                  <p className="font-bold text-[#171A18] text-sm">{kyc.fullName}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] text-[#171A18]/50">Government ID ({kyc.idType})</p>
+                  <p className="font-mono font-bold text-[#171A18] text-sm">{kyc.idNumber || '—'}</p>
+                </div>
+              </div>
+              {kyc.idDocumentUrl && (
+                <a
+                  href={kyc.idDocumentUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-[#0B4F3C]/20 text-[#0B4F3C] font-bold hover:bg-[#0B4F3C] hover:text-white transition-colors text-[11px]"
+                >
+                  <ExternalLink className="w-3.5 h-3.5" /> View ID Document Proof
+                </a>
+              )}
+            </div>
+
+            {/* Property Ownership Info */}
+            <div className="bg-[#FAF9F6] border border-[#0B4F3C]/10 rounded-2xl p-4 space-y-3">
+              <span className="font-bold text-[#0B4F3C] uppercase text-[10px] tracking-wider">Property Title & Ownership</span>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <p className="text-[10px] text-[#171A18]/50">Ownership Category</p>
+                  <p className="font-bold text-[#171A18]">{kyc.ownershipType?.replace('_', ' ')}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] text-[#171A18]/50">Property Tax / Khata ID</p>
+                  <p className="font-mono font-bold text-[#171A18]">{kyc.propertyTaxId || '—'}</p>
+                </div>
+              </div>
+              {kyc.ownershipDocumentUrl ? (
+                <a
+                  href={kyc.ownershipDocumentUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-[#0B4F3C]/20 text-[#0B4F3C] font-bold hover:bg-[#0B4F3C] hover:text-white transition-colors text-[11px]"
+                >
+                  <ExternalLink className="w-3.5 h-3.5" /> View Title Deed / Registry Proof
+                </a>
+              ) : (
+                <p className="text-[11px] text-[#171A18]/50 italic">No deed document file uploaded</p>
+              )}
+            </div>
+
+            {/* Contact details */}
+            <div className="bg-[#FAF9F6] border border-[#0B4F3C]/10 rounded-2xl p-4 space-y-2">
+              <span className="font-bold text-[#0B4F3C] uppercase text-[10px] tracking-wider">Contact & Declaration</span>
+              <p className="text-[#171A18]">Phone: <span className="font-bold">{property.contactPhone || '—'}</span></p>
+              <p className="text-[#171A18]">Email: <span className="font-bold">{property.contactEmail || '—'}</span></p>
+              <div className="flex items-center gap-2 pt-1 text-emerald-700">
+                <CheckCircle className="w-4 h-4 shrink-0" />
+                <span className="font-semibold text-[11px]">Self-declaration signed under legal penalty</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div className="flex items-center justify-between gap-3 pt-2 border-t border-[#0B4F3C]/15">
+          <button onClick={onClose} className="px-4 py-2.5 rounded-xl border border-[#0B4F3C]/20 text-xs font-bold text-[#171A18] cursor-pointer">
+            Close
+          </button>
+          {property.source === 'PUBLIC' && property.approvalStatus === 'PENDING' && (
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => { onClose(); onReject(property); }}
+                className="px-4 py-2.5 rounded-xl bg-red-50 text-red-600 text-xs font-bold hover:bg-red-100 transition-colors cursor-pointer"
+              >
+                Reject Listing
+              </button>
+              <button
+                onClick={() => { onClose(); onApprove(property); }}
+                className="px-4 py-2.5 rounded-xl bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-700 transition-colors flex items-center gap-1.5 cursor-pointer"
+              >
+                <CheckCircle className="w-4 h-4" /> Approve Listing
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -117,6 +249,7 @@ export const PropertiesPage: React.FC = () => {
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [editing, setEditing] = useState<ListingProperty | null>(null);
   const [rejectTarget, setRejectTarget] = useState<ListingProperty | null>(null);
+  const [kycTarget, setKycTarget] = useState<ListingProperty | null>(null);
   const [activeTab, setActiveTab] = useState<ApprovalTab>('ALL');
 
   const load = async () => {
@@ -291,6 +424,9 @@ export const PropertiesPage: React.FC = () => {
                 )}
 
                 <div className="flex items-center gap-2 pt-1">
+                  <button onClick={() => setKycTarget(property)} className="px-3 py-2 rounded-xl bg-sky-50 text-sky-700 text-xs font-bold flex items-center justify-center gap-1 cursor-pointer hover:bg-sky-100 transition-colors" title="View KYC & Title Documents">
+                    <ShieldCheck className="w-3.5 h-3.5" /> KYC
+                  </button>
                   <button onClick={() => setEditing(property)} className="flex-1 px-3 py-2 rounded-xl bg-[#EAF3EF] text-[#0B4F3C] text-xs font-bold flex items-center justify-center gap-1 cursor-pointer">
                     <Edit className="w-3.5 h-3.5" /> Edit
                   </button>
@@ -311,6 +447,14 @@ export const PropertiesPage: React.FC = () => {
           property={rejectTarget}
           onClose={() => setRejectTarget(null)}
           onDone={() => { setRejectTarget(null); load(); }}
+        />
+      )}
+      {kycTarget && (
+        <KycModal
+          property={kycTarget}
+          onClose={() => setKycTarget(null)}
+          onApprove={handleApprove}
+          onReject={(p) => setRejectTarget(p)}
         />
       )}
     </div>
