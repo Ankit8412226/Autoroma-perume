@@ -8,7 +8,7 @@ import { AnnouncementTicker } from './AnnouncementTicker'
 import { getApiBaseUrl } from '@/utils/api'
 import { SITE } from '@/utils/siteConfig'
 import { useOwnerAuth } from '@/stores/auth.store'
-import { Bookmark, Menu, X, PhoneCall, ChevronDown, Mail, Facebook, MessageCircle, UserCircle, LogOut, Home, LogIn } from 'lucide-react'
+import { Bookmark, Menu, X, PhoneCall, ChevronDown, Mail, Facebook, MessageCircle, UserCircle, LogOut, Home, LogIn, Flame } from 'lucide-react'
 
 interface NavProject {
   _id: string
@@ -28,6 +28,7 @@ export function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false)
   const [isMobileAboutOpen, setIsMobileAboutOpen] = React.useState(false)
   const [isMobileProjectsOpen, setIsMobileProjectsOpen] = React.useState(false)
+  const [isMobilePropertiesOpen, setIsMobilePropertiesOpen] = React.useState(false)
   const [openMenu, setOpenMenu] = React.useState<string | null>(null)
   const [projects, setProjects] = React.useState<NavProject[]>([])
 
@@ -50,6 +51,7 @@ export function Navbar() {
     setOpenMenu(null)
     setIsMobileAboutOpen(false)
     setIsMobileProjectsOpen(false)
+    setIsMobilePropertiesOpen(false)
   }, [pathname])
 
   React.useEffect(() => {
@@ -121,9 +123,34 @@ export function Navbar() {
                 )}
               </div>
 
-              <Link href="/properties" className={linkClass('/properties')}>Properties</Link>
+              {/* Properties Dropdown with Bulk Deals */}
+              <div className="relative" onMouseEnter={() => setOpenMenu('properties')} onMouseLeave={() => setOpenMenu(null)}>
+                <Link href="/properties" className={`inline-flex items-center gap-1 ${linkClass('/properties')}`}>
+                  Properties <ChevronDown className="w-3 h-3" />
+                </Link>
+                {openMenu === 'properties' && (
+                  <div className="absolute top-full left-0 pt-2 min-w-[220px] z-[100]">
+                    <div className="bg-white border border-brand-green/15 rounded-xl shadow-xl py-1.5 overflow-hidden animate-in fade-in slide-in-from-top-1 duration-150">
+                      <Link href="/properties" className="block px-4 py-2.5 text-xs font-bold text-brand-charcoal hover:bg-brand-soft hover:text-brand-green transition-colors">
+                        All Property Listings
+                      </Link>
+                      <Link href="/bulk-deals" className="flex items-center justify-between px-4 py-2.5 text-xs font-bold text-amber-700 bg-amber-50/70 hover:bg-amber-100/80 transition-colors">
+                        <span className="flex items-center gap-1.5">
+                          <Flame className="w-3.5 h-3.5 text-amber-500 fill-amber-500 animate-bounce" />
+                          Investor Bulk Deals
+                        </span>
+                        <span className="px-1.5 py-0.5 bg-amber-500 text-slate-950 text-[9px] font-extrabold rounded uppercase">
+                          HOT
+                        </span>
+                      </Link>
+                    </div>
+                  </div>
+                )}
+              </div>
+
               <Link href="/contact" className={linkClass('/contact')}>Get In Touch</Link>
             </nav>
+
 
             {/* Desktop right side — sleek hierarchy: Phone info | Login/Owner | List Property CTA */}
             <div className="hidden lg:flex items-center gap-3">
@@ -272,9 +299,31 @@ export function Navbar() {
                 )}
               </div>
 
-              <Link href="/properties" onClick={() => setIsMobileMenuOpen(false)} className="block text-xs uppercase tracking-[0.14em] font-semibold text-brand-charcoal py-2.5 border-b border-brand-green/10">
-                Properties
-              </Link>
+              {/* Properties Accordion */}
+              <div className="border-b border-brand-green/10 py-1">
+                <button
+                  type="button"
+                  onClick={() => setIsMobilePropertiesOpen(!isMobilePropertiesOpen)}
+                  className="w-full flex items-center justify-between py-2 text-xs uppercase tracking-[0.14em] font-semibold text-brand-charcoal cursor-pointer"
+                >
+                  <span>Properties</span>
+                  <ChevronDown className={`w-4 h-4 text-brand-green transition-transform duration-200 ${isMobilePropertiesOpen ? 'rotate-180' : ''}`} />
+                </button>
+                {isMobilePropertiesOpen && (
+                  <div className="pl-3 py-1 space-y-1 bg-brand-soft/50 rounded-lg my-1">
+                    <Link href="/properties" onClick={() => setIsMobileMenuOpen(false)} className="block text-xs font-bold text-brand-charcoal py-1.5 hover:text-brand-green">
+                      All Property Listings
+                    </Link>
+                    <Link href="/bulk-deals" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center justify-between text-xs font-bold text-amber-800 py-1.5 pr-2">
+                      <span className="flex items-center gap-1.5">
+                        <Flame className="w-3.5 h-3.5 text-amber-500 fill-amber-500" /> Investor Bulk Deals
+                      </span>
+                      <span className="px-1.5 py-0.5 bg-amber-500 text-slate-950 text-[9px] font-extrabold rounded">HOT</span>
+                    </Link>
+                  </div>
+                )}
+              </div>
+
               <Link href="/contact" onClick={() => setIsMobileMenuOpen(false)} className="block text-xs uppercase tracking-[0.14em] font-semibold text-brand-charcoal py-2.5 border-b border-brand-green/10">
                 Get In Touch
               </Link>

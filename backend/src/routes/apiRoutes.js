@@ -18,6 +18,7 @@ const reportController = require('../controllers/reportController');
 
 const inquiryController = require('../controllers/inquiryController');
 const bulkBuyController = require('../controllers/bulkBuyController');
+const bulkDealController = require('../controllers/bulkDealController');
 const BulkBuyInquiry = require('../models/BulkBuyInquiry');
 const uploadController = require('../controllers/uploadController');
 const propertyController = require('../controllers/propertyController');
@@ -55,6 +56,13 @@ router.get('/public/locations', inquiryController.getPublicLocations);
 router.get('/public/properties', propertyController.getPublicProperties);
 router.get('/public/properties/:slug', propertyController.getPublicPropertyBySlug);
 router.get('/public/gallery', galleryController.getPublicGallery);
+router.get('/public/bulk-deals', bulkDealController.getPublicBulkDeals);
+router.get('/public/bulk-deals/:slug', bulkDealController.getPublicBulkDealBySlug);
+router.post('/public/bulk-deals/request', inquiryLimiter, validate({
+  name: { required: true, type: 'string', minLength: 2, maxLength: 80 },
+  phone: { required: true, type: 'string', minLength: 5, maxLength: 20 }
+}), bulkDealController.submitBulkDealRequest);
+
 router.get('/public/announcement', settingController.getAnnouncement);
 router.put('/admin/announcement', protect, authorize('ADMIN', 'DIRECTOR', 'MANAGER'), settingController.updateAnnouncement);
 
@@ -63,6 +71,13 @@ router.get('/admin/gallery', protect, authorize('ADMIN', 'DIRECTOR', 'MANAGER'),
 router.post('/admin/gallery', protect, authorize('ADMIN', 'DIRECTOR', 'MANAGER'), galleryController.createGalleryItem);
 router.put('/admin/gallery/:id', protect, authorize('ADMIN', 'DIRECTOR', 'MANAGER'), galleryController.updateGalleryItem);
 router.delete('/admin/gallery/:id', protect, authorize('ADMIN', 'DIRECTOR'), galleryController.deleteGalleryItem);
+
+// --- DEDICATED BULK DEALS MANAGEMENT ROUTES (Admin) ---
+router.get('/admin/bulk-deals', protect, authorize('ADMIN', 'DIRECTOR', 'MANAGER'), bulkDealController.getAdminBulkDeals);
+router.post('/admin/bulk-deals', protect, authorize('ADMIN', 'DIRECTOR', 'MANAGER'), bulkDealController.createBulkDeal);
+router.put('/admin/bulk-deals/:id', protect, authorize('ADMIN', 'DIRECTOR', 'MANAGER'), bulkDealController.updateBulkDeal);
+router.delete('/admin/bulk-deals/:id', protect, authorize('ADMIN', 'DIRECTOR'), bulkDealController.deleteBulkDeal);
+
 
 router.post('/public/inquiries', inquiryLimiter, validate({
   name: { required: true, type: 'string', minLength: 2, maxLength: 80 },

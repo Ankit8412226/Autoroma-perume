@@ -23,7 +23,8 @@ import {
   Home,
   Link2,
   ClipboardCheck,
-  Image as ImageIcon
+  Image as ImageIcon,
+  Flame
 } from 'lucide-react';
 
 const ALL_ROLES = ['ADMIN', 'DIRECTOR', 'MANAGER', 'EMPLOYEE', 'AGENT'];
@@ -56,11 +57,13 @@ const navSections: NavSection[] = [
     items: [
       { name: 'Real Estate Projects', path: '/projects', icon: Building2, allowedRoles: ADMIN_DIRECTOR },
       { name: 'Property Listings', path: '/properties', icon: Home, allowedRoles: ADMIN_DIRECTOR },
+      { name: 'Bulk Deals Manager', path: '/bulk-deals-management', icon: Flame, allowedRoles: ADMIN_DIRECTOR_MANAGER, badge: 'HOT' },
       { name: 'Public Gallery Showcase', path: '/gallery-management', icon: ImageIcon, allowedRoles: ADMIN_DIRECTOR_MANAGER },
       { name: 'Plot Inventory & Canvas', path: '/plots', icon: MapPin, allowedRoles: ALL_ROLES },
       { name: 'Naksha AI OCR Tool', path: '/ocr-analyzer', icon: ScanText, allowedRoles: ADMIN_DIRECTOR, badge: 'AI' },
     ]
   },
+
   {
     title: 'MLM AGENT NETWORK',
     items: [
