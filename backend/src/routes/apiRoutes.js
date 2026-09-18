@@ -37,16 +37,16 @@ const PROPERTY_TYPES = ['RESIDENTIAL_PLOT', 'COMMERCIAL', 'VILLA', 'SHOWROOM', '
 const LISTING_TYPES = ['SALE', 'RENT', 'LEASE'];
 const PROPERTY_STATUSES = ['AVAILABLE', 'BOOKED', 'SOLD', 'UPCOMING'];
 
-// Rate limiters for public submissions
+
 const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 10, message: 'Too many attempts, please try again later.' });
 const inquiryLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 20, message: 'Too many inquiries submitted. Please wait a few minutes before trying again.' });
 const propertySubmitLimiter = rateLimit({ windowMs: 60 * 60 * 1000, max: 10, message: 'Too many property submissions. Please wait before submitting again.' });
 
-// --- S3 UPLOAD ROUTES ---
+
 router.post('/upload', protect, upload.single('file'), uploadController.uploadFile);
 router.post('/public/upload', upload.single('file'), uploadController.uploadFile);
 
-// --- PUBLIC DISCOVERY & LANDING PAGE ROUTES (No Auth Required) ---
+
 router.get('/public/projects', inquiryController.getPublicProjects);
 router.get('/public/projects/:id', inquiryController.getPublicProjectById);
 router.get('/public/plots', inquiryController.getPublicPlots);
@@ -65,6 +65,8 @@ router.post('/public/bulk-deals/request', inquiryLimiter, validate({
 
 router.get('/public/announcement', settingController.getAnnouncement);
 router.put('/admin/announcement', protect, authorize('ADMIN', 'DIRECTOR', 'MANAGER'), settingController.updateAnnouncement);
+router.get('/admin/settings', protect, authorize('ADMIN', 'DIRECTOR'), settingController.getAllSettings);
+router.put('/admin/settings', protect, authorize('ADMIN', 'DIRECTOR'), settingController.updateAllSettings);
 
 // --- DEDICATED GALLERY MANAGEMENT ROUTES (Admin) ---
 router.get('/admin/gallery', protect, authorize('ADMIN', 'DIRECTOR', 'MANAGER'), galleryController.getAdminGallery);
@@ -232,21 +234,18 @@ router.put('/plots/:id/marker', protect, authorize('ADMIN', 'DIRECTOR', 'MANAGER
 router.put('/plots/:id/status', protect, validate({
   status: { required: true, type: 'string', enum: PLOT_STATUSES },
   ownerEmail: { type: 'email' },
-  // sellerEmployeeId intentionally excluded from objectId validation:
-  // the controller accepts both a valid ObjectId (employee) and the
-  // sentinel strings 'DIRECT' / 'NONE' (no-agent direct sale).
   paidAmount: { type: 'number', min: 0 }
 }), plotController.updatePlotStatus);
 router.post('/plots/:plotId/documents', protect, upload.single('file'), plotController.uploadPlotDocument);
 
-// --- Plot Map & OCR Pipeline Routes ---
+
 router.get('/plot-maps', protect, plotMapController.getPlotMaps);
 router.get('/plot-maps/:id', protect, plotMapController.getPlotMapById);
 router.post('/ocr/analyze', protect, authorize('ADMIN', 'DIRECTOR'), upload.single('file'), ocrController.analyzeMap);
 router.post('/ocr/approve/:mapId', protect, authorize('ADMIN', 'DIRECTOR'), ocrController.approveMapOverlay);
 router.post('/ocr/reject/:mapId', protect, authorize('ADMIN', 'DIRECTOR'), ocrController.rejectMapOverlay);
 
-// --- Commission & Payout Routes ---
+
 router.get('/commissions', protect, commissionController.getCommissions);
 router.get('/commissions/summary', protect, authorize('ADMIN', 'DIRECTOR', 'MANAGER'), commissionController.getCommissionSummary);
 
@@ -256,7 +255,7 @@ router.post('/payouts/request', protect, validate({
 }), payoutController.requestPayout);
 router.post('/payouts/:id/approve', protect, authorize('ADMIN', 'DIRECTOR'), payoutController.approvePayout);
 
-// --- Agent KYC (required before payout) ---
+
 router.get('/kyc/me', protect, kycController.getMyKyc);
 router.put('/kyc/me', protect, kycController.saveMyKyc);
 router.get('/kyc', protect, authorize('ADMIN', 'DIRECTOR', 'MANAGER'), kycController.listKyc);
@@ -265,20 +264,20 @@ router.get('/kyc/:id', protect, authorize('ADMIN', 'DIRECTOR', 'MANAGER'), kycCo
 router.post('/kyc/:id/approve', protect, authorize('ADMIN', 'DIRECTOR', 'MANAGER'), kycController.approveKyc);
 router.post('/kyc/:id/reject', protect, authorize('ADMIN', 'DIRECTOR', 'MANAGER'), kycController.rejectKyc);
 
-// --- Reports (admin / director only) ---
+
 router.get('/reports/commission-audit', protect, authorize('ADMIN', 'DIRECTOR'), reportController.commissionAuditReport);
 router.get('/reports/revenue', protect, authorize('ADMIN', 'DIRECTOR'), reportController.revenueReport);
 router.get('/reports/mlm-performance', protect, authorize('ADMIN', 'DIRECTOR'), reportController.mlmPerformanceReport);
 router.get('/reports/payout-summary', protect, authorize('ADMIN', 'DIRECTOR'), reportController.payoutSummaryReport);
 router.get('/reports/plot-ledger', protect, authorize('ADMIN', 'DIRECTOR'), reportController.plotLedgerReport);
 
-// --- Inquiries & Customer Leads (Admin / Manager) ---
+
 router.get('/inquiries', protect, authorize('ADMIN', 'MANAGER', 'DIRECTOR'), inquiryController.getInquiries);
 router.put('/inquiries/:id/status', protect, authorize('ADMIN', 'MANAGER', 'DIRECTOR'), inquiryController.updateInquiryStatus);
 router.get('/bulk-buy-inquiries', protect, authorize('ADMIN', 'MANAGER', 'DIRECTOR'), bulkBuyController.getBulkBuyInquiries);
 router.put('/bulk-buy-inquiries/:id/status', protect, authorize('ADMIN', 'MANAGER', 'DIRECTOR'), bulkBuyController.updateBulkBuyStatus);
 
-// --- Executive Dashboard & Notifications ---
+
 router.get('/dashboard/stats', protect, authorize('ADMIN', 'DIRECTOR'), dashboardController.getDashboardStats);
 router.get('/notifications', protect, notificationController.getNotifications);
 router.get('/notifications/unread-count', protect, notificationController.getUnreadCount);

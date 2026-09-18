@@ -10,9 +10,17 @@ const systemSettingSchema = new mongoose.Schema({
     type: String,
     default: ''
   },
+  jsonValue: {
+    type: mongoose.Schema.Types.Mixed,
+    default: null
+  },
   isActive: {
     type: Boolean,
     default: true
+  },
+  label: {
+    type: String,
+    default: ''
   }
 }, { timestamps: true });
 
