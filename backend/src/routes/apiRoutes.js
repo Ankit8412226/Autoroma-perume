@@ -86,6 +86,9 @@ router.post('/public/inquiries', inquiryLimiter, validate({
   email: { required: true, type: 'email' },
   phone: { required: true, type: 'string', minLength: 5, maxLength: 20 }
 }), inquiryController.createPublicInquiry);
+router.post('/public/chatbot-lead', inquiryLimiter, validate({
+  phone: { required: true, type: 'string', minLength: 5, maxLength: 20 }
+}), inquiryController.createChatbotLead);
 router.post('/public/bulk-buy', inquiryLimiter, validate({
   name: { required: true, type: 'string', minLength: 2, maxLength: 80 },
   phone: { required: true, type: 'string', minLength: 5, maxLength: 20 },

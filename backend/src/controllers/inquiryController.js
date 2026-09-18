@@ -190,6 +190,49 @@ exports.createPublicInquiry = async (req, res, next) => {
   }
 };
 
+// 3b. Public AI Chatbot Lead Submission
+exports.createChatbotLead = async (req, res, next) => {
+  try {
+    const { name, phone, email, city, budget, interest, message } = req.body;
+
+    if (!phone || String(phone).trim().length < 5) {
+      return res.status(400).json({ message: 'Valid phone number is required to receive property details' });
+    }
+
+    const leadName = String(name || '').trim() || 'AI Chatbot Visitor';
+    const cleanPhone = String(phone).trim();
+    const cleanEmail = String(email || '').trim();
+    const cleanCity = String(city || '').trim();
+    const cleanBudget = String(budget || '').trim();
+    const cleanInterest = String(interest || 'General Inquiry').trim();
+
+    const inquiry = await Inquiry.create({
+      name: leadName,
+      email: cleanEmail || `${cleanPhone}@chatbot.lead`,
+      phone: cleanPhone,
+      inquiryType: 'CHATBOT_LEAD',
+      message: `[AI Chatbot Lead] Interest: ${cleanInterest} | City: ${cleanCity || 'N/A'} | Budget: ${cleanBudget || 'N/A'}\n${String(message || '').trim()}`,
+      status: 'NEW',
+      source: 'AI_CHATBOT'
+    });
+
+    // Fire-and-forget admin notification
+    notifyAdmins({
+      title: `🤖 New AI Chatbot Lead — ${leadName}`,
+      message: `📱 ${cleanPhone} · ${cleanInterest}${cleanCity ? ` · ${cleanCity}` : ''}${cleanBudget ? ` · ${cleanBudget}` : ''}`,
+      category: 'INQUIRY',
+      meta: { inquiryId: inquiry._id, name: leadName, phone: cleanPhone, email: cleanEmail, interest: cleanInterest, city: cleanCity, budget: cleanBudget }
+    });
+
+    res.status(201).json({
+      message: '🎉 Thank you! Our advisory team will WhatsApp you the details shortly.',
+      inquiryId: inquiry._id
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // 4. Public Agent Application Submission
 exports.createPublicAgentApplication = async (req, res, next) => {
   try {

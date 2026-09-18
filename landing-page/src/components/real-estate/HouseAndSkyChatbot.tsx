@@ -2,13 +2,35 @@
 
 import * as React from 'react'
 import Link from 'next/link'
-import { MessageSquare, X, Send, Sparkles, Building2, ShieldCheck, ArrowUpRight } from 'lucide-react'
+import { getApiBaseUrl } from '@/utils/api'
+import {
+  MessageSquare,
+  X,
+  Send,
+  Sparkles,
+  Building2,
+  ShieldCheck,
+  ArrowUpRight,
+  PhoneCall,
+  Calendar,
+  FileText,
+  Percent,
+  CheckCircle2,
+  MapPin,
+  Loader2,
+  User,
+  Phone,
+  Flame,
+  Check
+} from 'lucide-react'
 
 interface ChatMessage {
   id: string
   sender: 'user' | 'bot'
   text: string
   properties?: Array<{ title: string; price: string; location: string; slug: string }>
+  showLeadForm?: boolean
+  leadCaptured?: boolean
   timestamp: string
 }
 
@@ -16,11 +38,24 @@ export function HouseAndSkyChatbot() {
   const [isOpen, setIsOpen] = React.useState(false)
   const [input, setInput] = React.useState('')
   const [isLoading, setIsLoading] = React.useState(false)
+  const [unreadBadge, setUnreadBadge] = React.useState(true)
+
+  // Lead Form State inside Chat
+  const [leadForm, setLeadForm] = React.useState({
+    name: '',
+    phone: '',
+    city: 'Dholera SIR',
+    interest: 'Request Callback'
+  })
+  const [isSubmittingLead, setIsSubmittingLead] = React.useState(false)
+  const [leadSuccessMsg, setLeadSuccessMsg] = React.useState<string | null>(null)
+
   const [messages, setMessages] = React.useState<ChatMessage[]>([
     {
       id: 'welcome-1',
       sender: 'bot',
-      text: 'Welcome to House & Sky Real Estate Concierge. Ask me about our Bandra penthouses, Goa architectural villas, or confidential off-market viewing access.',
+      text: 'Welcome to House & Sky Real Estate Advisory 👋\n\nAsk me about township plots, luxury villas, or wholesale bulk deals. Share your mobile number anytime to receive detailed price brochures & book free site visit cabs!',
+      showLeadForm: true,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     },
   ])
@@ -31,7 +66,7 @@ export function HouseAndSkyChatbot() {
     if (chatContainerRef.current) {
       chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight
     }
-  }, [messages, isLoading])
+  }, [messages, isLoading, isSubmittingLead, leadSuccessMsg])
 
   const handleSend = async (textToSend?: string) => {
     const query = textToSend || input
@@ -60,12 +95,18 @@ export function HouseAndSkyChatbot() {
       const botMsg: ChatMessage = {
         id: `bot-${Date.now()}`,
         sender: 'bot',
-        text: data.reply || 'I am happy to assist with your House & Sky property discovery.',
+        text: data.reply || 'Thank you for reaching out. Our real estate advisory desk is at your service.',
         properties: data.properties,
+        showLeadForm: data.showLeadForm,
+        leadCaptured: data.leadCaptured,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       }
 
       setMessages((prev) => [...prev, botMsg])
+
+      if (data.leadCaptured) {
+        setLeadSuccessMsg('🎉 Phone number registered! Our team will WhatsApp you details shortly.')
+      }
     } catch (err) {
       console.error(err)
       setMessages((prev) => [
@@ -73,7 +114,8 @@ export function HouseAndSkyChatbot() {
         {
           id: `err-${Date.now()}`,
           sender: 'bot',
-          text: 'Thank you for reaching out. Connect with our advisory desk directly at +91 022 8800 9900.',
+          text: 'Thank you! You can also reach our senior advisory desk directly at +91 93112 27789 or +91 92899 27527.',
+          showLeadForm: true,
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         },
       ])
@@ -82,48 +124,123 @@ export function HouseAndSkyChatbot() {
     }
   }
 
-  const promptSuggestions = [
-    'Bandra Penthouses',
-    'Goa Villas',
-    'Gurgaon Estates',
-    'Book Private Tour',
+  const handleDirectLeadSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!leadForm.phone || leadForm.phone.trim().length < 5) {
+      alert('Please enter a valid phone number')
+      return
+    }
+
+    try {
+      setIsSubmittingLead(true)
+      const baseUrl = getApiBaseUrl()
+      const res = await fetch(`${baseUrl}/public/chatbot-lead`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: leadForm.name || 'AI Chatbot Visitor',
+          phone: leadForm.phone.trim(),
+          city: leadForm.city,
+          interest: leadForm.interest,
+          message: `Direct lead submission via AI Chatbot form`
+        })
+      })
+
+      if (res.ok) {
+        setLeadSuccessMsg(`🎉 Thank you ${leadForm.name || ''}! We have received your request. Our advisory team will call/WhatsApp you at ${leadForm.phone} shortly.`)
+        
+        // Push bot confirmation message
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: `lead-success-${Date.now()}`,
+            sender: 'bot',
+            text: `✅ Request Confirmed for ${leadForm.phone}!\n\nInterest: ${leadForm.interest} (${leadForm.city})\nOur senior real estate desk will dispatch your price brochure and call you shortly.`,
+            leadCaptured: true,
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          }
+        ])
+
+        setLeadForm({ name: '', phone: '', city: 'Dholera SIR', interest: 'Request Callback' })
+      } else {
+        alert('Failed to submit. Please try again or call +91 93112 27789 directly.')
+      }
+    } catch (err) {
+      console.error(err)
+      alert('Network error. Please try again.')
+    } finally {
+      setIsSubmittingLead(false)
+    }
+  }
+
+  const quickActionChips = [
+    { label: '📞 Call Me Back', interest: 'Request Callback' },
+    { label: '🚗 Book Site Visit', interest: 'Book Site Visit Cab' },
+    { label: '📄 WhatsApp Brochure', interest: 'WhatsApp Price Brochure' },
+    { label: '💰 Get Price Quote', interest: 'Best Price Quote' },
+    { label: '🔥 Investor Bulk Deals', interest: 'Wholesale Bulk Deal' },
   ]
 
   return (
     <>
-      {/* Floating Trigger Button */}
-      <button
-        type="button"
-        onClick={() => setIsOpen(!isOpen)}
-        className="fixed bottom-6 right-6 z-50 p-3.5 bg-brand-green text-white rounded-full shadow-2xl hover:bg-brand-dark transition-all duration-300 flex items-center justify-center cursor-pointer group border border-white/20"
-        aria-label="Toggle House & Sky AI Concierge"
-      >
-        {isOpen ? (
-          <X className="w-6 h-6 text-white" />
-        ) : (
-          <div className="flex items-center gap-2 px-1">
-            <Sparkles className="w-5 h-5 text-brand-sky animate-pulse" />
-            <span className="text-xs font-bold uppercase tracking-wider hidden sm:inline text-white">
-              AI Concierge
+      {/* Floating Trigger Button with Glowing Tooltip Badge */}
+      <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3">
+        {!isOpen && unreadBadge && (
+          <div
+            onClick={() => { setIsOpen(true); setUnreadBadge(false) }}
+            className="hidden sm:flex items-center gap-2 bg-slate-900/95 backdrop-blur-md text-white border border-emerald-500/40 px-3.5 py-2 rounded-2xl shadow-2xl cursor-pointer hover:border-emerald-400 transition-all group animate-bounce duration-1000"
+          >
+            <div className="w-2.5 h-2.5 bg-emerald-400 rounded-full animate-ping" />
+            <span className="text-xs font-bold text-emerald-300">
+              💬 Get Instant Price Quote & Callback
             </span>
+            <X
+              onClick={(e) => { e.stopPropagation(); setUnreadBadge(false) }}
+              className="w-3.5 h-3.5 text-white/50 hover:text-white ml-1 cursor-pointer"
+            />
           </div>
         )}
-      </button>
+
+        <button
+          type="button"
+          onClick={() => { setIsOpen(!isOpen); setUnreadBadge(false) }}
+          className="p-4 bg-gradient-to-r from-emerald-600 via-emerald-700 to-slate-900 text-white rounded-full shadow-2xl hover:scale-105 transition-all duration-300 flex items-center justify-center cursor-pointer group border-2 border-emerald-400/30"
+          aria-label="Toggle House & Sky AI Concierge"
+        >
+          {isOpen ? (
+            <X className="w-6 h-6 text-white" />
+          ) : (
+            <div className="flex items-center gap-2 px-1">
+              <Sparkles className="w-5 h-5 text-amber-300 animate-pulse" />
+              <span className="text-xs font-bold uppercase tracking-wider hidden sm:inline text-white">
+                AI Advisor
+              </span>
+            </div>
+          )}
+        </button>
+      </div>
 
       {/* Floating Chat Drawer */}
       {isOpen && (
-        <div className="fixed bottom-22 right-6 z-50 w-full max-w-sm sm:max-w-md bg-white border border-brand-green/20 rounded-xl shadow-2xl overflow-hidden flex flex-col h-[520px] animate-in fade-in slide-in-from-bottom-4 duration-200">
+        <div className="fixed bottom-24 right-4 sm:right-6 z-50 w-[calc(100vw-2rem)] sm:w-96 bg-white border border-slate-200 rounded-3xl shadow-2xl overflow-hidden flex flex-col h-[560px] animate-in fade-in slide-in-from-bottom-4 duration-200">
           {/* Header Bar */}
-          <div className="bg-brand-dark text-white p-4 flex items-center justify-between border-b border-brand-green/20">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-full bg-brand-green flex items-center justify-center border border-white/20">
-                <Building2 className="w-4 h-4 text-white" />
+          <div className="bg-gradient-to-r from-[#061913] via-[#0A2E23] to-[#0B4F3C] text-white p-4 flex items-center justify-between border-b border-emerald-500/20">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-2xl bg-emerald-500/20 text-emerald-300 flex items-center justify-center border border-emerald-400/30 shadow-inner">
+                <Building2 className="w-5 h-5 text-emerald-400" />
               </div>
               <div>
-                <h4 className="font-serif text-base font-normal text-white">House & Sky Concierge</h4>
-                <p className="text-[10px] text-brand-soft font-mono flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full" />
-                  AI Real Estate Advisor
+                <div className="flex items-center gap-1.5">
+                  <h4 className="font-serif text-sm font-bold text-white tracking-tight">
+                    House & Sky AI Advisor
+                  </h4>
+                  <span className="px-1.5 py-0.5 bg-amber-500/20 text-amber-300 text-[9px] font-extrabold rounded uppercase border border-amber-500/30">
+                    24/7
+                  </span>
+                </div>
+                <p className="text-[10px] text-emerald-300/80 font-mono flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
+                  Lead Generation & Property Assistant
                 </p>
               </div>
             </div>
@@ -131,84 +248,171 @@ export function HouseAndSkyChatbot() {
             <button
               type="button"
               onClick={() => setIsOpen(false)}
-              className="p-1.5 text-white/70 hover:text-white rounded-md cursor-pointer"
+              className="p-1.5 text-white/70 hover:text-white rounded-full hover:bg-white/10 transition-colors cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
           </div>
 
           {/* Messages Scroll Area */}
-          <div ref={chatContainerRef} className="flex-1 p-4 overflow-y-auto space-y-4 bg-bg-primary">
+          <div ref={chatContainerRef} className="flex-1 p-4 overflow-y-auto space-y-4 bg-slate-50/50">
             {messages.map((msg) => (
               <div
                 key={msg.id}
                 className={`flex flex-col ${msg.sender === 'user' ? 'items-end' : 'items-start'}`}
               >
                 <div
-                  className={`max-w-[85%] p-3.5 rounded-lg text-xs leading-relaxed ${
+                  className={`max-w-[88%] p-3.5 rounded-2xl text-xs leading-relaxed shadow-sm ${
                     msg.sender === 'user'
-                      ? 'bg-brand-green text-white rounded-br-none shadow-sm'
-                      : 'bg-white border border-brand-green/15 text-brand-charcoal rounded-bl-none shadow-sm'
+                      ? 'bg-emerald-700 text-white rounded-br-xs font-medium'
+                      : 'bg-white border border-slate-200 text-slate-800 rounded-bl-xs'
                   }`}
                 >
                   <p className="whitespace-pre-line">{msg.text}</p>
 
                   {/* Property Cards in Bot Replies */}
                   {msg.properties && msg.properties.length > 0 && (
-                    <div className="mt-3 space-y-2 pt-2 border-t border-brand-green/10">
+                    <div className="mt-3 space-y-2 pt-2 border-t border-slate-100">
                       {msg.properties.map((prop) => (
                         <div
                           key={prop.slug}
-                          className="bg-brand-soft border border-brand-green/20 p-2.5 rounded-md space-y-1"
+                          className="bg-slate-50 border border-slate-200 p-2.5 rounded-xl space-y-1"
                         >
-                          <span className="text-[9px] uppercase tracking-wider font-bold text-brand-green block">
-                            RECOMMENDED RESIDENCE
+                          <span className="text-[9px] uppercase tracking-wider font-extrabold text-emerald-700 block">
+                            RECOMMENDED PROPERTY
                           </span>
-                          <h5 className="font-serif text-xs font-bold text-brand-charcoal">{prop.title}</h5>
-                          <div className="flex items-center justify-between text-[10px] text-brand-charcoal/70">
+                          <h5 className="font-serif text-xs font-bold text-slate-900">{prop.title}</h5>
+                          <div className="flex items-center justify-between text-[10px] text-slate-500 font-medium">
                             <span>{prop.location}</span>
-                            <span className="font-bold text-brand-green">{prop.price}</span>
+                            <span className="font-bold text-emerald-700">{prop.price}</span>
                           </div>
                           <Link
                             href={`/properties/${prop.slug}`}
-                            className="text-[10px] text-brand-green font-bold uppercase tracking-wider flex items-center gap-1 pt-1 hover:underline"
+                            className="text-[10px] text-emerald-700 font-bold uppercase tracking-wider flex items-center gap-1 pt-1 hover:underline"
                             onClick={() => setIsOpen(false)}
                           >
-                            <span>View Residence</span>
-                            <ArrowUpRight className="w-3 h-3 text-brand-green" />
+                            <span>View Details</span>
+                            <ArrowUpRight className="w-3 h-3 text-emerald-600" />
                           </Link>
                         </div>
                       ))}
                     </div>
                   )}
+
+                  {/* Embedded Lead Capture Form (Bot Msg) */}
+                  {msg.sender === 'bot' && msg.showLeadForm && !leadSuccessMsg && (
+                    <div className="mt-3 pt-3 border-t border-slate-100 space-y-2 bg-emerald-50/60 -mx-1 p-2.5 rounded-xl border border-emerald-200/60">
+                      <div className="flex items-center gap-1.5 text-emerald-900 font-bold text-[11px]">
+                        <PhoneCall className="w-3.5 h-3.5 text-emerald-600" />
+                        <span>Get Instant Quote & Callback</span>
+                      </div>
+                      <p className="text-[10px] text-slate-600">
+                        Leave your mobile number to get the price breakdown & site visit cab details on WhatsApp.
+                      </p>
+
+                      <form onSubmit={handleDirectLeadSubmit} className="space-y-2 pt-1">
+                        <div className="grid grid-cols-2 gap-1.5">
+                          <input
+                            type="text"
+                            placeholder="Your Name (Optional)"
+                            value={leadForm.name}
+                            onChange={(e) => setLeadForm((prev) => ({ ...prev, name: e.target.value }))}
+                            className="w-full bg-white border border-slate-200 text-slate-800 text-[11px] px-2.5 py-1.5 rounded-lg focus:outline-none focus:border-emerald-500"
+                          />
+                          <input
+                            type="tel"
+                            required
+                            placeholder="Phone Number *"
+                            value={leadForm.phone}
+                            onChange={(e) => setLeadForm((prev) => ({ ...prev, phone: e.target.value }))}
+                            className="w-full bg-white border border-slate-200 text-slate-900 font-bold text-[11px] px-2.5 py-1.5 rounded-lg focus:outline-none focus:border-emerald-500"
+                          />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-1.5">
+                          <select
+                            value={leadForm.interest}
+                            onChange={(e) => setLeadForm((prev) => ({ ...prev, interest: e.target.value }))}
+                            className="w-full bg-white border border-slate-200 text-slate-700 text-[10px] font-semibold px-2 py-1.5 rounded-lg focus:outline-none focus:border-emerald-500"
+                          >
+                            <option value="Request Callback">📞 Call Me Back</option>
+                            <option value="Book Site Visit Cab">🚗 Book Site Visit</option>
+                            <option value="WhatsApp Price Brochure">📄 WhatsApp Brochure</option>
+                            <option value="Best Price Quote">💰 Best Price Quote</option>
+                            <option value="Wholesale Bulk Deal">🔥 Bulk Deal Inquiry</option>
+                          </select>
+
+                          <select
+                            value={leadForm.city}
+                            onChange={(e) => setLeadForm((prev) => ({ ...prev, city: e.target.value }))}
+                            className="w-full bg-white border border-slate-200 text-slate-700 text-[10px] font-semibold px-2 py-1.5 rounded-lg focus:outline-none focus:border-emerald-500"
+                          >
+                            <option value="Dholera SIR">Dholera SIR</option>
+                            <option value="Noida Smart City">Noida / NCR</option>
+                            <option value="Mumbai">Mumbai</option>
+                            <option value="Goa">Goa</option>
+                            <option value="Gurgaon">Gurgaon</option>
+                          </select>
+                        </div>
+
+                        <button
+                          type="submit"
+                          disabled={isSubmittingLead}
+                          className="w-full py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[11px] uppercase tracking-wider rounded-lg shadow-sm transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                        >
+                          {isSubmittingLead ? (
+                            <>
+                              <Loader2 className="w-3.5 h-3.5 animate-spin" /> Submitting...
+                            </>
+                          ) : (
+                            <>
+                              <Send className="w-3.5 h-3.5" /> Submit & Get Quote
+                            </>
+                          )}
+                        </button>
+                      </form>
+                    </div>
+                  )}
                 </div>
-                <span className="text-[9px] text-brand-charcoal/40 font-mono mt-1 px-1">
+
+                <span className="text-[9px] text-slate-400 font-mono mt-1 px-1">
                   {msg.timestamp}
                 </span>
               </div>
             ))}
 
+            {/* Success Toast Banner inside chat */}
+            {leadSuccessMsg && (
+              <div className="bg-emerald-500 text-white p-3 rounded-2xl shadow-md flex items-start gap-2.5 animate-in fade-in slide-in-from-bottom-2">
+                <CheckCircle2 className="w-5 h-5 text-white shrink-0 mt-0.5" />
+                <p className="text-xs font-bold leading-snug">{leadSuccessMsg}</p>
+              </div>
+            )}
+
             {isLoading && (
               <div className="flex items-start">
-                <div className="bg-white border border-brand-green/15 p-3 rounded-lg text-xs text-brand-charcoal/60 flex items-center gap-2 shadow-sm">
-                  <span className="w-2 h-2 bg-brand-green rounded-full animate-bounce" />
-                  <span className="w-2 h-2 bg-brand-green rounded-full animate-bounce [animation-delay:0.2s]" />
-                  <span className="w-2 h-2 bg-brand-green rounded-full animate-bounce [animation-delay:0.4s]" />
+                <div className="bg-white border border-slate-200 p-3 rounded-2xl text-xs text-slate-500 flex items-center gap-2 shadow-sm">
+                  <span className="w-2 h-2 bg-emerald-600 rounded-full animate-bounce" />
+                  <span className="w-2 h-2 bg-emerald-600 rounded-full animate-bounce [animation-delay:0.2s]" />
+                  <span className="w-2 h-2 bg-emerald-600 rounded-full animate-bounce [animation-delay:0.4s]" />
                 </div>
               </div>
             )}
           </div>
 
-          {/* Quick Prompt Chips */}
-          <div className="px-4 py-2 bg-white border-t border-brand-green/10 flex items-center gap-1.5 overflow-x-auto">
-            {promptSuggestions.map((chip) => (
+          {/* Quick Lead Action Chips */}
+          <div className="px-3 py-2 bg-white border-t border-slate-100 flex items-center gap-1.5 overflow-x-auto">
+            {quickActionChips.map((chip) => (
               <button
-                key={chip}
+                key={chip.label}
                 type="button"
-                onClick={() => handleSend(chip)}
-                className="shrink-0 px-2.5 py-1 bg-brand-soft hover:bg-brand-green hover:text-white border border-brand-green/20 text-[10px] font-bold text-brand-green rounded-full transition-all cursor-pointer"
+                onClick={() => {
+                  setLeadForm((prev) => ({ ...prev, interest: chip.interest }))
+                  handleSend(chip.label)
+                }}
+                className="shrink-0 px-2.5 py-1.5 bg-emerald-50 hover:bg-emerald-600 hover:text-white border border-emerald-200/80 text-[10px] font-bold text-emerald-800 rounded-xl transition-all cursor-pointer shadow-2xs flex items-center gap-1"
               >
-                {chip}
+                {chip.label}
               </button>
             ))}
           </div>
@@ -219,19 +423,19 @@ export function HouseAndSkyChatbot() {
               e.preventDefault()
               handleSend()
             }}
-            className="p-3 bg-white border-t border-brand-green/15 flex items-center gap-2"
+            className="p-3 bg-white border-t border-slate-200 flex items-center gap-2"
           >
             <input
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Ask about properties, pricing, locations..."
-              className="flex-1 bg-brand-soft border border-brand-green/20 text-brand-charcoal placeholder-brand-charcoal/50 text-xs px-3.5 py-2.5 rounded-md focus:outline-none focus:border-brand-green"
+              placeholder="Ask about properties or type mobile number..."
+              className="flex-1 bg-slate-100 border border-slate-200 text-slate-900 placeholder-slate-400 text-xs px-3.5 py-2.5 rounded-xl focus:outline-none focus:border-emerald-500 font-medium"
             />
             <button
               type="submit"
               disabled={isLoading || !input.trim()}
-              className="p-2.5 bg-brand-green text-white rounded-md hover:bg-brand-dark transition-all disabled:opacity-50 cursor-pointer"
+              className="p-2.5 bg-emerald-600 text-white rounded-xl hover:bg-emerald-500 transition-all disabled:opacity-50 cursor-pointer shadow-md"
             >
               <Send className="w-4 h-4 text-white" />
             </button>
@@ -241,3 +445,5 @@ export function HouseAndSkyChatbot() {
     </>
   )
 }
+
+export default HouseAndSkyChatbot
