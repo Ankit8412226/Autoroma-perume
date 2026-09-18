@@ -8,7 +8,7 @@ const inquirySchema = new mongoose.Schema({
   },
   email: {
     type: String,
-    required: true,
+    default: '',
     lowercase: true,
     trim: true
   },
@@ -19,7 +19,6 @@ const inquirySchema = new mongoose.Schema({
   },
   inquiryType: {
     type: String,
-    enum: ['CONTACT_FORM', 'PROJECT_INQUIRY', 'SITE_VISIT', 'AGENT_APPLICATION', 'PRICE_QUOTATION'],
     default: 'CONTACT_FORM'
   },
   projectId: {

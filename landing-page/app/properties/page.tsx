@@ -104,13 +104,22 @@ function PropertiesContent() {
   const [isLoading, setIsLoading] = React.useState(true)
   const [isBulkBuyOpen, setIsBulkBuyOpen] = React.useState(false)
 
-  // Fetch properties from backend API
+  // Fetch properties from backend API with location-wise & parameter query string
   React.useEffect(() => {
     const loadProperties = async () => {
       try {
         setIsLoading(true)
         const baseUrl = getApiBaseUrl()
-        const res = await fetch(`${baseUrl}/public/properties`).catch(() => null)
+        const queryParams = new URLSearchParams()
+        if (selectedCity !== 'All Cities') queryParams.set('city', selectedCity)
+        if (selectedType !== 'ALL') queryParams.set('propertyType', selectedType)
+        if (selectedListingType !== 'ALL') queryParams.set('listingType', selectedListingType)
+        if (searchQuery.trim()) queryParams.set('search', searchQuery.trim())
+        if (onlyVerified) queryParams.set('onlyVerified', 'true')
+        if (sortBy) queryParams.set('sort', sortBy)
+
+        const url = `${baseUrl}/public/properties${queryParams.toString() ? `?${queryParams.toString()}` : ''}`
+        const res = await fetch(url).catch(() => null)
         if (res && res.ok) {
           const data = await res.json().catch(() => [])
           if (Array.isArray(data)) {
@@ -123,8 +132,10 @@ function PropertiesContent() {
         setIsLoading(false)
       }
     }
-    loadProperties()
-  }, [])
+
+    const timer = setTimeout(loadProperties, 250)
+    return () => clearTimeout(timer)
+  }, [selectedCity, selectedType, selectedListingType, searchQuery, onlyVerified, sortBy])
 
   // Filtered Properties Computation
   const filteredProperties = React.useMemo(() => {
@@ -161,15 +172,21 @@ function PropertiesContent() {
         if (!rera && !titleType) return false
       }
 
-      // 6. Keyword Search Filter (Title, Locality, City, Code, Survey No)
+      // 6. Keyword Search Filter (Title, Area, City, Address, Type, Features, Amenities, Desc)
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase().trim()
         const matchTitle = prop.title.toLowerCase().includes(q)
-        const matchArea = prop.location.area.toLowerCase().includes(q)
-        const matchCity = prop.location.city.toLowerCase().includes(q)
+        const matchArea = (prop.location.area || '').toLowerCase().includes(q)
+        const matchCity = (prop.location.city || '').toLowerCase().includes(q)
+        const matchAddress = (prop.location.address || '').toLowerCase().includes(q)
         const matchType = prop.propertyType.toLowerCase().includes(q)
         const matchDesc = (prop.description || '').toLowerCase().includes(q)
-        if (!matchTitle && !matchArea && !matchCity && !matchType && !matchDesc) return false
+        const matchFeatures = (prop.features || []).some((f: string) => f.toLowerCase().includes(q))
+        const matchAmenities = (prop.amenities || []).some((a: { name: string }) => (a.name || '').toLowerCase().includes(q))
+
+        if (!matchTitle && !matchArea && !matchCity && !matchAddress && !matchType && !matchDesc && !matchFeatures && !matchAmenities) {
+          return false
+        }
       }
 
       return true

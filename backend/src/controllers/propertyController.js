@@ -184,17 +184,99 @@ const APPROVAL_FILTER = {
 
 exports.getPublicProperties = async (req, res, next) => {
   try {
-    const { projectId, propertyType, city, featured } = req.query;
+    const {
+      projectId,
+      propertyType,
+      listingType,
+      city,
+      location,
+      search,
+      minPrice,
+      maxPrice,
+      bedrooms,
+      featured,
+      onlyVerified,
+      sort
+    } = req.query;
+
     const filter = { isPublished: { $ne: false }, ...APPROVAL_FILTER };
 
     if (projectId && isValidObjectId(projectId)) filter.projectId = projectId;
-    if (propertyType) filter.propertyType = propertyType;
-    if (city) filter.city = { $regex: city, $options: 'i' };
+    
+    if (propertyType && propertyType !== 'ALL') {
+      filter.propertyType = propertyType;
+    }
+    
+    if (listingType && listingType !== 'ALL') {
+      filter.listingType = listingType;
+    }
+
+    if (city && city !== 'All Cities' && city !== 'ALL') {
+      filter.city = { $regex: city, $options: 'i' };
+    }
+
+    if (location) {
+      filter.location = { $regex: location, $options: 'i' };
+    }
+
+    if (minPrice || maxPrice) {
+      filter.price = {};
+      if (minPrice && !isNaN(Number(minPrice))) filter.price.$gte = Number(minPrice);
+      if (maxPrice && !isNaN(Number(maxPrice)) && Number(maxPrice) !== Infinity && Number(maxPrice) > 0) {
+        filter.price.$lte = Number(maxPrice);
+      }
+    }
+
+    if (bedrooms && !isNaN(Number(bedrooms)) && Number(bedrooms) > 0) {
+      filter.bedrooms = { $gte: Number(bedrooms) };
+    }
+
     if (featured === 'true') filter.isFeatured = true;
+
+    if (onlyVerified === 'true') {
+      filter.$and = filter.$and || [];
+      filter.$and.push({
+        $or: [
+          { 'legalInfo.reraNumber': { $ne: '' } },
+          { 'legalInfo.titleType': { $ne: '' } }
+        ]
+      });
+    }
+
+    if (search && String(search).trim()) {
+      const q = String(search).trim();
+      const searchRegex = { $regex: q, $options: 'i' };
+      const searchOr = [
+        { title: searchRegex },
+        { location: searchRegex },
+        { city: searchRegex },
+        { state: searchRegex },
+        { area: searchRegex },
+        { address: searchRegex },
+        { village: searchRegex },
+        { surveyNumber: searchRegex },
+        { description: searchRegex },
+        { highlights: searchRegex },
+        { amenities: searchRegex }
+      ];
+
+      if (filter.city) {
+        // If city is already specified, combine with $and
+        filter.$and = filter.$and || [];
+        filter.$and.push({ $or: searchOr });
+      } else {
+        filter.$or = searchOr;
+      }
+    }
+
+    let sortOptions = { isFeatured: -1, createdAt: -1 };
+    if (sort === 'PRICE_LOW') sortOptions = { price: 1, createdAt: -1 };
+    else if (sort === 'PRICE_HIGH') sortOptions = { price: -1, createdAt: -1 };
+    else if (sort === 'NEWEST') sortOptions = { createdAt: -1 };
 
     const properties = await Property.find(filter)
       .populate('projectId', 'name code location city bannerImage')
-      .sort({ isFeatured: -1, createdAt: -1 });
+      .sort(sortOptions);
 
     res.json(properties);
   } catch (error) {

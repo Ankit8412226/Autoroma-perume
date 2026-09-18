@@ -33,10 +33,59 @@ function slugify(text) {
 // GET /public/bulk-deals
 exports.getPublicBulkDeals = async (req, res, next) => {
   try {
-    const deals = await BulkDeal.find({ isAvailable: true })
+    const { search, city, state, dealType, minDiscount, sort } = req.query;
+    const filter = { isAvailable: true };
+
+    if (dealType && dealType !== 'ALL') {
+      filter.dealType = dealType;
+    }
+
+    if (city && city !== 'All Cities' && city !== 'ALL') {
+      filter.city = { $regex: city, $options: 'i' };
+    }
+
+    if (state) {
+      filter.state = { $regex: state, $options: 'i' };
+    }
+
+    if (minDiscount && !isNaN(Number(minDiscount))) {
+      filter.discountPercentage = { $gte: Number(minDiscount) };
+    }
+
+    if (search && String(search).trim()) {
+      const q = String(search).trim();
+      const searchRegex = { $regex: q, $options: 'i' };
+      const searchOr = [
+        { title: searchRegex },
+        { location: searchRegex },
+        { city: searchRegex },
+        { state: searchRegex },
+        { surveyNumber: searchRegex },
+        { finalPlotNo: searchRegex },
+        { tpSectorVillage: searchRegex },
+        { landPlotType: searchRegex },
+        { description: searchRegex },
+        { originalPriceDisplay: searchRegex },
+        { bulkPriceDisplay: searchRegex }
+      ];
+
+      if (filter.city) {
+        filter.$and = filter.$and || [];
+        filter.$and.push({ $or: searchOr });
+      } else {
+        filter.$or = searchOr;
+      }
+    }
+
+    let sortOption = { isFeatured: -1, order: 1, createdAt: -1 };
+    if (sort === 'DISCOUNT') sortOption = { discountPercentage: -1, createdAt: -1 };
+    else if (sort === 'NEWEST') sortOption = { createdAt: -1 };
+
+    const deals = await BulkDeal.find(filter)
       .populate('projectId', 'name code city location bannerImage priceRange')
       .populate('propertyId', 'title slug city area heroImage priceRange')
-      .sort({ isFeatured: -1, order: 1, createdAt: -1 });
+      .sort(sortOption);
+
     res.json(deals);
   } catch (error) {
     next(error);

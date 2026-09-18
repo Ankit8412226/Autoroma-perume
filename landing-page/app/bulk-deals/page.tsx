@@ -19,7 +19,9 @@ import {
   Send,
   Building2,
   Layers,
-  Award
+  Award,
+  Search,
+  Filter
 } from 'lucide-react'
 
 interface PublicBulkDeal {
@@ -64,7 +66,12 @@ export default function BulkDealsPage() {
   const [deals, setDeals] = React.useState<PublicBulkDeal[]>([])
   const [isLoading, setIsLoading] = React.useState(true)
   const [selectedFilter, setSelectedFilter] = React.useState('ALL')
+  const [searchQuery, setSearchQuery] = React.useState('')
+  const [selectedCity, setSelectedCity] = React.useState('ALL')
+  const [minDiscount, setMinDiscount] = React.useState(0)
   const [viewingSpecDeal, setViewingSpecDeal] = React.useState<PublicBulkDeal | null>(null)
+
+  const BULK_CITIES = ['ALL', 'Dholera SIR', 'Noida', 'Goa', 'Mumbai', 'Gurgaon', 'Ahmedabad']
 
   // Modal Quote Request State
   const [selectedDeal, setSelectedDeal] = React.useState<PublicBulkDeal | null>(null)
@@ -85,8 +92,16 @@ export default function BulkDealsPage() {
   React.useEffect(() => {
     const loadDeals = async () => {
       try {
+        setIsLoading(true)
         const baseUrl = getApiBaseUrl()
-        const res = await fetch(`${baseUrl}/public/bulk-deals`).catch(() => null)
+        const queryParams = new URLSearchParams()
+        if (selectedFilter !== 'ALL') queryParams.set('dealType', selectedFilter)
+        if (selectedCity !== 'ALL') queryParams.set('city', selectedCity)
+        if (searchQuery.trim()) queryParams.set('search', searchQuery.trim())
+        if (minDiscount > 0) queryParams.set('minDiscount', String(minDiscount))
+
+        const url = `${baseUrl}/public/bulk-deals${queryParams.toString() ? `?${queryParams.toString()}` : ''}`
+        const res = await fetch(url).catch(() => null)
         if (res && res.ok) {
           const data = await res.json().catch(() => [])
           setDeals(Array.isArray(data) ? data : [])
@@ -95,13 +110,35 @@ export default function BulkDealsPage() {
         setIsLoading(false)
       }
     }
-    loadDeals()
-  }, [])
+
+    const timer = setTimeout(loadDeals, 200)
+    return () => clearTimeout(timer)
+  }, [selectedFilter, selectedCity, searchQuery, minDiscount])
 
   const filteredDeals = React.useMemo(() => {
-    if (selectedFilter === 'ALL') return deals
-    return deals.filter((d) => d.dealType === selectedFilter)
-  }, [deals, selectedFilter])
+    return deals.filter((d) => {
+      if (selectedFilter !== 'ALL' && d.dealType !== selectedFilter) return false
+      if (selectedCity !== 'ALL') {
+        const c = (d.city || '').toLowerCase()
+        const target = selectedCity.toLowerCase()
+        if (!c.includes(target) && !target.includes(c)) return false
+      }
+      if (minDiscount > 0 && (d.discountPercentage || 0) < minDiscount) return false
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase().trim()
+        const matchTitle = d.title.toLowerCase().includes(q)
+        const matchCity = (d.city || '').toLowerCase().includes(q)
+        const matchLoc = (d.location || '').toLowerCase().includes(q)
+        const matchState = (d.state || '').toLowerCase().includes(q)
+        const matchSurvey = (d.surveyNumber || '').toLowerCase().includes(q)
+        const matchPlot = (d.finalPlotNo || '').toLowerCase().includes(q)
+        const matchTp = (d.tpSectorVillage || '').toLowerCase().includes(q)
+        const matchDesc = (d.description || '').toLowerCase().includes(q)
+        if (!matchTitle && !matchCity && !matchLoc && !matchState && !matchSurvey && !matchPlot && !matchTp && !matchDesc) return false
+      }
+      return true
+    })
+  }, [deals, selectedFilter, selectedCity, minDiscount, searchQuery])
 
   const handleOpenModal = (deal: PublicBulkDeal) => {
     setSelectedDeal(deal)
@@ -164,7 +201,7 @@ export default function BulkDealsPage() {
       {/* Hero Header */}
       <div className="relative overflow-hidden bg-gradient-to-b from-emerald-950/40 via-neutral-950 to-neutral-950 border-b border-white/10 py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="max-w-3xl space-y-4">
+          <div className="max-w-4xl space-y-4">
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-400 text-xs font-bold uppercase tracking-wider">
               <Flame className="w-4 h-4 fill-amber-400" /> Exclusive Wholesale & Syndicate Deals
             </div>
@@ -205,6 +242,92 @@ export default function BulkDealsPage() {
                 <div>
                   <span className="text-xs font-bold text-white block">Free Site Visit</span>
                   <span className="text-[10px] text-neutral-400">Flight / Cab VIP Access</span>
+                </div>
+              </div>
+            </div>
+
+            {/* 99acres-Style Location & Parameter Search Bar */}
+            <div className="mt-8 bg-neutral-900/90 border border-emerald-500/30 rounded-3xl p-4 shadow-2xl space-y-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {/* Keyword / Location Input */}
+                <div className="relative">
+                  <Search className="w-4 h-4 text-neutral-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="City, TP Sector, Survey No, Project..."
+                    className="w-full pl-10 pr-3 py-2.5 bg-neutral-950 border border-white/10 rounded-2xl text-xs font-semibold text-white focus:outline-none focus:border-amber-400 placeholder-neutral-500"
+                  />
+                </div>
+
+                {/* City Picker */}
+                <div>
+                  <select
+                    value={selectedCity}
+                    onChange={(e) => setSelectedCity(e.target.value)}
+                    className="w-full px-3.5 py-2.5 bg-neutral-950 border border-white/10 rounded-2xl text-xs font-bold text-white focus:outline-none focus:border-amber-400 cursor-pointer"
+                  >
+                    {BULK_CITIES.map((c) => (
+                      <option key={c} value={c} className="bg-neutral-900 text-white">
+                        {c === 'ALL' ? '📍 All Cities' : `📍 ${c}`}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Minimum Discount Filter */}
+                <div>
+                  <select
+                    value={minDiscount}
+                    onChange={(e) => setMinDiscount(Number(e.target.value))}
+                    className="w-full px-3.5 py-2.5 bg-neutral-950 border border-white/10 rounded-2xl text-xs font-bold text-white focus:outline-none focus:border-amber-400 cursor-pointer"
+                  >
+                    <option value={0} className="bg-neutral-900 text-white">🔥 Any Discount Rate</option>
+                    <option value={15} className="bg-neutral-900 text-white">🔥 15%+ OFF Below Retail</option>
+                    <option value={25} className="bg-neutral-900 text-white">🔥 25%+ OFF Wholesale Special</option>
+                    <option value={30} className="bg-neutral-900 text-white">🔥 30%+ OFF Mega Syndicate</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="flex flex-wrap items-center justify-between gap-2 text-xs pt-2 border-t border-white/10">
+                <div className="flex items-center gap-2 overflow-x-auto">
+                  <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider">Quick Locations:</span>
+                  {['ALL', 'Dholera SIR', 'Noida', 'Goa', 'Mumbai', 'Gurgaon'].map((city) => (
+                    <button
+                      key={city}
+                      type="button"
+                      onClick={() => setSelectedCity(city)}
+                      className={`px-3 py-1 rounded-xl text-xs font-bold transition-all ${
+                        selectedCity === city
+                          ? 'bg-amber-500 text-slate-950 shadow-sm'
+                          : 'bg-neutral-800 text-neutral-300 hover:bg-neutral-700'
+                      }`}
+                    >
+                      {city === 'ALL' ? 'All Locations' : city}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <span className="text-xs font-bold text-amber-400 bg-amber-500/10 px-3 py-1 rounded-xl border border-amber-500/30">
+                    {filteredDeals.length} Wholesale Deals
+                  </span>
+                  {(searchQuery || selectedCity !== 'ALL' || minDiscount > 0 || selectedFilter !== 'ALL') && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSearchQuery('')
+                        setSelectedCity('ALL')
+                        setMinDiscount(0)
+                        setSelectedFilter('ALL')
+                      }}
+                      className="text-xs font-bold text-red-400 hover:text-red-300 underline cursor-pointer"
+                    >
+                      Reset All
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
