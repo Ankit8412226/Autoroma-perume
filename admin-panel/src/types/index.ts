@@ -62,7 +62,7 @@ export interface Employee {
   joiningDate: string;
   parentId?: any;
   inviteCode?: string;
-  position?: 'LEFT' | 'RIGHT';
+  legNumber?: number;  // Which leg slot under the parent (1, 2, 3... N — unlimited)
   userId?: User;
 }
 
@@ -79,7 +79,7 @@ export interface MLMTreeNode {
   teamSalesCount: number;
   activeLegsCount: number;
   parentId?: string | null;
-  position?: 'LEFT' | 'RIGHT';
+  legNumber?: number;  // Which leg slot under the parent (1, 2, 3... N — unlimited)
   children: MLMTreeNode[];
 }
 

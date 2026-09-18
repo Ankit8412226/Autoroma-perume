@@ -33,9 +33,9 @@ const TreeNodeCard: React.FC<{ node: MLMTreeNode; level: number }> = ({ node, le
             <div>
               <div className="flex items-center gap-1.5">
                 <h4 className="font-serif font-bold text-sm text-[#171A18] leading-none">{node.name}</h4>
-                {node.position && (
-                  <span className={`px-1.5 py-0.5 rounded text-[8.5px] font-extrabold uppercase ${node.position === 'RIGHT' ? 'bg-purple-100 text-purple-800 border border-purple-300' : 'bg-blue-100 text-blue-800 border border-blue-300'}`}>
-                    {node.position}
+                {node.legNumber && (
+                  <span className="px-1.5 py-0.5 rounded text-[8.5px] font-extrabold uppercase bg-[#EAF3EF] text-[#0B4F3C] border border-[#0B4F3C]/30">
+                    Leg #{node.legNumber}
                   </span>
                 )}
               </div>

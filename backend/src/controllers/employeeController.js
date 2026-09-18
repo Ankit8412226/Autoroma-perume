@@ -34,7 +34,7 @@ exports.getEmployees = async (req, res, next) => {
 
 exports.createEmployee = async (req, res, next) => {
   try {
-    const { fullName, email, phone, password, role, parentId, position, joiningDate } = req.body;
+    const { fullName, email, phone, password, role, parentId, legNumber, joiningDate } = req.body;
 
     let user = await User.findOne({ email });
     if (user) {
@@ -81,7 +81,7 @@ exports.createEmployee = async (req, res, next) => {
       joiningDate: joiningDate || new Date(),
       currentRank: 'Business Executive',
       parentId: sponsorParentId,
-      position: position || 'LEFT'
+      legNumber: legNumber ? Math.max(1, parseInt(legNumber, 10)) : 1
     });
 
     const populatedEmployee = await Employee.findById(employee._id)
@@ -103,7 +103,7 @@ exports.createEmployee = async (req, res, next) => {
 
 exports.updateEmployee = async (req, res, next) => {
   try {
-    const { fullName, phone, currentRank, parentId, position } = req.body;
+    const { fullName, phone, currentRank, parentId, legNumber } = req.body;
     const employee = await Employee.findById(req.params.id);
 
     if (!employee) {
@@ -119,7 +119,7 @@ exports.updateEmployee = async (req, res, next) => {
 
     if (currentRank) employee.currentRank = currentRank;
     if (parentId !== undefined) employee.parentId = parentId || null;
-    if (position) employee.position = position;
+    if (legNumber !== undefined) employee.legNumber = Math.max(1, parseInt(legNumber, 10));
 
     await employee.save();
 

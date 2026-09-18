@@ -330,10 +330,8 @@ export const EmployeesPage: React.FC = () => {
                               ? (emp.parentId as any).userId.fullName
                               : 'Root / Top Admin'}
                           </p>
-                          <span className={`inline-block mt-0.5 px-1.5 py-0.2 rounded text-[9px] font-extrabold uppercase ${
-                            emp.position === 'RIGHT' ? 'bg-purple-100 text-purple-800 border border-purple-300' : 'bg-blue-100 text-blue-800 border border-blue-300'
-                          }`}>
-                            {emp.position === 'RIGHT' ? '👉 Right Leg' : '👈 Left Leg'}
+                          <span className="inline-block mt-0.5 px-1.5 py-0.2 rounded text-[9px] font-extrabold uppercase bg-[#EAF3EF] text-[#0B4F3C] border border-[#0B4F3C]/30">
+                            Leg #{emp.legNumber || 1}
                           </span>
                         </div>
                       </td>

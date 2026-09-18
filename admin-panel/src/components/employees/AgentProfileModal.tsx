@@ -27,6 +27,7 @@ export const AgentProfileModal: React.FC<AgentProfileModalProps> = ({
   const [phone, setPhone] = useState('');
   const [currentRank, setCurrentRank] = useState('');
   const [parentId, setParentId] = useState('');
+  const [legNumber, setLegNumber] = useState<number>(1);
 
   useEffect(() => {
     fetchAgentDetails();
@@ -43,6 +44,7 @@ export const AgentProfileModal: React.FC<AgentProfileModalProps> = ({
       setPhone(emp.userId?.phone || '');
       setCurrentRank(emp.currentRank || 'Business Executive');
       setParentId(emp.parentId && typeof emp.parentId === 'object' ? (emp.parentId as any)._id || (emp.parentId as any).id : (emp.parentId || ''));
+      setLegNumber(emp.legNumber || 1);
     } catch (e) {
       console.error(e);
     } finally {
@@ -58,7 +60,8 @@ export const AgentProfileModal: React.FC<AgentProfileModalProps> = ({
         fullName,
         phone,
         currentRank,
-        parentId: parentId || null
+        parentId: parentId || null,
+        legNumber
       });
 
       toast.success('Agent profile and rank updated successfully!');
@@ -146,8 +149,8 @@ export const AgentProfileModal: React.FC<AgentProfileModalProps> = ({
             <p className="text-lg font-extrabold text-sky-800 mt-0.5">{metrics?.activeLegsCount || employee.activeLegsCount || 0} Legs</p>
           </div>
           <div className="bg-[#EAF3EF] p-3 rounded-2xl border border-[#0B4F3C]/20 text-center">
-            <p className="text-[10px] font-bold text-[#171A18]/70 uppercase">Total Sales Volume</p>
-            <p className="text-lg font-extrabold text-[#0B4F3C] mt-0.5">₹{((metrics?.totalTeamVolume || 0) / 100000).toFixed(1)}L</p>
+            <p className="text-[10px] font-bold text-[#171A18]/70 uppercase">Sponsor Leg #</p>
+            <p className="text-lg font-extrabold text-[#0B4F3C] mt-0.5">#{employee.legNumber || 1}</p>
           </div>
         </div>
 
@@ -227,6 +230,40 @@ export const AgentProfileModal: React.FC<AgentProfileModalProps> = ({
                     </option>
                   ))}
               </select>
+            </div>
+          </div>
+
+          <div>
+            <label className="text-[#171A18]/70 font-semibold">
+              Leg Number Under Sponsor
+              <span className="ml-2 text-[#0B4F3C]/70 font-normal">(#1, #2, #3 ... unlimited)</span>
+            </label>
+            <div className="flex items-center gap-3 mt-1">
+              <input
+                id="agent-leg-number-input"
+                type="number"
+                min={1}
+                max={999}
+                value={legNumber}
+                onChange={(e) => setLegNumber(Math.max(1, parseInt(e.target.value, 10) || 1))}
+                className="w-24 bg-[#FAF9F6] border border-[#0B4F3C]/20 rounded-xl px-3 py-2 text-[#171A18] font-bold focus:outline-none focus:border-[#0B4F3C] text-center"
+              />
+              <div className="flex gap-1">
+                {[1, 2, 3, 4, 5].map((n) => (
+                  <button
+                    key={n}
+                    type="button"
+                    onClick={() => setLegNumber(n)}
+                    className={`w-8 h-8 rounded-lg text-xs font-extrabold border transition-all cursor-pointer ${
+                      legNumber === n
+                        ? 'bg-[#0B4F3C] text-white border-[#0B4F3C]'
+                        : 'bg-[#FAF9F6] text-[#0B4F3C] border-[#0B4F3C]/20 hover:bg-[#EAF3EF]'
+                    }`}
+                  >
+                    #{n}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 

@@ -55,10 +55,13 @@ const employeeSchema = new mongoose.Schema({
     uppercase: true,
     trim: true
   },
-  position: {
-    type: String,
-    enum: ['LEFT', 'RIGHT'],
-    default: 'LEFT'
+  // legNumber: which direct-child slot under the parent (1 = first, 2 = second, etc.)
+  // Replaces the old binary LEFT/RIGHT position field.
+  // Unlimited legs are now supported — there is no upper bound.
+  legNumber: {
+    type: Number,
+    default: 1,
+    min: 1
   }
 }, { timestamps: true });
 

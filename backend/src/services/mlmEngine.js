@@ -266,7 +266,9 @@ async function getMLMTree(rootEmployeeId = null) {
       teamSalesCount: emp.teamSalesCount,
       activeLegsCount: emp.activeLegsCount,
       parentId: emp.parentId ? emp.parentId.toString() : null,
-      position: emp.position || 'LEFT',
+      // legNumber: which numbered direct-child slot under the parent (1, 2, 3...)
+      // Falls back to the legacy position field for migrated records that have it.
+      legNumber: emp.legNumber || (emp.position === 'RIGHT' ? 2 : 1),
       children: childNodes
     };
   }

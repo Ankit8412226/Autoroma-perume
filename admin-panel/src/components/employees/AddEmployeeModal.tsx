@@ -18,7 +18,7 @@ export const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({ onClose, onS
   const [role, setRole] = useState('AGENT');
   const [currentRank, setCurrentRank] = useState('Business Executive');
   const [parentId, setParentId] = useState('');
-  const [position, setPosition] = useState<'LEFT' | 'RIGHT'>('LEFT');
+  const [legNumber, setLegNumber] = useState<number>(1);
   const [employeesList, setEmployeesList] = useState<Employee[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
@@ -50,7 +50,7 @@ export const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({ onClose, onS
         role,
         currentRank,
         parentId: parentId || null,
-        position
+        legNumber
       });
 
       toast.success('Agent / Employee onboarded successfully into MLM network!');
@@ -171,56 +171,66 @@ export const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({ onClose, onS
             {/* MLM Hierarchy & Placement Leg */}
             <div className="border-t border-[#0B4F3C]/15 pt-3 space-y-2">
               <label className="text-[#0B4F3C] font-bold flex items-center gap-1.5 text-[11px]">
-                <GitMerge className="w-3.5 h-3.5 text-[#0B4F3C]" /> MLM Network Sponsor & Leg Placement
+                <GitMerge className="w-3.5 h-3.5 text-[#0B4F3C]" /> MLM Network Sponsor &amp; Leg Placement
               </label>
 
-              <div>
-                <label className="text-[#171A18]/70 font-semibold block mb-1">Sponsor / Parent Agent</label>
-                <select
-                  value={parentId}
-                  onChange={(e) => setParentId(e.target.value)}
-                  className="w-full bg-white border border-[#0B4F3C]/20 rounded-xl px-3 py-2 text-[#171A18] font-bold focus:outline-none focus:border-[#0B4F3C]"
-                >
-                  <option value="">-- Direct Under Top Admin (No Parent) --</option>
-                  {employeesList.map((emp) => {
-                    const empName = emp.userId?.fullName || emp.employeeCode;
-                    return (
-                      <option key={emp.id || (emp as any)._id} value={emp.id || (emp as any)._id}>
-                        {empName} ({emp.employeeCode} - {emp.currentRank})
-                      </option>
-                    );
-                  })}
-                </select>
-              </div>
+                <div>
+                  <label className="text-[#171A18]/70 font-semibold block mb-1">Sponsor / Parent Agent</label>
+                  <select
+                    value={parentId}
+                    onChange={(e) => setParentId(e.target.value)}
+                    className="w-full bg-white border border-[#0B4F3C]/20 rounded-xl px-3 py-2 text-[#171A18] font-bold focus:outline-none focus:border-[#0B4F3C]"
+                  >
+                    <option value="">-- Direct Under Top Admin (No Parent) --</option>
+                    {employeesList.map((emp) => {
+                      const empName = emp.userId?.fullName || emp.employeeCode;
+                      return (
+                        <option key={emp.id || (emp as any)._id} value={emp.id || (emp as any)._id}>
+                          {empName} ({emp.employeeCode} - {emp.currentRank})
+                        </option>
+                      );
+                    })}
+                  </select>
+                </div>
 
-              <div>
-                <label className="text-[#171A18]/70 font-semibold block mb-1">MLM Tree Placement Leg</label>
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setPosition('LEFT')}
-                    className={`py-2 px-3 rounded-xl text-xs font-bold border transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
-                      position === 'LEFT'
-                        ? 'bg-[#0B4F3C] text-white border-[#0B4F3C] shadow-md'
-                        : 'bg-white text-[#0B4F3C] border-[#0B4F3C]/20 hover:bg-[#FAF9F6]'
-                    }`}
-                  >
-                    👈 Left Leg
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setPosition('RIGHT')}
-                    className={`py-2 px-3 rounded-xl text-xs font-bold border transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
-                      position === 'RIGHT'
-                        ? 'bg-[#0B4F3C] text-white border-[#0B4F3C] shadow-md'
-                        : 'bg-white text-[#0B4F3C] border-[#0B4F3C]/20 hover:bg-[#FAF9F6]'
-                    }`}
-                  >
-                    👉 Right Leg
-                  </button>
+                <div>
+                  <label className="text-[#171A18]/70 font-semibold block mb-1">
+                    Leg Number
+                    <span className="ml-2 text-[#0B4F3C]/70 font-normal">(Leg #1, #2, #3 ... unlimited)</span>
+                  </label>
+                  <div className="flex items-center gap-3">
+                    <input
+                      id="leg-number-input"
+                      type="number"
+                      min={1}
+                      max={999}
+                      value={legNumber}
+                      onChange={(e) => setLegNumber(Math.max(1, parseInt(e.target.value, 10) || 1))}
+                      className="w-24 bg-white border border-[#0B4F3C]/20 rounded-xl px-3 py-2 text-[#171A18] font-bold focus:outline-none focus:border-[#0B4F3C] text-center"
+                    />
+                    <div className="flex gap-1 flex-wrap">
+                      {[1, 2, 3, 4, 5].map((n) => (
+                        <button
+                          key={n}
+                          type="button"
+                          onClick={() => setLegNumber(n)}
+                          className={`w-8 h-8 rounded-lg text-xs font-extrabold border transition-all cursor-pointer ${
+                            legNumber === n
+                              ? 'bg-[#0B4F3C] text-white border-[#0B4F3C] shadow-md'
+                              : 'bg-white text-[#0B4F3C] border-[#0B4F3C]/20 hover:bg-[#EAF3EF]'
+                          }`}
+                        >
+                          #{n}
+                        </button>
+                      ))}
+                      <span className="text-[10px] text-[#171A18]/50 self-center ml-1 font-semibold">or type any number →</span>
+                    </div>
+                  </div>
+                  <p className="text-[10px] text-[#171A18]/50 mt-1">
+                    No limit on legs per sponsor. Each agent under the same parent gets a unique leg number.
+                  </p>
                 </div>
               </div>
-            </div>
           </div>
 
           <div className="pt-4 border-t border-[#0B4F3C]/15 flex items-center gap-3">
