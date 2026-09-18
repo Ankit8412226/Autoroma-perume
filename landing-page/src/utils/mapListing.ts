@@ -95,6 +95,7 @@ export function mapBackendProperty(raw: any): Property {
     isSpotlight: Boolean(raw.isFeatured),
     isNew: true,
     status: raw.status === 'SOLD' ? 'Sold' : raw.status === 'BOOKED' ? 'Under Negotiation' : 'Available',
-    createdAt: raw.createdAt || new Date().toISOString()
+    createdAt: raw.createdAt || new Date().toISOString(),
+    legalInfo: raw.legalInfo || { reraNumber: raw.reraNumber || '', titleType: raw.titleType || 'Freehold' }
   }
 }

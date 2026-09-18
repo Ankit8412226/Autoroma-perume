@@ -50,6 +50,11 @@ export interface Property {
   isNew: boolean
   status: 'Available' | 'Under Negotiation' | 'Sold'
   createdAt: string
+  legalInfo?: {
+    reraNumber?: string
+    titleType?: string
+    approvalAuthority?: string
+  }
 }
 
 export const PROPERTIES: Property[] = [
