@@ -150,7 +150,7 @@ export interface ListingProperty {
   tagline?: string;
   description?: string;
   propertyType: PropertyType;
-  listingType: 'SALE' | 'RENT';
+  listingType: 'SALE' | 'RENT' | 'LEASE';
   projectId?: string | Project | null;
   location?: string;
   city?: string;
@@ -188,6 +188,11 @@ export interface ListingProperty {
     titleType?: string;
     approvalAuthority?: string;
   };
+  // Approval workflow fields (added for public submission feature)
+  approvalStatus?: 'PENDING' | 'APPROVED' | 'REJECTED';
+  source?: 'ADMIN' | 'PUBLIC';
+  rejectionReason?: string;
+  submittedAt?: string;
   createdAt?: string;
 }
 

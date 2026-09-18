@@ -6,6 +6,12 @@ export async function fetchProperties(): Promise<ListingProperty[]> {
   return Array.isArray(res.data) ? res.data : [];
 }
 
+export async function fetchPropertiesByApproval(approvalStatus?: string): Promise<ListingProperty[]> {
+  const params = approvalStatus ? { params: { approvalStatus } } : {};
+  const res = await api.get('/properties', params);
+  return Array.isArray(res.data) ? res.data : [];
+}
+
 export async function createProperty(payload: Partial<ListingProperty>) {
   const res = await api.post('/properties', payload);
   return res.data;
@@ -18,5 +24,15 @@ export async function updateProperty(id: string, payload: Partial<ListingPropert
 
 export async function deleteProperty(id: string) {
   const res = await api.delete(`/properties/${id}`);
+  return res.data;
+}
+
+export async function approveProperty(id: string) {
+  const res = await api.post(`/properties/${id}/approve`);
+  return res.data;
+}
+
+export async function rejectProperty(id: string, reason?: string) {
+  const res = await api.post(`/properties/${id}/reject`, { reason: reason || '' });
   return res.data;
 }

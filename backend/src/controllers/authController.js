@@ -238,3 +238,49 @@ exports.getMe = async (req, res, next) => {
     next(error);
   }
 };
+
+
+exports.registerPropertyOwner = async (req, res, next) => {
+  try {
+    const { fullName, email, phone, password } = req.body;
+
+    if (!fullName || !email || !phone || !password) {
+      return res.status(400).json({ message: 'Full name, email, phone, and password are required' });
+    }
+
+    const existing = await User.findOne({ email: email.toLowerCase().trim() });
+    if (existing) {
+      return res.status(400).json({ message: 'An account with this email already exists. Please login.' });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    const user = await User.create({
+      email: email.toLowerCase().trim(),
+      password: hashedPassword,
+      fullName: String(fullName).trim(),
+      phone: String(phone).trim(),
+      role: 'PROPERTY_OWNER',
+      isActive: true,
+      approvalStatus: 'APPROVED'
+    });
+
+    const token = generateToken(user._id);
+
+    res.status(201).json({
+      success: true,
+      message: 'Account created successfully! You can now list your property.',
+      token,
+      user: {
+        id: user._id,
+        fullName: user.fullName,
+        email: user.email,
+        phone: user.phone,
+        role: user.role
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};

@@ -2,12 +2,13 @@
 
 import * as React from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { HouseAndSkyLogo } from './HouseAndSkyLogo'
 import { AnnouncementTicker } from './AnnouncementTicker'
 import { getApiBaseUrl } from '@/utils/api'
 import { SITE } from '@/utils/siteConfig'
-import { Bookmark, Menu, X, PhoneCall, ChevronDown, Mail, Facebook, MessageCircle } from 'lucide-react'
+import { useOwnerAuth } from '@/stores/auth.store'
+import { Bookmark, Menu, X, PhoneCall, ChevronDown, Mail, Facebook, MessageCircle, UserCircle, LogOut, Home, LogIn } from 'lucide-react'
 
 interface NavProject {
   _id: string
@@ -22,12 +23,21 @@ const MAIN_LINKS = [
 
 export function Navbar() {
   const pathname = usePathname()
+  const router = useRouter()
   const [isScrolled, setIsScrolled] = React.useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false)
   const [isMobileAboutOpen, setIsMobileAboutOpen] = React.useState(false)
   const [isMobileProjectsOpen, setIsMobileProjectsOpen] = React.useState(false)
   const [openMenu, setOpenMenu] = React.useState<string | null>(null)
   const [projects, setProjects] = React.useState<NavProject[]>([])
+
+  // Owner auth
+  const { isAuthenticated, user, logout } = useOwnerAuth()
+
+  const handleOwnerLogout = () => {
+    logout()
+    router.push('/')
+  }
 
   React.useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 15)
@@ -56,22 +66,20 @@ export function Navbar() {
 
   const isActive = (href: string) => pathname === href || (href !== '/' && pathname.startsWith(href))
   const linkClass = (href: string) =>
-    `text-[11px] uppercase tracking-[0.12em] font-semibold py-1 transition-colors ${
-      isActive(href) && (href !== '/' || pathname === '/')
-        ? 'text-brand-green'
-        : 'text-brand-charcoal/75 hover:text-brand-green'
+    `text-[11px] uppercase tracking-[0.12em] font-semibold py-1 transition-colors ${isActive(href) && (href !== '/' || pathname === '/')
+      ? 'text-brand-green'
+      : 'text-brand-charcoal/75 hover:text-brand-green'
     }`
 
   return (
     <>
       <header
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-          isScrolled
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled
             ? 'bg-white/95 backdrop-blur-md border-b border-brand-green/10 shadow-sm'
             : 'bg-white/90 backdrop-blur-sm border-b border-brand-green/5'
-        }`}
+          }`}
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5 sm:py-3">
+        <div className=" mx-auto px-4 sm:px-6 lg:px-8 py-2.5 sm:py-3">
           <div className="flex items-center justify-between gap-6">
             <Link href="/" className="focus:outline-none shrink-0">
               <HouseAndSkyLogo variant="dark" showTagline={true} size="sm" />
@@ -117,28 +125,68 @@ export function Navbar() {
               <Link href="/contact" className={linkClass('/contact')}>Get In Touch</Link>
             </nav>
 
-            <div className="hidden lg:flex items-center gap-2">
-              <div className="flex items-center rounded-full border border-brand-green/15 bg-brand-soft/80 px-1">
-                <a href={mailHref} target="_blank" rel="noopener noreferrer" className="p-2 text-brand-green hover:text-brand-dark" title={`Email: ${SITE.email}`}>
-                  <Mail className="w-3.5 h-3.5" />
-                </a>
-                <a href={whatsappHref} target="_blank" rel="noreferrer" className="p-2 text-brand-green hover:text-brand-dark" title="WhatsApp">
-                  <MessageCircle className="w-3.5 h-3.5" />
-                </a>
-                <a href={SITE.facebook} target="_blank" rel="noreferrer" className="p-2 text-brand-green hover:text-brand-dark" title="Facebook">
-                  <Facebook className="w-3.5 h-3.5" />
-                </a>
-                <Link href="/saved" className="p-2 text-brand-green hover:text-brand-dark" title="Saved">
-                  <Bookmark className="w-3.5 h-3.5" />
-                </Link>
-              </div>
+            {/* Desktop right side — sleek hierarchy: Phone info | Login/Owner | List Property CTA */}
+            <div className="hidden lg:flex items-center gap-3">
+              {/* Phone info (xl screens) */}
               <a
                 href={telHref}
-                className="inline-flex items-center gap-1.5 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.1em] text-white bg-brand-green hover:bg-brand-dark rounded-full shadow-sm"
+                className="hidden xl:inline-flex items-center gap-1.5 text-[11px] font-bold tracking-[0.08em] text-brand-charcoal/70 hover:text-brand-green transition-colors mr-1"
+                title="Call Us"
               >
-                <PhoneCall className="w-3.5 h-3.5" />
-                {SITE.phoneDisplay}
+                <PhoneCall className="w-3.5 h-3.5 text-brand-green" />
+                <span>{SITE.phoneDisplay}</span>
               </a>
+
+              {/* Auth: logged-in → user dropdown pill | logged-out → Login outline button */}
+              {isAuthenticated && user ? (
+                <div className="relative" onMouseEnter={() => setOpenMenu('owner')} onMouseLeave={() => setOpenMenu(null)}>
+                  <button
+                    type="button"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold text-brand-charcoal bg-brand-soft hover:bg-brand-green/10 rounded-full border border-brand-green/20 transition-all"
+                  >
+                    <UserCircle className="w-4 h-4 text-brand-green" />
+                    <span>{user.fullName.split(' ')[0]}</span>
+                    <ChevronDown className="w-3 h-3 text-brand-charcoal/50" />
+                  </button>
+                  {openMenu === 'owner' && (
+                    <div className="absolute top-full right-0 pt-2 min-w-[180px] z-[100]">
+                      <div className="bg-white border border-brand-green/15 rounded-xl shadow-xl py-1.5 overflow-hidden animate-in fade-in slide-in-from-top-1 duration-150">
+                        <div className="px-4 py-2 border-b border-brand-green/10 bg-brand-soft/40">
+                          <p className="text-[10px] font-medium text-brand-muted uppercase tracking-wider">Signed in as</p>
+                          <p className="text-xs font-bold text-brand-charcoal truncate">{user.fullName}</p>
+                        </div>
+                        <Link href="/my-properties" className="flex items-center gap-2 px-4 py-2.5 text-xs font-semibold text-brand-charcoal hover:bg-brand-soft hover:text-brand-green transition-colors">
+                          <Home className="w-3.5 h-3.5 text-brand-green" /> My Properties
+                        </Link>
+                        <button
+                          type="button"
+                          onClick={handleOwnerLogout}
+                          className="w-full flex items-center gap-2 px-4 py-2.5 text-xs font-semibold text-red-600 hover:bg-red-50 transition-colors"
+                        >
+                          <LogOut className="w-3.5 h-3.5" /> Logout
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <Link
+                  href="/owner-login"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-[0.1em] text-brand-charcoal hover:text-brand-green border border-brand-charcoal/20 hover:border-brand-green rounded-full transition-all"
+                >
+                  <LogIn className="w-3.5 h-3.5 text-brand-green" />
+                  <span>Login</span>
+                </Link>
+              )}
+
+              {/* Primary CTA: List Property — Solid Brand Green pill */}
+              <Link
+                href="/list-your-property"
+                className="inline-flex items-center gap-1.5 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.1em] text-white bg-brand-green hover:bg-brand-dark rounded-full shadow-sm hover:shadow transition-all"
+              >
+                <Home className="w-3.5 h-3.5" />
+                <span>List Property</span>
+              </Link>
             </div>
 
             <button
@@ -230,9 +278,40 @@ export function Navbar() {
               <Link href="/contact" onClick={() => setIsMobileMenuOpen(false)} className="block text-xs uppercase tracking-[0.14em] font-semibold text-brand-charcoal py-2.5 border-b border-brand-green/10">
                 Get In Touch
               </Link>
-              <Link href="/saved" onClick={() => setIsMobileMenuOpen(false)} className="block text-xs uppercase tracking-[0.14em] font-semibold text-brand-charcoal py-2.5">
+              <Link href="/saved" onClick={() => setIsMobileMenuOpen(false)} className="block text-xs uppercase tracking-[0.14em] font-semibold text-brand-charcoal py-2.5 border-b border-brand-green/10">
                 Saved
               </Link>
+
+              {/* Owner auth section in mobile menu */}
+              {isAuthenticated && user ? (
+                <>
+                  <Link href="/my-properties" onClick={() => setIsMobileMenuOpen(false)} className="block text-xs uppercase tracking-[0.14em] font-semibold text-brand-charcoal py-2.5 border-b border-brand-green/10">
+                    My Properties
+                  </Link>
+                  <Link href="/list-your-property" onClick={() => setIsMobileMenuOpen(false)} className="block text-xs uppercase tracking-[0.14em] font-semibold text-brand-green py-2.5 border-b border-brand-green/10">
+                    List Property
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => { handleOwnerLogout(); setIsMobileMenuOpen(false) }}
+                    className="w-full text-left text-xs uppercase tracking-[0.14em] font-semibold text-red-600 py-2.5"
+                  >
+                    Logout ({user.fullName.split(' ')[0]})
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link href="/owner-login" onClick={() => setIsMobileMenuOpen(false)} className="block text-xs uppercase tracking-[0.14em] font-semibold text-brand-charcoal py-2.5 border-b border-brand-green/10">
+                    Login
+                  </Link>
+                  <Link href="/owner-register" onClick={() => setIsMobileMenuOpen(false)} className="block text-xs uppercase tracking-[0.14em] font-semibold text-brand-charcoal py-2.5 border-b border-brand-green/10">
+                    Create Account
+                  </Link>
+                  <Link href="/list-your-property" onClick={() => setIsMobileMenuOpen(false)} className="block text-xs uppercase tracking-[0.14em] font-bold text-brand-green py-2.5">
+                    List Property
+                  </Link>
+                </>
+              )}
             </div>
             <div className="flex items-center gap-2 pt-5">
               <a href={mailHref} target="_blank" rel="noreferrer" className="p-2 rounded-full bg-brand-soft text-brand-green" title={`Email: ${SITE.email}`}><Mail className="w-4 h-4" /></a>

@@ -9,7 +9,7 @@ const PROPERTY_TYPES = [
   'LAND'
 ];
 
-const LISTING_TYPES = ['SALE', 'RENT'];
+const LISTING_TYPES = ['SALE', 'RENT', 'LEASE'];
 
 const PROPERTY_STATUSES = ['AVAILABLE', 'BOOKED', 'SOLD', 'UPCOMING'];
 
@@ -176,6 +176,27 @@ const propertySchema = new mongoose.Schema({
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'
+  },
+
+  // --- Public Submission & Approval Workflow ---
+  // Default 'APPROVED' so all existing records continue to appear publicly.
+  approvalStatus: {
+    type: String,
+    enum: ['PENDING', 'APPROVED', 'REJECTED'],
+    default: 'APPROVED'
+  },
+  // 'ADMIN' = created via admin panel, 'PUBLIC' = submitted via public form.
+  source: {
+    type: String,
+    enum: ['ADMIN', 'PUBLIC'],
+    default: 'ADMIN'
+  },
+  rejectionReason: {
+    type: String,
+    default: ''
+  },
+  submittedAt: {
+    type: Date
   }
 }, { timestamps: true });
 
@@ -183,7 +204,10 @@ propertySchema.index({ propertyType: 1, status: 1, isPublished: 1 });
 propertySchema.index({ projectId: 1 });
 propertySchema.index({ city: 1 });
 
+const APPROVAL_STATUSES = ['PENDING', 'APPROVED', 'REJECTED'];
+
 module.exports = mongoose.model('Property', propertySchema);
 module.exports.PROPERTY_TYPES = PROPERTY_TYPES;
 module.exports.LISTING_TYPES = LISTING_TYPES;
 module.exports.PROPERTY_STATUSES = PROPERTY_STATUSES;
+module.exports.APPROVAL_STATUSES = APPROVAL_STATUSES;

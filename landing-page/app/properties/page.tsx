@@ -72,6 +72,20 @@ function PropertiesContent() {
         </button>
       </div>
 
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border border-brand-green/10 bg-white p-4">
+        <div>
+          <p className="text-sm font-bold text-brand-charcoal">Own a property? List it for free.</p>
+          <p className="text-xs text-brand-charcoal/60 mt-0.5">Reach verified buyers & tenants. Admin reviewed before going live.</p>
+        </div>
+        <a
+          href="/list-your-property"
+          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-brand-green text-brand-green text-xs font-bold shrink-0 hover:bg-brand-soft transition-colors"
+        >
+          <Building2 className="w-4 h-4" />
+          List Your Property
+        </a>
+      </div>
+
       <div className="relative">
         <Search className="w-4 h-4 text-brand-charcoal/40 absolute left-3.5 top-1/2 -translate-y-1/2" />
         <input

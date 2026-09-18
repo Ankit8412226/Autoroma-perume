@@ -174,10 +174,17 @@ exports.deleteProperty = async (req, res, next) => {
   }
 };
 
+const APPROVAL_FILTER = {
+  $or: [
+    { approvalStatus: 'APPROVED' },
+    { approvalStatus: { $exists: false } }
+  ]
+};
+
 exports.getPublicProperties = async (req, res, next) => {
   try {
     const { projectId, propertyType, city, featured } = req.query;
-    const filter = { isPublished: { $ne: false } };
+    const filter = { isPublished: { $ne: false }, ...APPROVAL_FILTER };
 
     if (projectId && isValidObjectId(projectId)) filter.projectId = projectId;
     if (propertyType) filter.propertyType = propertyType;
@@ -197,11 +204,15 @@ exports.getPublicProperties = async (req, res, next) => {
 exports.getPublicPropertyBySlug = async (req, res, next) => {
   try {
     const { slug } = req.params;
-    const filter = isValidObjectId(slug)
+    const slugFilter = isValidObjectId(slug)
       ? { $or: [{ _id: slug }, { slug }] }
       : { slug };
 
-    const property = await Property.findOne({ ...filter, isPublished: { $ne: false } })
+    const property = await Property.findOne({
+      ...slugFilter,
+      isPublished: { $ne: false },
+      ...APPROVAL_FILTER
+    })
       .populate('projectId', 'name code location city bannerImage mapImageUrl');
 
     if (!property) return res.status(404).json({ message: 'Property not found' });
@@ -209,6 +220,7 @@ exports.getPublicPropertyBySlug = async (req, res, next) => {
     const similar = await Property.find({
       _id: { $ne: property._id },
       isPublished: { $ne: false },
+      ...APPROVAL_FILTER,
       $or: [
         { propertyType: property.propertyType },
         { city: property.city },
@@ -265,7 +277,10 @@ exports.getPublicGallery = async (req, res, next) => {
       });
     });
 
-    const properties = await Property.find({ isPublished: { $ne: false } })
+    const properties = await Property.find({
+      isPublished: { $ne: false },
+      ...APPROVAL_FILTER
+    })
       .select('title heroImage gallery')
       .lean();
 
@@ -293,6 +308,215 @@ exports.getPublicGallery = async (req, res, next) => {
     });
 
     res.json(items);
+  } catch (error) {
+    next(error);
+  }
+};
+
+// ---------------------------------------------------------------------------
+// PUBLIC PROPERTY SUBMISSION (requires JWT — owner identity from token)
+// ---------------------------------------------------------------------------
+
+exports.registerPublicProperty = async (req, res, next) => {
+  try {
+    const body = req.body;
+
+    // Explicit whitelist — never accept privileged fields from body
+    const title = String(body.title || '').trim();
+    if (!title) return res.status(400).json({ message: 'Property title is required' });
+
+    const slug = await uniqueSlug(title);
+
+    const allowedTypes = PROPERTY_TYPES;
+    const allowedListingTypes = LISTING_TYPES;
+    const allowedStatuses = PROPERTY_STATUSES;
+
+    const payload = {
+      title,
+      slug,
+      tagline: String(body.tagline || '').substring(0, 200),
+      description: String(body.description || '').substring(0, 2000),
+      propertyType: allowedTypes.includes(body.propertyType) ? body.propertyType : 'RESIDENTIAL_PLOT',
+      listingType: allowedListingTypes.includes(body.listingType) ? body.listingType : 'SALE',
+      location: String(body.location || '').substring(0, 200),
+      city: String(body.city || '').substring(0, 100),
+      state: String(body.state || '').substring(0, 100),
+      area: String(body.area || '').substring(0, 100),
+      address: String(body.address || '').substring(0, 500),
+      pincode: String(body.pincode || '').substring(0, 10),
+      googleMapsUrl: String(body.googleMapsUrl || '').substring(0, 500),
+      price: Number(body.price) || 0,
+      pricePerSqft: Number(body.pricePerSqft) || 0,
+      priceRange: String(body.priceRange || '').substring(0, 80),
+      areaSqft: Number(body.areaSqft) || 0,
+      areaSqYrd: Number(body.areaSqYrd) || 0,
+      dimensions: String(body.dimensions || '').substring(0, 100),
+      bedrooms: Math.max(0, Number(body.bedrooms) || 0),
+      bathrooms: Math.max(0, Number(body.bathrooms) || 0),
+      parkingSpaces: Math.max(0, Number(body.parkingSpaces) || 0),
+      amenities: Array.isArray(body.amenities) ? body.amenities.filter(Boolean).slice(0, 20) : [],
+      features: Array.isArray(body.features) ? body.features.filter(Boolean).slice(0, 20) : [],
+      highlights: Array.isArray(body.highlights) ? body.highlights.filter(Boolean).slice(0, 20) : [],
+      heroImage: String(body.heroImage || ''),
+      gallery: sanitizeGallery(body.gallery).slice(0, 10),
+      contactPhone: String(body.contactPhone || '').substring(0, 20),
+      contactEmail: String(body.contactEmail || '').substring(0, 100),
+      // Forced fields — never accepted from body
+      status: 'AVAILABLE',
+      approvalStatus: 'PENDING',
+      source: 'PUBLIC',
+      isPublished: true,
+      isFeatured: false,
+      submittedAt: new Date(),
+      createdBy: req.user._id
+    };
+
+    const property = await Property.create(payload);
+
+    // Generate human-friendly reference ID from Mongo ObjectId
+    const referenceId = `HS-PROP-${String(property._id).slice(-6).toUpperCase()}`;
+
+    res.status(201).json({
+      success: true,
+      message: 'Property submitted successfully! Our team will review it shortly.',
+      data: { referenceId, status: 'PENDING', propertyId: property._id }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// ---------------------------------------------------------------------------
+// OWNER: MY PROPERTIES  (returns only the requester's own properties)
+// ---------------------------------------------------------------------------
+
+exports.getMyProperties = async (req, res, next) => {
+  try {
+    const properties = await Property.find({
+      createdBy: req.user._id,
+      source: 'PUBLIC'
+    })
+      .select('title slug heroImage gallery propertyType listingType location city state area price priceRange approvalStatus status submittedAt rejectionReason createdAt')
+      .sort({ createdAt: -1 })
+      .lean();
+
+    res.json({ success: true, data: properties });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.getMyPropertyById = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    if (!isValidObjectId(id)) return res.status(400).json({ message: 'Invalid property id' });
+
+    const property = await Property.findById(id)
+      .select('-createdBy -isFeatured -legalInfo')
+      .lean();
+
+    if (!property) return res.status(404).json({ message: 'Property not found' });
+
+    if (String(property.createdBy) !== String(req.user._id)) {
+      return res.status(403).json({ message: 'Access denied. This property does not belong to your account.' });
+    }
+
+    res.json({ success: true, data: property });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Owner: Edit & resubmit a rejected property
+exports.updateMyProperty = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    if (!isValidObjectId(id)) return res.status(400).json({ message: 'Invalid property id' });
+
+    const property = await Property.findById(id);
+    if (!property) return res.status(404).json({ message: 'Property not found' });
+    if (String(property.createdBy) !== String(req.user._id)) {
+      return res.status(403).json({ message: 'Access denied.' });
+    }
+    if (property.approvalStatus === 'APPROVED') {
+      return res.status(400).json({ message: 'Approved properties cannot be modified through this endpoint.' });
+    }
+
+    const body = req.body;
+    // Only update allowed fields — approval fields are always reset, not accepted from body
+    const updates = {
+      title: String(body.title || property.title).trim().substring(0, 160),
+      tagline: String(body.tagline || property.tagline || '').substring(0, 200),
+      description: String(body.description || property.description || '').substring(0, 2000),
+      propertyType: PROPERTY_TYPES.includes(body.propertyType) ? body.propertyType : property.propertyType,
+      listingType: LISTING_TYPES.includes(body.listingType) ? body.listingType : property.listingType,
+      location: String(body.location || property.location || '').substring(0, 200),
+      city: String(body.city || property.city || '').substring(0, 100),
+      state: String(body.state || property.state || '').substring(0, 100),
+      area: String(body.area || property.area || '').substring(0, 100),
+      address: String(body.address || property.address || '').substring(0, 500),
+      price: Number(body.price) || property.price || 0,
+      areaSqft: Number(body.areaSqft) || property.areaSqft || 0,
+      bedrooms: Math.max(0, Number(body.bedrooms) || property.bedrooms || 0),
+      bathrooms: Math.max(0, Number(body.bathrooms) || property.bathrooms || 0),
+      parkingSpaces: Math.max(0, Number(body.parkingSpaces) || property.parkingSpaces || 0),
+      amenities: Array.isArray(body.amenities) ? body.amenities.filter(Boolean).slice(0, 20) : property.amenities,
+      heroImage: body.heroImage !== undefined ? String(body.heroImage) : property.heroImage,
+      gallery: body.gallery !== undefined ? sanitizeGallery(body.gallery).slice(0, 10) : property.gallery,
+      contactPhone: String(body.contactPhone || property.contactPhone || '').substring(0, 20),
+      contactEmail: String(body.contactEmail || property.contactEmail || '').substring(0, 100),
+      // Reset to pending on resubmit
+      approvalStatus: 'PENDING',
+      rejectionReason: '',
+      submittedAt: new Date()
+    };
+
+    const updated = await Property.findByIdAndUpdate(id, updates, { new: true })
+      .select('title approvalStatus status submittedAt');
+
+    res.json({ success: true, message: 'Property resubmitted for review.', data: updated });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// ---------------------------------------------------------------------------
+// ADMIN: APPROVE / REJECT
+// ---------------------------------------------------------------------------
+
+exports.approveProperty = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    if (!isValidObjectId(id)) return res.status(400).json({ message: 'Invalid property id' });
+
+    const property = await Property.findByIdAndUpdate(
+      id,
+      { approvalStatus: 'APPROVED', rejectionReason: '' },
+      { new: true }
+    );
+    if (!property) return res.status(404).json({ message: 'Property not found' });
+
+    res.json({ success: true, message: 'Property approved and now live on the public site.', data: { approvalStatus: property.approvalStatus } });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.rejectProperty = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    if (!isValidObjectId(id)) return res.status(400).json({ message: 'Invalid property id' });
+
+    const reason = String(req.body.reason || '').substring(0, 500);
+
+    const property = await Property.findByIdAndUpdate(
+      id,
+      { approvalStatus: 'REJECTED', rejectionReason: reason },
+      { new: true }
+    );
+    if (!property) return res.status(404).json({ message: 'Property not found' });
+
+    res.json({ success: true, message: 'Property rejected.', data: { approvalStatus: property.approvalStatus, rejectionReason: property.rejectionReason } });
   } catch (error) {
     next(error);
   }

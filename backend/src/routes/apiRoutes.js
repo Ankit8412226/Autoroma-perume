@@ -32,12 +32,13 @@ const upload = multer({ storage: multer.memoryStorage() });
 const ROLES = ['ADMIN', 'MANAGER', 'EMPLOYEE', 'AGENT', 'DIRECTOR'];
 const PLOT_STATUSES = ['AVAILABLE', 'BOOKED', 'PENDING', 'SOLD'];
 const PROPERTY_TYPES = ['RESIDENTIAL_PLOT', 'COMMERCIAL', 'VILLA', 'SHOWROOM', 'APARTMENT', 'LAND'];
-const LISTING_TYPES = ['SALE', 'RENT'];
+const LISTING_TYPES = ['SALE', 'RENT', 'LEASE'];
 const PROPERTY_STATUSES = ['AVAILABLE', 'BOOKED', 'SOLD', 'UPCOMING'];
 
 // Rate limiters for public submissions
 const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 10, message: 'Too many attempts, please try again later.' });
 const inquiryLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 20, message: 'Too many inquiries submitted. Please wait a few minutes before trying again.' });
+const propertySubmitLimiter = rateLimit({ windowMs: 60 * 60 * 1000, max: 10, message: 'Too many property submissions. Please wait before submitting again.' });
 
 // --- S3 UPLOAD ROUTES ---
 router.post('/upload', protect, upload.single('file'), uploadController.uploadFile);
@@ -100,6 +101,14 @@ router.post('/auth/register-public-agent', authLimiter, validate({
   phone: { required: true, type: 'string', minLength: 5, maxLength: 20 }
 }), authController.registerPublicAgent);
 
+// Property Owner Registration (separate from MLM agent flow)
+router.post('/auth/register-property-owner', authLimiter, validate({
+  fullName: { required: true, type: 'string', minLength: 2, maxLength: 80 },
+  email: { required: true, type: 'email' },
+  phone: { required: true, type: 'string', minLength: 5, maxLength: 20 },
+  password: { required: true, type: 'string', minLength: 6, maxLength: 128 }
+}), authController.registerPropertyOwner);
+
 // --- Employee / Agent CRUD & MLM Routes ---
 router.get('/employees/me/invite-link', protect, employeeController.getMyInviteLink);
 router.get('/employees', protect, employeeController.getEmployees);
@@ -148,6 +157,17 @@ router.delete('/projects/:id', protect, authorize('ADMIN'), projectController.de
 router.put('/projects/:projectId/settings', protect, authorize('ADMIN'), projectController.updateProjectSettings);
 
 // --- Property Listings (separate from township Projects) ---
+// IMPORTANT: /properties/my and /properties/:id/approve|reject MUST come before
+// /properties/:id to avoid route conflicts.
+router.get('/properties/my', protect, propertyController.getMyProperties);
+router.get('/properties/my/:id', protect, propertyController.getMyPropertyById);
+router.put('/properties/my/:id', protect, propertyController.updateMyProperty);
+router.post('/properties/submit', protect, propertySubmitLimiter, validate({
+  title: { required: true, type: 'string', minLength: 3, maxLength: 160 },
+  contactPhone: { required: true, type: 'string', minLength: 5, maxLength: 20 }
+}), propertyController.registerPublicProperty);
+router.post('/properties/:id/approve', protect, authorize('ADMIN', 'DIRECTOR'), propertyController.approveProperty);
+router.post('/properties/:id/reject', protect, authorize('ADMIN', 'DIRECTOR'), propertyController.rejectProperty);
 router.get('/properties', protect, propertyController.getProperties);
 router.post('/properties', protect, authorize('ADMIN', 'DIRECTOR'), validate({
   title: { required: true, type: 'string', minLength: 2, maxLength: 160 },
