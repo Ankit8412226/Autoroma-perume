@@ -70,6 +70,7 @@ exports.submitBulkDealRequest = async (req, res, next) => {
       unitCount,
       budgetRange,
       city,
+      state,
       message
     } = req.body;
 
@@ -92,6 +93,7 @@ exports.submitBulkDealRequest = async (req, res, next) => {
       unitCount: Number(unitCount) || 5,
       budgetRange: String(budgetRange || '').trim(),
       city: String(city || '').trim(),
+      state: String(state || '').trim(),
       propertyTitle: resolvedTitle || 'Bulk Deal Inquiry',
       message: String(message || '').trim(),
       status: 'NEW',
@@ -101,9 +103,9 @@ exports.submitBulkDealRequest = async (req, res, next) => {
     // Fire-and-forget admin notification
     notifyAdmins({
       title: `New Bulk Deal Request — ${String(name).trim()}`,
-      message: `${String(phone).trim()} · ${resolvedTitle || 'General Bulk Deal'} · ${Number(unitCount) || 5} units${city ? ` · ${city}` : ''}`,
+      message: `${String(phone).trim()} · ${resolvedTitle || 'General Bulk Deal'} · ${Number(unitCount) || 5} units${city ? ` · ${city}` : ''}${state ? `, ${state}` : ''}`,
       category: 'BULK_DEAL',
-      meta: { inquiryId: inquiry._id, name, phone, email, propertyTitle: resolvedTitle, unitCount, city }
+      meta: { inquiryId: inquiry._id, name, phone, email, propertyTitle: resolvedTitle, unitCount, city, state }
     });
 
     res.status(201).json({

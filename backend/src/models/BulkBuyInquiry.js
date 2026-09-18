@@ -41,6 +41,10 @@ const bulkBuyInquirySchema = new mongoose.Schema({
     type: String,
     default: ''
   },
+  state: {
+    type: String,
+    default: ''
+  },
   propertyId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Property',

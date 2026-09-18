@@ -75,6 +75,8 @@ export default function BulkDealsPage() {
     name: '',
     phone: '',
     email: '',
+    city: '',
+    state: '',
     unitCount: '5',
     budgetRange: '₹50 Lakhs - ₹1 Crore',
     message: ''
@@ -108,6 +110,8 @@ export default function BulkDealsPage() {
       name: '',
       phone: '',
       email: '',
+      city: deal.city || '',
+      state: deal.state || '',
       unitCount: deal.minQuantity ? deal.minQuantity.split(' ')[0] : '5',
       budgetRange: '₹50 Lakhs - ₹1 Crore',
       message: ''
@@ -131,7 +135,8 @@ export default function BulkDealsPage() {
           ...requestForm,
           bulkDealId: selectedDeal?._id,
           dealTitle: selectedDeal?.title,
-          city: selectedDeal?.city
+          city: requestForm.city || selectedDeal?.city || '',
+          state: requestForm.state || selectedDeal?.state || ''
         })
       })
 
@@ -612,6 +617,33 @@ export default function BulkDealsPage() {
                         placeholder="investor@domain.com"
                         value={requestForm.email}
                         onChange={(e) => setRequestForm((prev) => ({ ...prev, email: e.target.value }))}
+                        className="w-full px-3.5 py-2.5 bg-neutral-950 border border-white/10 rounded-xl text-xs text-white focus:outline-none focus:border-amber-500 font-medium"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-xs font-bold text-neutral-300 uppercase tracking-wider block mb-1">
+                        Preferred City
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Dholera / Noida"
+                        value={requestForm.city}
+                        onChange={(e) => setRequestForm((prev) => ({ ...prev, city: e.target.value }))}
+                        className="w-full px-3.5 py-2.5 bg-neutral-950 border border-white/10 rounded-xl text-xs text-white focus:outline-none focus:border-amber-500 font-medium"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-bold text-neutral-300 uppercase tracking-wider block mb-1">
+                        State
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Gujarat / Uttar Pradesh"
+                        value={requestForm.state}
+                        onChange={(e) => setRequestForm((prev) => ({ ...prev, state: e.target.value }))}
                         className="w-full px-3.5 py-2.5 bg-neutral-950 border border-white/10 rounded-xl text-xs text-white focus:outline-none focus:border-amber-500 font-medium"
                       />
                     </div>

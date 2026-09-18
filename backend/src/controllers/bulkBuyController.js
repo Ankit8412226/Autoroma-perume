@@ -22,6 +22,7 @@ exports.createPublicBulkBuy = async (req, res, next) => {
       budgetRange,
       propertyType,
       city,
+      state,
       propertyId,
       propertyTitle,
       message
@@ -49,6 +50,7 @@ exports.createPublicBulkBuy = async (req, res, next) => {
       budgetRange: String(budgetRange || '').trim(),
       propertyType: String(propertyType || '').trim(),
       city: String(city || '').trim(),
+      state: String(state || '').trim(),
       propertyId: resolvedPropertyId,
       propertyTitle: resolvedTitle,
       message: String(message || '').trim(),

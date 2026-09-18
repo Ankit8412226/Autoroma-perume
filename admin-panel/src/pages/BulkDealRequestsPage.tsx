@@ -32,6 +32,7 @@ interface BulkDealRequest {
   unitCount?: number;
   budgetRange?: string;
   city?: string;
+  state?: string;
   message?: string;
   status: 'NEW' | 'IN_PROGRESS' | 'CONTACTED' | 'CONVERTED' | 'REJECTED';
   createdAt: string;
@@ -183,7 +184,7 @@ export const BulkDealRequestsPage: React.FC = () => {
                   <th className="px-4 py-3.5">Investor Details</th>
                   <th className="px-4 py-3.5">Deal / Property</th>
                   <th className="px-4 py-3.5">Units & Budget</th>
-                  <th className="px-4 py-3.5">City</th>
+                  <th className="px-4 py-3.5">City & State</th>
                   <th className="px-4 py-3.5">Submitted</th>
                   <th className="px-4 py-3.5">Status</th>
                   <th className="px-4 py-3.5 text-right">Actions</th>
@@ -221,9 +222,9 @@ export const BulkDealRequestsPage: React.FC = () => {
                       {req.budgetRange && <p className="text-[#171A18]/60 mt-0.5">{req.budgetRange}</p>}
                     </td>
                     <td className="px-4 py-4">
-                      {req.city ? (
+                      {req.city || req.state ? (
                         <span className="flex items-center gap-1 text-[#171A18]/70">
-                          <MapPin className="w-3 h-3 text-[#0B4F3C]" /> {req.city}
+                          <MapPin className="w-3 h-3 text-[#0B4F3C]" /> {req.city || ''}{req.city && req.state ? `, ` : ''}{req.state || ''}
                         </span>
                       ) : '—'}
                     </td>
@@ -310,9 +311,9 @@ export const BulkDealRequestsPage: React.FC = () => {
                 <p className="font-bold text-[#171A18] mt-0.5">{selected.propertyTitle || 'General Bulk Deal'}</p>
               </div>
               <div className="bg-[#FAF9F6] p-3 rounded-2xl border border-[#0B4F3C]/15">
-                <p className="text-[10px] text-[#171A18]/60 font-semibold uppercase">City</p>
+                <p className="text-[10px] text-[#171A18]/60 font-semibold uppercase">Location (City, State)</p>
                 <p className="font-bold text-[#171A18] mt-0.5 flex items-center gap-1">
-                  <MapPin className="w-3.5 h-3.5 text-[#0B4F3C]" /> {selected.city || '—'}
+                  <MapPin className="w-3.5 h-3.5 text-[#0B4F3C]" /> {selected.city || ''}{selected.city && selected.state ? `, ` : ''}{selected.state || '—'}
                 </p>
               </div>
               <div className="bg-[#FAF9F6] p-3 rounded-2xl border border-[#0B4F3C]/15">
