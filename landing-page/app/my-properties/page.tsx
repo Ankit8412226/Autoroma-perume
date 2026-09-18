@@ -278,7 +278,7 @@ export default function MyPropertiesPage() {
           </div>
           <div className="space-y-1">
             <h3 className="font-serif text-xl font-bold text-brand-charcoal">No listings yet</h3>
-            <p className="text-xs text-brand-charcoal/60">You haven't listed any properties yet. It's free and takes just a few minutes.</p>
+            <p className="text-xs text-brand-charcoal/60">You haven&apos;t listed any properties yet. It&apos;s free and takes just a few minutes.</p>
           </div>
           <Link
             href="/list-your-property"

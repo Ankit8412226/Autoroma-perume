@@ -160,7 +160,7 @@ function LoginContent() {
           {/* Footer links */}
           <div className="pt-2 border-t border-brand-green/10 text-center space-y-2">
             <p className="text-xs text-brand-charcoal/60">
-              Don't have an account?{' '}
+              Don&apos;t have an account?{' '}
               <Link
                 href={`/owner-register${redirectTo !== '/my-properties' ? `?redirect=${encodeURIComponent(redirectTo)}` : ''}`}
                 className="text-brand-green font-bold hover:underline"
