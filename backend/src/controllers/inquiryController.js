@@ -8,6 +8,7 @@ const bcrypt = require('bcryptjs');
 const { getPresignedUrl } = require('../services/s3Service');
 const { resolveSponsorByInviteCode } = require('../utils/agentInvite');
 const { deriveMapEmbedUrl } = require('../utils/googleMaps');
+const { notifyAdmins } = require('../services/notificationService');
 
 async function withFreshProjectMedia(project) {
   if (!project) return project;
@@ -172,6 +173,14 @@ exports.createPublicInquiry = async (req, res, next) => {
       source: 'LANDING_PAGE'
     });
 
+    // Fire-and-forget admin notification
+    notifyAdmins({
+      title: `New Inquiry — ${name}`,
+      message: `${phone} · ${inquiryType || 'CONTACT_FORM'}${projectName ? ` · ${projectName}` : ''}${plotNo ? ` · Plot ${plotNo}` : ''}`,
+      category: 'INQUIRY',
+      meta: { inquiryId: inquiry._id, name, phone, email, inquiryType, projectName, plotNo }
+    });
+
     res.status(201).json({
       message: '🎉 Thank you! Your inquiry has been dispatched to our senior advisory desk.',
       inquiryId: inquiry._id
@@ -239,6 +248,14 @@ exports.createPublicAgentApplication = async (req, res, next) => {
       experienceYears: experienceYears || '0-2 Years',
       status: 'NEW',
       source: sponsor ? 'AGENT_INVITE' : 'BECOME_AGENT_FORM'
+    });
+
+    // Fire-and-forget admin notification
+    notifyAdmins({
+      title: `New Agent Application — ${fullName}`,
+      message: `${phone} · ${email}${sponsor ? ` · Referred by ${sponsorName}` : ' · Direct application'} · ${experienceYears || '0-2 Years'} exp`,
+      category: 'AGENT',
+      meta: { employeeCode: employee.employeeCode, fullName, phone, email, sponsorName }
     });
 
     res.status(201).json({

@@ -281,6 +281,8 @@ router.put('/bulk-buy-inquiries/:id/status', protect, authorize('ADMIN', 'MANAGE
 // --- Executive Dashboard & Notifications ---
 router.get('/dashboard/stats', protect, authorize('ADMIN', 'DIRECTOR'), dashboardController.getDashboardStats);
 router.get('/notifications', protect, notificationController.getNotifications);
+router.get('/notifications/unread-count', protect, notificationController.getUnreadCount);
+router.put('/notifications/mark-all-read', protect, notificationController.markAllRead);
 router.put('/notifications/:id/read', protect, notificationController.markAsRead);
 
 module.exports = router;

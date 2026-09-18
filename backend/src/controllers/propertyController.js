@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const Property = require('../models/Property');
 const { PROPERTY_TYPES, LISTING_TYPES, PROPERTY_STATUSES } = require('../models/Property');
+const { notifyAdmins } = require('../services/notificationService');
 
 const SLUG_FALLBACK = 'property';
 
@@ -396,6 +397,14 @@ exports.registerPublicProperty = async (req, res, next) => {
     };
 
     const property = await Property.create(payload);
+
+    // Fire-and-forget admin notification
+    notifyAdmins({
+      title: `New Property Submission — ${title}`,
+      message: `${kycInfo.fullName} · ${[body.city, body.state].filter(Boolean).join(', ') || 'Location TBD'} · ${payload.propertyType.replace('_', ' ')} · Pending review`,
+      category: 'PROPERTY',
+      meta: { propertyId: property._id, title, submitterName: kycInfo.fullName, city: body.city, propertyType: payload.propertyType }
+    });
 
     // Generate human-friendly reference ID from Mongo ObjectId
     const referenceId = `HS-PROP-${String(property._id).slice(-6).toUpperCase()}`;

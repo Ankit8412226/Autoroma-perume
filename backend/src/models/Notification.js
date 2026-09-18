@@ -1,10 +1,11 @@
 const mongoose = require('mongoose');
 
 const notificationSchema = new mongoose.Schema({
+  // userId is optional — null means it's a system-wide admin notification
   userId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true
+    default: null
   },
   title: {
     type: String,
@@ -13,6 +14,12 @@ const notificationSchema = new mongoose.Schema({
   message: {
     type: String,
     required: true
+  },
+  // category for filtering in the admin notification feed
+  category: {
+    type: String,
+    enum: ['SYSTEM', 'BULK_DEAL', 'INQUIRY', 'PROPERTY', 'AGENT', 'COMMISSION'],
+    default: 'SYSTEM'
   },
   channel: {
     type: String,
@@ -23,6 +30,11 @@ const notificationSchema = new mongoose.Schema({
     type: String,
     enum: ['UNREAD', 'READ', 'SENT', 'FAILED'],
     default: 'UNREAD'
+  },
+  // extra context (e.g. investor name, property title, inquiry type)
+  meta: {
+    type: mongoose.Schema.Types.Mixed,
+    default: {}
   },
   sentAt: {
     type: Date,

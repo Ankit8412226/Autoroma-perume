@@ -423,9 +423,19 @@ export const PropertiesPage: React.FC = () => {
                   </div>
                 )}
 
-                <div className="flex items-center gap-2 pt-1">
-                  <button onClick={() => setKycTarget(property)} className="px-3 py-2 rounded-xl bg-sky-50 text-sky-700 text-xs font-bold flex items-center justify-center gap-1 cursor-pointer hover:bg-sky-100 transition-colors" title="View KYC & Title Documents">
-                    <ShieldCheck className="w-3.5 h-3.5" /> KYC
+                {/* KYC / Title Docs — always visible so admin can review for any property */}
+                <div className="flex items-center gap-2 pt-1 border-t border-[#0B4F3C]/10">
+                  <button
+                    onClick={() => setKycTarget(property)}
+                    className={`flex-1 px-3 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-colors ${
+                      property.kycInfo?.fullName
+                        ? 'bg-sky-50 text-sky-700 hover:bg-sky-100 border border-sky-200'
+                        : 'bg-[#FAF9F6] text-[#171A18]/50 border border-[#0B4F3C]/10 hover:bg-[#EAF3EF]'
+                    }`}
+                    title="View KYC Identity & Title Documents"
+                  >
+                    <ShieldCheck className="w-3.5 h-3.5" />
+                    {property.kycInfo?.fullName ? 'View KYC & Docs' : 'No KYC Filed'}
                   </button>
                   <button onClick={() => setEditing(property)} className="flex-1 px-3 py-2 rounded-xl bg-[#EAF3EF] text-[#0B4F3C] text-xs font-bold flex items-center justify-center gap-1 cursor-pointer">
                     <Edit className="w-3.5 h-3.5" /> Edit

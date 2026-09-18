@@ -25,6 +25,7 @@ import { AgentKycPage } from './pages/AgentKycPage';
 import { KycReviewPage } from './pages/KycReviewPage';
 import { GalleryPage } from './pages/GalleryPage';
 import { BulkDealsPage } from './pages/BulkDealsPage';
+import { BulkDealRequestsPage } from './pages/BulkDealRequestsPage';
 
 const ADMIN_ROLES = ['ADMIN', 'DIRECTOR'];
 const STAFF_ROLES = ['ADMIN', 'DIRECTOR', 'MANAGER'];
@@ -73,6 +74,7 @@ export const App: React.FC = () => {
             <Route path="/projects" element={<ProtectedRoute adminOnly><ProjectsPage /></ProtectedRoute>} />
             <Route path="/properties" element={<ProtectedRoute adminOnly><PropertiesPage /></ProtectedRoute>} />
             <Route path="/bulk-deals-management" element={<ProtectedRoute roles={STAFF_ROLES}><BulkDealsPage /></ProtectedRoute>} />
+            <Route path="/bulk-deal-requests" element={<ProtectedRoute roles={STAFF_ROLES}><BulkDealRequestsPage /></ProtectedRoute>} />
             <Route path="/gallery-management" element={<ProtectedRoute roles={STAFF_ROLES}><GalleryPage /></ProtectedRoute>} />
             <Route path="/plots" element={<ProtectedRoute><PlotManagementPage /></ProtectedRoute>} />
 

@@ -24,12 +24,14 @@ import {
   Link2,
   ClipboardCheck,
   Image as ImageIcon,
-  Flame
+  Flame,
+  PackageSearch
 } from 'lucide-react';
 
 const ALL_ROLES = ['ADMIN', 'DIRECTOR', 'MANAGER', 'EMPLOYEE', 'AGENT'];
 const ADMIN_DIRECTOR = ['ADMIN', 'DIRECTOR'];
 const ADMIN_DIRECTOR_MANAGER = ['ADMIN', 'DIRECTOR', 'MANAGER'];
+const AGENT_EMPLOYEE_MANAGER = ['MANAGER', 'EMPLOYEE', 'AGENT']; // roles that need personal KYC
 
 interface NavItem {
   name: string;
@@ -50,6 +52,7 @@ const navSections: NavSection[] = [
     items: [
       { name: 'Executive Dashboard', path: '/dashboard', icon: LayoutDashboard, allowedRoles: ADMIN_DIRECTOR },
       { name: 'Customer Inquiries', path: '/inquiries', icon: MessageSquare, allowedRoles: ALL_ROLES },
+      { name: 'Bulk Deal Requests', path: '/bulk-deal-requests', icon: PackageSearch, allowedRoles: ADMIN_DIRECTOR_MANAGER, badge: 'NEW' },
     ]
   },
   {
@@ -75,7 +78,7 @@ const navSections: NavSection[] = [
   {
     title: 'FINANCIALS & PAYOUTS',
     items: [
-      { name: 'My KYC', path: '/kyc', icon: ShieldCheck, allowedRoles: ALL_ROLES },
+      { name: 'My KYC', path: '/kyc', icon: ShieldCheck, allowedRoles: AGENT_EMPLOYEE_MANAGER },
       { name: 'KYC Approvals', path: '/kyc-review', icon: ClipboardCheck, allowedRoles: ADMIN_DIRECTOR_MANAGER },
       { name: 'Commissions Ledger', path: '/commissions', icon: DollarSign, allowedRoles: ADMIN_DIRECTOR_MANAGER },
       { name: 'Payout Requests', path: '/payouts', icon: CreditCard, allowedRoles: ALL_ROLES },

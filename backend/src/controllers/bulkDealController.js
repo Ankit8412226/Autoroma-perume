@@ -2,6 +2,7 @@ const BulkDeal = require('../models/BulkDeal');
 const BulkBuyInquiry = require('../models/BulkBuyInquiry');
 const Project = require('../models/Project');
 const Property = require('../models/Property');
+const { notifyAdmins } = require('../services/notificationService');
 
 function slugify(text) {
   return text
@@ -79,6 +80,14 @@ exports.submitBulkDealRequest = async (req, res, next) => {
       message: String(message || '').trim(),
       status: 'NEW',
       source: 'BULK_DEALS_PAGE'
+    });
+
+    // Fire-and-forget admin notification
+    notifyAdmins({
+      title: `New Bulk Deal Request — ${String(name).trim()}`,
+      message: `${String(phone).trim()} · ${resolvedTitle || 'General Bulk Deal'} · ${Number(unitCount) || 5} units${city ? ` · ${city}` : ''}`,
+      category: 'BULK_DEAL',
+      meta: { inquiryId: inquiry._id, name, phone, email, propertyTitle: resolvedTitle, unitCount, city }
     });
 
     res.status(201).json({
