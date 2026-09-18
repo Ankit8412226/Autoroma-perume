@@ -21,6 +21,7 @@ const bulkBuyController = require('../controllers/bulkBuyController');
 const BulkBuyInquiry = require('../models/BulkBuyInquiry');
 const uploadController = require('../controllers/uploadController');
 const propertyController = require('../controllers/propertyController');
+const galleryController = require('../controllers/galleryController');
 const settingController = require('../controllers/settingController');
 
 const { protect, authorize } = require('../middleware/auth');
@@ -53,9 +54,15 @@ router.get('/public/agent-invite/:code', employeeController.getPublicInvite);
 router.get('/public/locations', inquiryController.getPublicLocations);
 router.get('/public/properties', propertyController.getPublicProperties);
 router.get('/public/properties/:slug', propertyController.getPublicPropertyBySlug);
-router.get('/public/gallery', propertyController.getPublicGallery);
+router.get('/public/gallery', galleryController.getPublicGallery);
 router.get('/public/announcement', settingController.getAnnouncement);
 router.put('/admin/announcement', protect, authorize('ADMIN', 'DIRECTOR', 'MANAGER'), settingController.updateAnnouncement);
+
+// --- DEDICATED GALLERY MANAGEMENT ROUTES (Admin) ---
+router.get('/admin/gallery', protect, authorize('ADMIN', 'DIRECTOR', 'MANAGER'), galleryController.getAdminGallery);
+router.post('/admin/gallery', protect, authorize('ADMIN', 'DIRECTOR', 'MANAGER'), galleryController.createGalleryItem);
+router.put('/admin/gallery/:id', protect, authorize('ADMIN', 'DIRECTOR', 'MANAGER'), galleryController.updateGalleryItem);
+router.delete('/admin/gallery/:id', protect, authorize('ADMIN', 'DIRECTOR'), galleryController.deleteGalleryItem);
 
 router.post('/public/inquiries', inquiryLimiter, validate({
   name: { required: true, type: 'string', minLength: 2, maxLength: 80 },

@@ -22,7 +22,8 @@ import {
   X,
   Home,
   Link2,
-  ClipboardCheck
+  ClipboardCheck,
+  Image as ImageIcon
 } from 'lucide-react';
 
 const ALL_ROLES = ['ADMIN', 'DIRECTOR', 'MANAGER', 'EMPLOYEE', 'AGENT'];
@@ -55,6 +56,7 @@ const navSections: NavSection[] = [
     items: [
       { name: 'Real Estate Projects', path: '/projects', icon: Building2, allowedRoles: ADMIN_DIRECTOR },
       { name: 'Property Listings', path: '/properties', icon: Home, allowedRoles: ADMIN_DIRECTOR },
+      { name: 'Public Gallery Showcase', path: '/gallery-management', icon: ImageIcon, allowedRoles: ADMIN_DIRECTOR_MANAGER },
       { name: 'Plot Inventory & Canvas', path: '/plots', icon: MapPin, allowedRoles: ALL_ROLES },
       { name: 'Naksha AI OCR Tool', path: '/ocr-analyzer', icon: ScanText, allowedRoles: ADMIN_DIRECTOR, badge: 'AI' },
     ]
