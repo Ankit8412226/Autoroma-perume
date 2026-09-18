@@ -26,6 +26,16 @@ interface PropertyCardProps {
   className?: string
 }
 
+function renderSpecsSummary(specs: Property['specs']) {
+  const parts: string[] = []
+  if (specs.bedrooms > 0) parts.push(`${specs.bedrooms} Beds`)
+  if (specs.bathrooms > 0) parts.push(`${specs.bathrooms} Baths`)
+  if (specs.areaSqFt > 0) parts.push(`${specs.areaSqFt.toLocaleString('en-IN')} sq ft`)
+
+  if (parts.length === 0) return 'Residential Plot'
+  return parts.join(' · ')
+}
+
 export function PropertyCard({
   property,
   variant = 'B',
@@ -128,11 +138,7 @@ export function PropertyCard({
                 <PriceDisplay formattedPrice={property.formattedPrice} size="md" />
 
                 <div className="flex items-center space-x-3 text-xs text-white/90 font-mono">
-                  <span>{property.specs.bedrooms} Beds</span>
-                  <span>·</span>
-                  <span>{property.specs.bathrooms} Baths</span>
-                  <span>·</span>
-                  <span>{property.specs.areaSqFt.toLocaleString()} sq ft</span>
+                  <span>{renderSpecsSummary(property.specs)}</span>
                 </div>
               </div>
             </div>
@@ -293,14 +299,14 @@ export function PropertyCard({
         <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
           <div className="space-y-2">
             {/* Price is Primary */}
-            <div className="flex items-baseline justify-between border-b border-brand-green/10 pb-3">
-              <span className="text-2xl font-bold text-brand-green tracking-tight font-sans">
+            <div className="flex items-baseline justify-between gap-2 border-b border-brand-green/10 pb-3">
+              <span className="text-xl sm:text-2xl font-bold text-brand-green tracking-tight font-sans truncate">
                 {property.formattedPrice}
               </span>
               <button
                 type="button"
                 onClick={handleCompareClick}
-                className={`text-[10px] font-mono px-2 py-0.5 border rounded-md transition-colors cursor-pointer ${
+                className={`text-[10px] font-mono px-2 py-0.5 border rounded-md transition-colors cursor-pointer shrink-0 ${
                   isComparing ? 'bg-brand-green text-white border-brand-green font-bold' : 'bg-brand-soft text-brand-charcoal border-brand-green/20 hover:border-brand-green'
                 }`}
               >
@@ -316,32 +322,28 @@ export function PropertyCard({
 
             <div className="flex items-center gap-1 text-[11px] text-brand-charcoal/70 font-medium">
               <MapPin className="w-3 h-3 text-brand-green shrink-0" />
-              <span>{property.location.area}, {property.location.city}</span>
+              <span className="truncate">{property.location.area}, {property.location.city}</span>
             </div>
           </div>
 
-          {/* Specs & Always-Visible View Property Link */}
-          <div className="pt-3 border-t border-brand-green/10 flex items-center justify-between text-xs">
-            <div className="flex items-center space-x-2 text-[11px] text-brand-charcoal/80 font-mono">
-              <span>{property.specs.bedrooms} Beds</span>
-              <span>·</span>
-              <span>{property.specs.bathrooms} Baths</span>
-              <span>·</span>
-              <span>{property.specs.areaSqFt.toLocaleString()} sq ft</span>
+          {/* Specs & Actions */}
+          <div className="pt-3 border-t border-brand-green/10 space-y-2.5">
+            <div className="text-[11px] font-mono text-brand-charcoal/80 font-medium truncate">
+              {renderSpecsSummary(property.specs)}
             </div>
 
-            <div className="flex items-center gap-3 shrink-0">
+            <div className="flex items-center justify-between gap-2 pt-1 border-t border-brand-green/5 text-xs">
               <button
                 type="button"
                 onClick={handleBulkBuyClick}
-                className="inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-brand-green hover:text-brand-dark transition-colors"
+                className="inline-flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wider text-brand-green hover:text-brand-dark transition-colors"
               >
                 <Building2 className="w-3.5 h-3.5" />
                 <span>Bulk Buy</span>
               </button>
               <Link
                 href={`/properties/${property.slug}`}
-                className="inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-brand-green hover:text-brand-dark transition-colors"
+                className="inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-wider text-brand-green hover:text-brand-dark transition-colors"
               >
                 <span>View Property</span>
                 <ArrowRight className="w-3.5 h-3.5" />

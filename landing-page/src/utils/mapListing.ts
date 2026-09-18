@@ -11,10 +11,44 @@ const TYPE_MAP: Record<string, Property['propertyType']> = {
 }
 
 function formatInr(amount: number): string {
-  if (!amount) return 'Price on request'
-  if (amount >= 10000000) return `₹${(amount / 10000000).toFixed(2)} Cr`
-  if (amount >= 100000) return `₹${(amount / 100000).toFixed(2)} Lakh`
+  if (!amount || amount <= 0) return ''
+  if (amount >= 10000000) {
+    const val = amount / 10000000
+    const str = val % 1 === 0 ? val.toFixed(0) : val.toFixed(2)
+    return `₹${str} Cr`
+  }
+  if (amount >= 100000) {
+    const val = amount / 100000
+    const str = val % 1 === 0 ? val.toFixed(0) : val.toFixed(2)
+    return `₹${str} Lakh`
+  }
   return `₹${amount.toLocaleString('en-IN')}`
+}
+
+function formatPriceDisplay(priceRange?: string, price?: number): string {
+  if (priceRange && String(priceRange).trim()) {
+    const str = String(priceRange).trim()
+    if (str.startsWith('₹')) return str
+
+    const matchRange = str.match(/^(\d+)\s*-\s*(\d+)$/)
+    if (matchRange) {
+      const min = Number(matchRange[1])
+      const max = Number(matchRange[2])
+      const minStr = formatInr(min) || `₹${min.toLocaleString('en-IN')}`
+      const maxStr = formatInr(max) || `₹${max.toLocaleString('en-IN')}`
+      return `${minStr} - ${maxStr}`
+    }
+
+    const num = Number(str)
+    if (!isNaN(num) && num > 0) {
+      return formatInr(num)
+    }
+
+    return `₹${str}`
+  }
+
+  const formatted = formatInr(price || 0)
+  return formatted || 'Price on request'
 }
 
 export function mapBackendProperty(raw: any): Property {
@@ -31,7 +65,7 @@ export function mapBackendProperty(raw: any): Property {
     tagline: raw.tagline || '',
     description: raw.description || '',
     price,
-    formattedPrice: raw.priceRange || formatInr(price),
+    formattedPrice: formatPriceDisplay(raw.priceRange, price),
     pricePerSqFt: Number(raw.pricePerSqft) || 0,
     formattedPricePerSqFt: raw.pricePerSqft ? `₹${Number(raw.pricePerSqft).toLocaleString('en-IN')} / sq ft` : '',
     propertyType: TYPE_MAP[raw.propertyType] || 'Estate',
