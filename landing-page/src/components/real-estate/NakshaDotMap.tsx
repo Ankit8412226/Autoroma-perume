@@ -13,6 +13,12 @@ export function statusDotColor(status: string): string {
   return DOT_YELLOW
 }
 
+export function statusBlockClass(status: string): string {
+  if (status === 'SOLD') return 'bg-red-600/95 hover:bg-red-600 text-white border-red-200 shadow-red-900/30'
+  if (status === 'AVAILABLE') return 'bg-emerald-600/95 hover:bg-emerald-600 text-white border-emerald-200 shadow-emerald-900/30'
+  return 'bg-amber-500/95 hover:bg-amber-500 text-white border-amber-200 shadow-amber-900/30'
+}
+
 export function hasPinnedMarker(plot: any): boolean {
   const rawX = plot?.marker?.xPercent
   const rawY = plot?.marker?.yPercent
@@ -73,13 +79,17 @@ export function NakshaDotMap({ imageUrl, imageAlt, plots, onSelectPlot }: Naksha
 
       {pinned.map((plot) => {
         const color = statusDotColor(plot.status)
+        const blockClass = statusBlockClass(plot.status)
         const isAvailable = plot.status === 'AVAILABLE'
         const isHovered = hoveredId === plot._id
+
         return (
           <button
             key={plot._id}
             type="button"
-            className={`absolute -translate-x-1/2 -translate-y-1/2 ${isHovered ? 'z-30' : 'z-10'}`}
+            className={`absolute -translate-x-1/2 -translate-y-1/2 transition-all duration-200 ${
+              isHovered ? 'z-30 scale-110 shadow-2xl' : 'z-10 hover:scale-105'
+            }`}
             style={{
               left: `${plot.marker.xPercent}%`,
               top: `${plot.marker.yPercent}%`
@@ -89,15 +99,17 @@ export function NakshaDotMap({ imageUrl, imageAlt, plots, onSelectPlot }: Naksha
             onClick={() => onSelectPlot?.(plot)}
             aria-label={`Plot ${plot.plotNo}`}
           >
-            <span className="relative flex h-4 w-4 items-center justify-center pointer-events-none">
-              {isAvailable && (
-                <span className="absolute inline-flex h-full w-full rounded-full opacity-40 animate-ping" style={{ backgroundColor: color }} />
-              )}
-              <span
-                className="relative inline-flex h-3.5 w-3.5 rounded-full border-2 border-white shadow-md"
-                style={{ backgroundColor: color }}
-              />
-            </span>
+            <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl shadow-lg border-2 border-white/90 text-[11px] font-extrabold font-mono tracking-tight whitespace-nowrap cursor-pointer transition-all ${blockClass}`}>
+              {/* Status Dot */}
+              <span className="relative flex h-3.5 w-3.5 items-center justify-center shrink-0">
+                {isAvailable && (
+                  <span className="absolute inline-flex h-full w-full rounded-full opacity-75 animate-ping bg-white" />
+                )}
+                <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-white border border-black/20 shadow-sm" />
+              </span>
+              {/* Plot Number Block Label */}
+              <span>{plot.plotNo}</span>
+            </div>
           </button>
         )
       })}
