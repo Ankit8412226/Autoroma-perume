@@ -96,9 +96,7 @@ export const OCRAnalyzerPage: React.FC = () => {
       formData.append('projectId', selectedProjectId);
       formData.append('mapName', mapName || 'Naksha Layout');
 
-      const response = await api.post('/ocr/analyze', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
+      const response = await api.post('/ocr/analyze', formData);
 
       clearInterval(interval);
       setOcrResult(response.data);

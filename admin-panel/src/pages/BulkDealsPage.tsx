@@ -204,12 +204,12 @@ export const BulkDealsPage: React.FC = () => {
         zone: deal.zone || 'HAC',
         naStatus: deal.naStatus || 'READY',
         conditionTime: deal.conditionTime || '3 MONTHS',
-        ratePerUnit: deal.ratePerUnit || '18000',
+        ratePerUnit: deal.ratePerUnit || '',
         originalPriceDisplay: deal.originalPriceDisplay || '',
         bulkPriceDisplay: deal.bulkPriceDisplay || '',
-        discountPercentage: deal.discountPercentage || 20,
-        minQuantity: deal.minQuantity || '5 Plots',
-        totalPackageUnits: deal.totalPackageUnits || '8 Packages Available',
+        discountPercentage: deal.discountPercentage || 0,
+        minQuantity: deal.minQuantity || '',
+        totalPackageUnits: deal.totalPackageUnits || '',
         perks: deal.perks && deal.perks.length > 0 ? deal.perks : ['0% Brokerage'],
         bannerImage: deal.bannerImage || '',
         description: deal.description || '',
@@ -224,65 +224,62 @@ export const BulkDealsPage: React.FC = () => {
         dealType: 'PROJECT',
         projectId: '',
         propertyId: '',
-        location: 'Dholera SIR, Smart City Zone',
-        city: 'Dholera City',
+        location: '',
+        city: '',
         state: 'Gujarat',
-        surveyNumber: '427',
-        finalPlotNo: '521/1/1',
-        areaSize: '6100 SQYD',
-        roadWidth: '70 MTR',
-        tpSectorVillage: '3C / Sector-12 / Rampura',
+        surveyNumber: '',
+        finalPlotNo: '',
+        areaSize: '',
+        roadWidth: '',
+        tpSectorVillage: '',
         landPlotType: 'Land',
         isCorner: 'Corner',
         unitType: 'SQYD',
         zone: 'HAC',
         naStatus: 'READY',
         conditionTime: '3 MONTHS',
-        ratePerUnit: '18000',
-        originalPriceDisplay: '₹22,000 / SQYD',
-        bulkPriceDisplay: '₹18,000 / SQYD',
-        discountPercentage: 25,
-        minQuantity: '5 Plots / 2,000 SQYD',
-        totalPackageUnits: '10 Investor Packages Available',
-        perks: ['0% Brokerage', 'Instant Registry & Demarcation', 'NA Approved & Title Clear', 'Free Site Visit Cab / Flight'],
+        ratePerUnit: '',
+        originalPriceDisplay: '',
+        bulkPriceDisplay: '',
+        discountPercentage: 20,
+        minQuantity: '',
+        totalPackageUnits: '',
+        perks: ['0% Brokerage', 'Instant Registry & Demarcation', 'NA Approved & Title Clear'],
         bannerImage: '',
-        description: 'Exclusive wholesale investor bundle package. Premium connectivity, NA clear title, and immediate possession.',
+        description: '',
         isAvailable: true,
-        isFeatured: true,
+        isFeatured: false,
         validTill: ''
       });
     }
     setIsModalOpen(true);
   };
 
-
   const handleSelectProject = (projId: string) => {
     const p = projects.find((x) => x._id === projId);
-    if (p) {
-      setFormData((prev) => ({
-        ...prev,
-        projectId: p._id,
-        title: `${p.name} - Bulk Investor Package`,
-        location: p.location || prev.location,
-        city: p.city || prev.city,
-        bannerImage: p.bannerImage || prev.bannerImage,
-        originalPriceDisplay: p.priceRange ? p.priceRange.split('-')[0].trim() : prev.originalPriceDisplay
-      }));
-    }
+    setFormData((prev) => ({
+      ...prev,
+      projectId: projId,
+      title: p && (!editingDeal || !prev.title) ? `${p.name} - Bulk Investor Package` : prev.title,
+      location: p && (!editingDeal || !prev.location) ? (p.location || prev.location) : prev.location,
+      city: p && (!editingDeal || !prev.city) ? (p.city || prev.city) : prev.city,
+      state: p && (!editingDeal || !prev.state) ? ((p as any).state || prev.state || 'Gujarat') : prev.state,
+      bannerImage: p && (!editingDeal || !prev.bannerImage) ? (p.bannerImage || prev.bannerImage) : prev.bannerImage,
+      originalPriceDisplay: p && (!editingDeal || !prev.originalPriceDisplay) ? (p.priceRange ? p.priceRange.split('-')[0].trim() : prev.originalPriceDisplay) : prev.originalPriceDisplay
+    }));
   };
 
   const handleSelectProperty = (propId: string) => {
     const pr = properties.find((x) => x._id === propId);
-    if (pr) {
-      setFormData((prev) => ({
-        ...prev,
-        propertyId: pr._id,
-        title: `${pr.title} (Bulk Deal)`,
-        city: pr.city || prev.city,
-        bannerImage: pr.heroImage || prev.bannerImage,
-        originalPriceDisplay: pr.price ? `₹${pr.price.toLocaleString('en-IN')}` : prev.originalPriceDisplay
-      }));
-    }
+    setFormData((prev) => ({
+      ...prev,
+      propertyId: propId,
+      title: pr && (!editingDeal || !prev.title) ? `${pr.title} (Bulk Deal)` : prev.title,
+      city: pr && (!editingDeal || !prev.city) ? (pr.city || prev.city) : prev.city,
+      state: pr && (!editingDeal || !prev.state) ? ((pr as any).state || prev.state || 'Gujarat') : prev.state,
+      bannerImage: pr && (!editingDeal || !prev.bannerImage) ? (pr.heroImage || prev.bannerImage) : prev.bannerImage,
+      originalPriceDisplay: pr && (!editingDeal || !prev.originalPriceDisplay) ? (pr.price ? `₹${pr.price.toLocaleString('en-IN')}` : prev.originalPriceDisplay) : prev.originalPriceDisplay
+    }));
   };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -699,30 +696,57 @@ export const BulkDealsPage: React.FC = () => {
                 )}
               </div>
 
-              {/* Title & Location */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Title & Location / City / State */}
+              <div>
+                <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block mb-1">
+                  Bulk Deal Title *
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Dholera Smart City Phase 1 Investor Package"
+                  value={formData.title}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, title: e.target.value }))}
+                  className="w-full px-3.5 py-2.5 text-xs border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-500 font-medium"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
                   <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block mb-1">
-                    Bulk Deal Title *
+                    Location / Address
                   </label>
                   <input
                     type="text"
-                    required
-                    placeholder="e.g. Dholera Smart City Phase 1 Investor Package"
-                    value={formData.title}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, title: e.target.value }))}
+                    placeholder="e.g. TP 3C, Sector 12"
+                    value={formData.location}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, location: e.target.value }))}
                     className="w-full px-3.5 py-2.5 text-xs border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-500 font-medium"
                   />
                 </div>
                 <div>
                   <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block mb-1">
-                    City & Location Address
+                    City *
                   </label>
                   <input
                     type="text"
-                    placeholder="e.g. Dholera City, Gujarat"
-                    value={formData.location}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, location: e.target.value, city: e.target.value.split(',')[0] }))}
+                    required
+                    placeholder="e.g. Dholera"
+                    value={formData.city}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, city: e.target.value }))}
+                    className="w-full px-3.5 py-2.5 text-xs border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-500 font-medium"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block mb-1">
+                    State *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Gujarat"
+                    value={formData.state}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, state: e.target.value }))}
                     className="w-full px-3.5 py-2.5 text-xs border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-500 font-medium"
                   />
                 </div>

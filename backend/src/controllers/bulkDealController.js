@@ -4,6 +4,17 @@ const BulkBuyInquiry = require('../models/BulkBuyInquiry');
 const Project = require('../models/Project');
 const Property = require('../models/Property');
 const { notifyAdmins } = require('../services/notificationService');
+const { getPresignedUrl } = require('../services/s3Service');
+
+async function hydrateBulkDeal(deal) {
+  if (!deal) return deal;
+  const d = typeof deal.toObject === 'function' ? deal.toObject() : { ...deal };
+  if (d.bannerImageS3Key) {
+    const freshUrl = await getPresignedUrl(d.bannerImageS3Key);
+    if (freshUrl) d.bannerImage = freshUrl;
+  }
+  return d;
+}
 
 function cleanObjectId(id) {
   if (!id) return null;
@@ -86,7 +97,8 @@ exports.getPublicBulkDeals = async (req, res, next) => {
       .populate('propertyId', 'title slug city area heroImage priceRange')
       .sort(sortOption);
 
-    res.json(deals);
+    const hydrated = await Promise.all(deals.map(d => hydrateBulkDeal(d)));
+    res.json(hydrated);
   } catch (error) {
     next(error);
   }
@@ -101,7 +113,8 @@ exports.getPublicBulkDealBySlug = async (req, res, next) => {
     if (!deal) {
       return res.status(404).json({ message: 'Bulk deal not found' });
     }
-    res.json(deal);
+    const hydrated = await hydrateBulkDeal(deal);
+    res.json(hydrated);
   } catch (error) {
     next(error);
   }
@@ -173,7 +186,8 @@ exports.getAdminBulkDeals = async (req, res, next) => {
       .populate('projectId', 'name code city location')
       .populate('propertyId', 'title slug city')
       .sort({ createdAt: -1 });
-    res.json(deals);
+    const hydrated = await Promise.all(deals.map(d => hydrateBulkDeal(d)));
+    res.json(hydrated);
   } catch (error) {
     next(error);
   }

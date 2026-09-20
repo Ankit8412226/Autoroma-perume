@@ -2,9 +2,7 @@ import api from './api';
 
 export const ocrService = {
   analyzeMap: async (formData: FormData) => {
-    const response = await api.post('/ocr/analyze', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' }
-    });
+    const response = await api.post('/ocr/analyze', formData);
     return response.data;
   },
   approveMapOverlay: async (mapId: string, updatedVectorOverlayData?: any) => {
