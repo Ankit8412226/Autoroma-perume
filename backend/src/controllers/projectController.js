@@ -4,6 +4,7 @@ const Plot = require('../models/Plot');
 const PlotMap = require('../models/PlotMap');
 const { applyProjectMaps } = require('../utils/googleMaps');
 const { normalizeExtractedPlot, buildPricedPlot, DEFAULT_STATUS } = require('../utils/plotFromOcr');
+const { withFreshProjectMedia } = require('../utils/mediaHydrator');
 
 exports.getProjects = async (req, res, next) => {
   try {
@@ -37,8 +38,10 @@ exports.getProjects = async (req, res, next) => {
 
         const totalPlotsInDB = Object.values(statsMap).reduce((a, b) => a + b, 0);
 
+        const hydrated = await withFreshProjectMedia(p);
+
         return {
-          ...p,
+          ...hydrated,
           totalPlots: Math.max(p.totalPlots || 0, totalPlotsInDB),
           availableCount: statsMap.AVAILABLE,
           bookedCount: statsMap.BOOKED,
@@ -154,12 +157,13 @@ exports.deleteProject = async (req, res, next) => {
 
 exports.getProjectById = async (req, res, next) => {
   try {
-    const project = await Project.findById(req.params.id);
-    if (!project) return res.status(404).json({ message: 'Project not found' });
+    const rawProject = await Project.findById(req.params.id).lean();
+    if (!rawProject) return res.status(404).json({ message: 'Project not found' });
     
-    const settings = await ProjectSettings.findOne({ projectId: project._id });
+    const project = await withFreshProjectMedia(rawProject);
+    const settings = await ProjectSettings.findOne({ projectId: rawProject._id });
     const plotCounts = await Plot.aggregate([
-      { $match: { projectId: project._id } },
+      { $match: { projectId: rawProject._id } },
       { $group: { _id: "$status", count: { $sum: 1 } } }
     ]);
 

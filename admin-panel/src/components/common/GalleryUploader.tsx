@@ -43,9 +43,7 @@ export const GalleryUploader: React.FC<GalleryUploaderProps> = ({
         const formData = new FormData();
         formData.append('file', file);
         formData.append('folder', folder);
-        const response = await api.post('/upload', formData, {
-          headers: { 'Content-Type': 'multipart/form-data' }
-        });
+        const response = await api.post('/upload', formData);
         if (response.data?.url) {
           uploaded.push({
             url: response.data.url,

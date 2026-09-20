@@ -270,9 +270,7 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({ value, onChange, pro
       const formData = new FormData();
       formData.append('file', file);
       formData.append('folder', HERO_FOLDER);
-      const response = await api.post('/upload', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
+      const response = await api.post('/upload', formData);
       if (response.data?.url) {
         patch({ heroImage: response.data.url });
         toast.success('Hero image uploaded');

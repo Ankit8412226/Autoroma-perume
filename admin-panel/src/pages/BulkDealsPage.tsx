@@ -294,9 +294,7 @@ export const BulkDealsPage: React.FC = () => {
       const uploadFormData = new FormData();
       uploadFormData.append('file', file);
 
-      const res = await api.post('/upload', uploadFormData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
+      const res = await api.post('/upload', uploadFormData);
 
       if (res.data?.url) {
         setFormData((prev) => ({ ...prev, bannerImage: res.data.url }));

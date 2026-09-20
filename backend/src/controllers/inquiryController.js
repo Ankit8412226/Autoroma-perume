@@ -9,22 +9,7 @@ const { getPresignedUrl } = require('../services/s3Service');
 const { resolveSponsorByInviteCode } = require('../utils/agentInvite');
 const { deriveMapEmbedUrl } = require('../utils/googleMaps');
 const { notifyAdmins } = require('../services/notificationService');
-
-async function withFreshProjectMedia(project) {
-  if (!project) return project;
-  if (project.mapImageS3Key) {
-    const freshMap = await getPresignedUrl(project.mapImageS3Key);
-    if (freshMap) project.mapImageUrl = freshMap;
-  }
-  if (project.bannerImageS3Key) {
-    const freshBanner = await getPresignedUrl(project.bannerImageS3Key);
-    if (freshBanner) project.bannerImage = freshBanner;
-  }
-  if (!project.mapEmbedUrl && project.googleMapsUrl) {
-    project.mapEmbedUrl = deriveMapEmbedUrl(project.googleMapsUrl);
-  }
-  return project;
-}
+const { withFreshProjectMedia } = require('../utils/mediaHydrator');
 
 // 1. Public Project Listing (With Live MongoDB Plot Status Aggregation)
 exports.getPublicProjects = async (req, res, next) => {

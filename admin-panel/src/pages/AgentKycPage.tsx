@@ -146,9 +146,7 @@ export const AgentKycPage: React.FC = () => {
       const formData = new FormData();
       formData.append('file', file);
       formData.append('folder', KYC_UPLOAD_FOLDER);
-      const response = await api.post('/upload', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
+      const response = await api.post('/upload', formData);
       setForm((prev) => ({
         ...prev,
         [urlField]: response.data?.url || '',

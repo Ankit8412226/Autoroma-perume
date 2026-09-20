@@ -109,9 +109,7 @@ export const AddProjectModal: React.FC<AddProjectModalProps> = ({ onClose, onSuc
       const formData = new FormData();
       formData.append('file', selected);
       formData.append('folder', 'project_banners');
-      const response = await api.post('/upload', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
+      const response = await api.post('/upload', formData);
       if (response.data?.url) {
         setBannerImage(response.data.url);
         setBannerImageS3Key(response.data.s3Key || '');
@@ -140,9 +138,7 @@ export const AddProjectModal: React.FC<AddProjectModalProps> = ({ onClose, onSuc
         formData.append('file', selectedFile);
         formData.append('folder', 'project_maps');
 
-        const response = await api.post('/upload', formData, {
-          headers: { 'Content-Type': 'multipart/form-data' }
-        });
+        const response = await api.post('/upload', formData);
 
         if (response.data?.url) {
           setMapImageUrl(response.data.url);
@@ -186,9 +182,7 @@ export const AddProjectModal: React.FC<AddProjectModalProps> = ({ onClose, onSuc
       if (file) formData.append('file', file);
       formData.append('mapName', name ? `${name} Naksha` : 'Project Masterplan Layout');
 
-      const response = await api.post('/ocr/analyze', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
+      const response = await api.post('/ocr/analyze', formData);
 
       clearInterval(interval);
       setIsScanning(false);

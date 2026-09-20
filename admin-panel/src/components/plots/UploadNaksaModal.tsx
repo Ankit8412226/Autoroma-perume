@@ -56,9 +56,7 @@ export const UploadNaksaModal: React.FC<UploadNaksaModalProps> = ({
       formData.append('projectId', projectId);
       formData.append('mapName', mapName || 'Naksha Layout');
 
-      const res = await api.post('/ocr/analyze', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
+      const res = await api.post('/ocr/analyze', formData);
 
       toast.success(`Extracted ${res.data?.extractedPlots?.length || 0} plots!`);
       setOcrResult(res.data);

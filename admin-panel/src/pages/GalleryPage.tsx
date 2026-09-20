@@ -69,9 +69,7 @@ function AddEditGalleryModal({ item, onClose, onSuccess }: AddEditModalProps) {
       formData.append('file', file);
       formData.append('folder', 'admin_gallery');
 
-      const res = await api.post('/upload', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
+      const res = await api.post('/upload', formData);
 
       if (res.data?.url) {
         setImageUrl(res.data.url);

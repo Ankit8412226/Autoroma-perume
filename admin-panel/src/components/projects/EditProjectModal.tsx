@@ -62,9 +62,7 @@ export const EditProjectModal: React.FC<EditProjectModalProps> = ({ project, onC
         formData.append('file', file);
         formData.append('folder', 'project_maps');
 
-        const response = await api.post('/upload', formData, {
-          headers: { 'Content-Type': 'multipart/form-data' }
-        });
+        const response = await api.post('/upload', formData);
 
         if (response.data?.url) {
           setMapImageUrl(response.data.url);
@@ -94,9 +92,7 @@ export const EditProjectModal: React.FC<EditProjectModalProps> = ({ project, onC
       const formData = new FormData();
       formData.append('file', selected);
       formData.append('folder', 'project_banners');
-      const response = await api.post('/upload', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
+      const response = await api.post('/upload', formData);
       if (response.data?.url) {
         setBannerImage(response.data.url);
         setBannerImageS3Key(response.data.s3Key || '');
