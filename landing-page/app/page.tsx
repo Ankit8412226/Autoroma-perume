@@ -11,7 +11,7 @@ import { IndiaIsRunningBanner } from '@/components/real-estate/IndiaIsRunningBan
 import { PlotBuyingProcess } from '@/components/real-estate/PlotBuyingProcess'
 import { HomepageContactSection } from '@/components/real-estate/HomepageContactSection'
 import { LandInvestmentCalculator } from '@/components/real-estate/LandInvestmentCalculator'
-import { InteractiveNakshaPreview } from '@/components/real-estate/InteractiveNakshaPreview'
+import { WhyInvestSection } from '@/components/real-estate/WhyInvestSection'
 import { LandPlotFAQ } from '@/components/real-estate/LandPlotFAQ'
 import { BrandValuesSection } from '@/components/real-estate/BrandValuesSection'
 import { TestimonialsCommunityInsights } from '@/components/real-estate/TestimonialsCommunityInsights'
@@ -258,9 +258,9 @@ export default function HomePage() {
         <DholeraArrivedSection />
       </section>
 
-      {/* 5. INTERACTIVE NAKSHA & VECTOR MAP DEMARCATION PREVIEW */}
+      {/* 5. WHY INVEST IN LAND PLOTS */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <InteractiveNakshaPreview />
+        <WhyInvestSection />
       </section>
 
       {/* 6. TRANSPARENT 4-STEP PLOT ACQUISITION JOURNEY */}
