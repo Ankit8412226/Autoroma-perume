@@ -96,7 +96,7 @@ export function WhyInvestSection() {
           Other Asset Class in India.
         </h2>
         <p className="text-sm text-brand-charcoal/60 font-light leading-relaxed">
-          With India's fastest infrastructure expansion in history, government-backed land in notified investment zones
+          With India&apos;s fastest infrastructure expansion in history, government-backed land in notified investment zones
           offers unmatched returns, legal security, and long-term wealth creation.
         </p>
       </div>
