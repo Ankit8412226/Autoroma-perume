@@ -3,15 +3,17 @@
 import * as React from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import {
   Building2,
   MapPin,
   ArrowUpRight,
   RefreshCw,
   Search,
-  Home,
-  CheckCircle,
-  Phone
+  Star,
+  TrendingUp,
+  ShieldCheck,
+  Landmark,
 } from 'lucide-react'
 import { getApiBaseUrl } from '@/utils/api'
 
@@ -21,15 +23,25 @@ const STATUS_COLORS: Record<string, string> = {
   COMPLETED: 'bg-sky-500 text-white',
 }
 
-export default function PublicProjectsPage() {
+const DHOLERA_HIGHLIGHTS = [
+  { icon: TrendingUp,  label: 'High ROI Potential',  desc: 'DMIC-driven infrastructure push projected to multiply land values 5–10x' },
+  { icon: ShieldCheck, label: 'Government Backed',   desc: 'Directly under Gujarat Government & Delhi-Mumbai Industrial Corridor' },
+  { icon: Landmark,    label: 'Smart City Ready',    desc: `India's first greenfield smart city with world-class urban planning` },
+  { icon: Building2,   label: 'Freehold NA Plots',   desc: 'Clear legal titles, RERA-approved with transparent documentation' },
+]
+
+// ─── inner component that reads searchParams (must be inside Suspense) ───────
+function ProjectsInner() {
+  const searchParams = useSearchParams()
+  const initialDholera = searchParams.get('filter') === 'dholera'
+
   const [projects, setProjects] = React.useState<any[]>([])
   const [isLoading, setIsLoading] = React.useState(true)
   const [statusFilter, setStatusFilter] = React.useState('ALL')
+  const [dholeraOnly, setDholeraOnly] = React.useState(initialDholera)
   const [search, setSearch] = React.useState('')
 
-  React.useEffect(() => {
-    fetchProjects()
-  }, [])
+  React.useEffect(() => { fetchProjects() }, [])
 
   const fetchProjects = async () => {
     try {
@@ -48,6 +60,8 @@ export default function PublicProjectsPage() {
   }
 
   const filtered = projects.filter((p) => {
+    // Dholera filter: only show if isDholera === true
+    if (dholeraOnly && !p.isDholera) return false
     const matchStatus = statusFilter === 'ALL' || p.status === statusFilter
     const q = search.toLowerCase()
     const matchSearch =
@@ -58,58 +72,143 @@ export default function PublicProjectsPage() {
     return matchStatus && matchSearch
   })
 
+  const dholeraCount = projects.filter(p => p.isDholera).length
+
   return (
     <div className="min-h-screen bg-[#FAF9F6]">
-      {/* ── PAGE HERO ── */}
-      <div className="relative bg-brand-charcoal text-white overflow-hidden">
-        <div className="absolute inset-0 z-0 opacity-20"
-          style={{ backgroundImage: 'radial-gradient(circle at 20% 50%, #0B4F3C 0%, transparent 60%), radial-gradient(circle at 80% 20%, #C9A96E 0%, transparent 50%)' }} />
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 sm:py-20">
-          <div className="flex items-center gap-2 mb-4">
-            <span className="text-[10px] font-bold uppercase tracking-[0.25em] text-[#C9A96E]">
-              Real Estate Investments
-            </span>
-          </div>
-          <h1 className="font-serif text-4xl sm:text-6xl font-normal text-white leading-[1.1] max-w-3xl">
-            Township Projects &amp; <br />
-            <span className="text-[#C9A96E]">Masterplan Developments</span>
-          </h1>
-          <p className="mt-4 text-sm text-white/70 max-w-xl font-light">
-            Explore prime demarcated land plots, active township developments, and high-yield real estate investment opportunities.
-          </p>
 
-          {/* Search */}
-          <div className="mt-8 max-w-md relative">
-            <Search className="absolute left-4 top-3.5 w-4 h-4 text-white/50" />
-            <input
-              type="text"
-              placeholder="Search by project name, location…"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-11 pr-4 py-3 bg-white/10 border border-white/20 rounded-xl text-sm text-white placeholder-white/40 focus:outline-none focus:border-[#C9A96E]/60 backdrop-blur-sm"
-            />
+      {/* ── DHOLERA HERO (shown only when dholeraOnly=true) ── */}
+      {dholeraOnly ? (
+        <div className="relative overflow-hidden bg-gradient-to-br from-amber-950 via-amber-900 to-[#171A18] text-white">
+          <div
+            className="absolute inset-0 z-0 opacity-30"
+            style={{ backgroundImage: 'radial-gradient(circle at 10% 50%, #f59e0b 0%, transparent 55%), radial-gradient(circle at 90% 10%, #0B4F3C 0%, transparent 50%)' }}
+          />
+          <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 sm:py-20 space-y-10">
+            <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.25em] text-amber-400">
+              <Star className="w-3.5 h-3.5 fill-amber-400" />
+              Special Investment Region · Gujarat, India
+            </div>
+
+            <div className="max-w-3xl space-y-4">
+              <h1 className="font-serif text-4xl sm:text-6xl font-normal leading-[1.1]">
+                Dholera <span className="text-amber-400">Special Investment</span> Region
+              </h1>
+              <p className="text-sm sm:text-base text-white/75 font-light leading-relaxed max-w-2xl">
+                India&apos;s largest planned greenfield smart city, spread across 920 sq km, developed under the
+                Delhi-Mumbai Industrial Corridor (DMIC). Backed by the Government of India and the Government of
+                Gujarat — Dholera SIR is the country&apos;s single largest infrastructure project.
+              </p>
+              <p className="text-sm text-white/60 font-light leading-relaxed max-w-2xl">
+                Invest in demarcated freehold NA land plots with clear legal title and RERA approval. With
+                world-class connectivity — including a 6-lane expressway, metro rail, and a dedicated
+                international airport — Dholera SIR is positioned as the investment opportunity of the decade.
+              </p>
+            </div>
+
+            {/* Highlight Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {DHOLERA_HIGHLIGHTS.map((h) => {
+                const Icon = h.icon
+                return (
+                  <div
+                    key={h.label}
+                    className="bg-white/10 border border-amber-400/20 backdrop-blur-sm rounded-2xl p-5 space-y-2 hover:bg-white/15 transition-colors"
+                  >
+                    <div className="w-9 h-9 rounded-xl bg-amber-400/20 flex items-center justify-center">
+                      <Icon className="w-5 h-5 text-amber-400" />
+                    </div>
+                    <p className="text-xs font-extrabold text-amber-300">{h.label}</p>
+                    <p className="text-[11px] text-white/65 leading-relaxed font-light">{h.desc}</p>
+                  </div>
+                )
+              })}
+            </div>
+
+            {/* Search */}
+            <div className="max-w-md relative">
+              <Search className="absolute left-4 top-3.5 w-4 h-4 text-white/50" />
+              <input
+                type="text"
+                placeholder="Search Dholera projects…"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full pl-11 pr-4 py-3 bg-white/10 border border-amber-400/30 rounded-xl text-sm text-white placeholder-white/40 focus:outline-none focus:border-amber-400/60 backdrop-blur-sm"
+              />
+            </div>
           </div>
         </div>
-      </div>
+      ) : (
+        /* ── DEFAULT HERO ── */
+        <div className="relative bg-brand-charcoal text-white overflow-hidden">
+          <div
+            className="absolute inset-0 z-0 opacity-20"
+            style={{ backgroundImage: 'radial-gradient(circle at 20% 50%, #0B4F3C 0%, transparent 60%), radial-gradient(circle at 80% 20%, #C9A96E 0%, transparent 50%)' }}
+          />
+          <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 sm:py-20">
+            <div className="flex items-center gap-2 mb-4">
+              <span className="text-[10px] font-bold uppercase tracking-[0.25em] text-[#C9A96E]">Real Estate Investments</span>
+            </div>
+            <h1 className="font-serif text-4xl sm:text-6xl font-normal text-white leading-[1.1] max-w-3xl">
+              Township Projects &amp; <br />
+              <span className="text-[#C9A96E]">Masterplan Developments</span>
+            </h1>
+            <p className="mt-4 text-sm text-white/70 max-w-xl font-light">
+              Explore prime demarcated land plots, active township developments, and high-yield real estate investment opportunities.
+            </p>
+            <div className="mt-8 max-w-md relative">
+              <Search className="absolute left-4 top-3.5 w-4 h-4 text-white/50" />
+              <input
+                type="text"
+                placeholder="Search by project name, location…"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full pl-11 pr-4 py-3 bg-white/10 border border-white/20 rounded-xl text-sm text-white placeholder-white/40 focus:outline-none focus:border-[#C9A96E]/60 backdrop-blur-sm"
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── FILTER TABS & CONTENT ── */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        {/* Status filter + refresh */}
         <div className="flex flex-wrap items-center justify-between gap-4 mb-10">
-          <div className="flex items-center gap-1 bg-white border border-brand-green/20 p-1 rounded-xl shadow-sm">
-            {['ALL', 'ACTIVE', 'UPCOMING', 'COMPLETED'].map((s) => (
+          <div className="flex flex-wrap items-center gap-2">
+            {/* Dholera / All toggle */}
+            <div className="flex items-center gap-1 bg-white border border-amber-200 p-1 rounded-xl shadow-sm">
               <button
-                key={s}
-                onClick={() => setStatusFilter(s)}
+                onClick={() => setDholeraOnly(false)}
                 className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                  statusFilter === s
-                    ? 'bg-brand-green text-white shadow-sm'
-                    : 'text-brand-charcoal/70 hover:text-brand-charcoal'
+                  !dholeraOnly ? 'bg-[#0B4F3C] text-white shadow-sm' : 'text-brand-charcoal/70 hover:text-brand-charcoal'
                 }`}
               >
-                {s}
+                All Projects
               </button>
-            ))}
+              <button
+                onClick={() => setDholeraOnly(true)}
+                className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  dholeraOnly ? 'bg-amber-500 text-white shadow-sm' : 'text-amber-800 hover:bg-amber-50'
+                }`}
+              >
+                <Star className="w-3 h-3 fill-current" />
+                Special Dholera ({dholeraCount})
+              </button>
+            </div>
+
+            {/* Status filter */}
+            <div className="flex items-center gap-1 bg-white border border-brand-green/20 p-1 rounded-xl shadow-sm">
+              {['ALL', 'ACTIVE', 'UPCOMING', 'COMPLETED'].map((s) => (
+                <button
+                  key={s}
+                  onClick={() => setStatusFilter(s)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    statusFilter === s ? 'bg-brand-green text-white shadow-sm' : 'text-brand-charcoal/70 hover:text-brand-charcoal'
+                  }`}
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
           </div>
 
           <div className="flex items-center gap-3">
@@ -142,12 +241,26 @@ export default function PublicProjectsPage() {
           </div>
         ) : filtered.length === 0 ? (
           <div className="bg-white border border-brand-green/15 rounded-3xl p-16 text-center space-y-4 shadow-sm">
-            <Building2 className="w-14 h-14 text-brand-green/40 mx-auto" />
-            <h3 className="font-serif text-xl text-brand-charcoal font-bold">No Projects Found</h3>
-            <p className="text-xs text-brand-charcoal/60">
-              {search ? 'No projects match your search. Try a different keyword.' : 'Check back soon for new township launches and land plot releases.'}
+            <Star className={`w-14 h-14 mx-auto ${dholeraOnly ? 'text-amber-400 fill-amber-200' : 'text-brand-green/40'}`} />
+            <h3 className="font-serif text-xl text-brand-charcoal font-bold">
+              {dholeraOnly ? 'No Dholera Projects Yet' : 'No Projects Found'}
+            </h3>
+            <p className="text-xs text-brand-charcoal/60 max-w-sm mx-auto">
+              {dholeraOnly
+                ? 'No projects are tagged as Special Dholera SIR yet. New Dholera plot launches will appear here — stay tuned.'
+                : search
+                ? 'No projects match your search. Try a different keyword.'
+                : 'Check back soon for new township launches and land plot releases.'}
             </p>
-            {search && (
+            {dholeraOnly && (
+              <button
+                onClick={() => setDholeraOnly(false)}
+                className="text-xs font-bold text-brand-green underline cursor-pointer"
+              >
+                View All Projects
+              </button>
+            )}
+            {search && !dholeraOnly && (
               <button onClick={() => setSearch('')} className="text-xs font-bold text-brand-green underline cursor-pointer">
                 Clear Search
               </button>
@@ -165,6 +278,20 @@ export default function PublicProjectsPage() {
   )
 }
 
+// ─── Page export: wraps inner in Suspense (required by Next.js 15 for useSearchParams) ─
+export default function PublicProjectsPage() {
+  return (
+    <React.Suspense fallback={
+      <div className="min-h-screen bg-[#FAF9F6] flex items-center justify-center">
+        <div className="w-8 h-8 border-3 border-[#0B4F3C] border-t-transparent rounded-full animate-spin" />
+      </div>
+    }>
+      <ProjectsInner />
+    </React.Suspense>
+  )
+}
+
+// ─── Project Card ─────────────────────────────────────────────────────────────
 function ProjectCard({ proj }: { proj: any }) {
   const statusColor = STATUS_COLORS[proj.status] || 'bg-gray-500 text-white'
   const availPct = proj.totalPlots
@@ -178,34 +305,28 @@ function ProjectCard({ proj }: { proj: any }) {
       rel="noopener noreferrer"
       className="group bg-white rounded-3xl overflow-hidden shadow-sm border border-brand-green/10 hover:shadow-xl hover:border-brand-green/30 transition-all duration-300 flex flex-col"
     >
-      {/* Image */}
       <div className="relative aspect-[4/3] overflow-hidden bg-brand-charcoal">
         {proj.bannerImage && proj.bannerImage !== proj.mapImageUrl ? (
-          <Image
-            src={proj.bannerImage}
-            alt={proj.name || 'Project'}
-            fill
-            className="object-cover group-hover:scale-105 transition-transform duration-700"
-          />
+          <Image src={proj.bannerImage} alt={proj.name || 'Project'} fill className="object-cover group-hover:scale-105 transition-transform duration-700" />
         ) : (
           <div className="absolute inset-0 bg-brand-green/80" />
         )}
-        {/* Gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
 
-        {/* Top badges */}
-        <div className="absolute top-4 left-4 flex items-center gap-2">
+        <div className="absolute top-4 left-4 flex items-center gap-2 flex-wrap">
           <span className={`px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider ${statusColor}`}>
             {proj.status || 'ACTIVE'}
           </span>
+          {proj.isDholera && (
+            <span className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-400 text-amber-950 text-[10px] font-extrabold">
+              <Star className="w-2.5 h-2.5 fill-amber-900" /> Dholera SIR
+            </span>
+          )}
         </div>
         <div className="absolute top-4 right-4">
-          <span className="px-2.5 py-1 bg-black/60 backdrop-blur-sm text-white font-mono text-[10px] rounded-lg">
-            {proj.code}
-          </span>
+          <span className="px-2.5 py-1 bg-black/60 backdrop-blur-sm text-white font-mono text-[10px] rounded-lg">{proj.code}</span>
         </div>
 
-        {/* Bottom info on image */}
         <div className="absolute bottom-0 left-0 right-0 p-5">
           <div className="flex items-center gap-1 text-white/80 text-xs mb-1">
             <MapPin className="w-3.5 h-3.5 text-[#C9A96E] shrink-0" />
@@ -217,9 +338,7 @@ function ProjectCard({ proj }: { proj: any }) {
         </div>
       </div>
 
-      {/* Card body */}
       <div className="p-5 flex-1 flex flex-col gap-4">
-        {/* Stats row */}
         <div className="grid grid-cols-3 gap-2 text-center">
           <div className="bg-[#EAF3EF] rounded-xl p-2.5 border border-brand-green/15">
             <span className="text-[10px] text-brand-charcoal/60 font-bold uppercase block">Total</span>
@@ -235,28 +354,22 @@ function ProjectCard({ proj }: { proj: any }) {
           </div>
         </div>
 
-        {/* Availability bar */}
         <div>
           <div className="flex items-center justify-between mb-1">
             <span className="text-[10px] text-brand-charcoal/60 font-bold uppercase">Availability</span>
             <span className="text-[10px] font-extrabold text-brand-green">{availPct}% Available</span>
           </div>
           <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
-            <div
-              className="h-full bg-gradient-to-r from-brand-green to-emerald-400 rounded-full transition-all duration-700"
-              style={{ width: `${availPct}%` }}
-            />
+            <div className="h-full bg-gradient-to-r from-brand-green to-emerald-400 rounded-full transition-all duration-700" style={{ width: `${availPct}%` }} />
           </div>
         </div>
 
-        {/* Price */}
         {(proj.priceRange || proj.basePricePerSqft) && (
           <div className="text-xs font-bold text-brand-green bg-[#EAF3EF] px-3 py-1.5 rounded-lg border border-brand-green/15 text-center">
             {proj.priceRange || `₹${proj.basePricePerSqft?.toLocaleString('en-IN')} / sq ft`}
           </div>
         )}
 
-        {/* CTA */}
         <div className="mt-auto pt-2 flex items-center justify-between">
           <span className="text-xs text-brand-charcoal/50 font-medium">
             {proj.area || `${((proj.totalAreaSqft || 0) / 43560).toFixed(1)} Acres`}
