@@ -5,8 +5,7 @@ import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense } from 'react'
 import { getApiBaseUrl } from '@/utils/api'
-import { useOwnerAuth } from '@/stores/auth.store'
-import { Eye, EyeOff, UserPlus, Lock, Mail, Phone, User } from 'lucide-react'
+import { Eye, EyeOff, UserPlus, Lock, Mail, Phone, User, CheckCircle2, ArrowRight } from 'lucide-react'
 import { HouseAndSkyLogo } from '@/components/layout/HouseAndSkyLogo'
 
 const MIN_PASSWORD_LENGTH = 6
@@ -23,7 +22,6 @@ function RegisterContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const redirectTo = searchParams.get('redirect') || '/list-your-property'
-  const { login, isAuthenticated } = useOwnerAuth()
 
   const [fullName, setFullName] = React.useState('')
   const [email, setEmail] = React.useState('')
@@ -35,12 +33,8 @@ function RegisterContent() {
   const [isSubmitting, setIsSubmitting] = React.useState(false)
   const [error, setError] = React.useState('')
   const [fieldErrors, setFieldErrors] = React.useState<Record<string, string>>({})
-
-  React.useEffect(() => {
-    if (isAuthenticated) {
-      router.replace(redirectTo)
-    }
-  }, [isAuthenticated, redirectTo, router])
+  const [isRegisteredSuccess, setIsRegisteredSuccess] = React.useState(false)
+  const [registeredEmail, setRegisteredEmail] = React.useState('')
 
   const validate = () => {
     const errors: Record<string, string> = {}
@@ -90,16 +84,8 @@ function RegisterContent() {
         return
       }
 
-      // Auto-login after registration
-      login(data.token, {
-        id: data.user.id,
-        fullName: data.user.fullName,
-        email: data.user.email,
-        phone: data.user.phone,
-        role: data.user.role
-      })
-
-      router.replace(redirectTo)
+      setRegisteredEmail(email.trim().toLowerCase())
+      setIsRegisteredSuccess(true)
     } catch {
       setError('Network error. Please check your connection and try again.')
     } finally {
@@ -125,147 +111,177 @@ function RegisterContent() {
         </div>
 
         <div className="bg-white rounded-3xl border border-brand-green/15 shadow-sm p-8 space-y-6">
-          <div className="space-y-1">
-            <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-brand-green">Property Owner Portal</p>
-            <h1 className="font-serif text-3xl font-bold text-brand-charcoal">Create Account</h1>
-            <p className="text-xs text-brand-charcoal/60 font-medium">List and manage your properties with House & Sky</p>
-          </div>
-
-          {error && (
-            <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3">
-              <p className="text-xs font-semibold text-red-700">{error}</p>
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Full Name */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-brand-charcoal/70 block">Full Name</label>
-              <div className="relative">
-                <User className="w-4 h-4 text-brand-charcoal/30 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                <input
-                  type="text"
-                  required
-                  autoComplete="name"
-                  value={fullName}
-                  onChange={(e) => { setFullName(e.target.value); setFieldErrors((p) => ({ ...p, fullName: '' })) }}
-                  placeholder="Your full name"
-                  className={`${inputClass('fullName')} pl-10 pr-4`}
-                />
+          {isRegisteredSuccess ? (
+            <div className="py-6 space-y-4 text-center">
+              <div className="w-16 h-16 bg-emerald-50 rounded-full flex items-center justify-center mx-auto text-emerald-600 border border-emerald-200">
+                <CheckCircle2 className="w-10 h-10" />
               </div>
-              {fieldErrors.fullName && <p className="text-[11px] text-red-600 font-medium">{fieldErrors.fullName}</p>}
-            </div>
-
-            {/* Email */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-brand-charcoal/70 block">Email Address</label>
-              <div className="relative">
-                <Mail className="w-4 h-4 text-brand-charcoal/30 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                <input
-                  type="email"
-                  required
-                  autoComplete="email"
-                  value={email}
-                  onChange={(e) => { setEmail(e.target.value); setFieldErrors((p) => ({ ...p, email: '' })) }}
-                  placeholder="you@example.com"
-                  className={`${inputClass('email')} pl-10 pr-4`}
-                />
+              <h1 className="font-serif text-2xl font-bold text-brand-charcoal">Verification Email Sent!</h1>
+              <p className="text-xs text-brand-charcoal/70 leading-relaxed">
+                Thank you for registering. We have sent a verification email to <strong className="text-brand-green font-bold">{registeredEmail}</strong>.
+              </p>
+              <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 text-left space-y-1">
+                <p className="text-xs font-bold text-emerald-800 flex items-center gap-1.5">
+                  <Mail className="w-4 h-4 text-emerald-600" /> Action Required:
+                </p>
+                <p className="text-[11px] text-emerald-700 font-medium leading-normal">
+                  Please open your inbox and click the <strong>&quot;Verify Email Address&quot;</strong> link before logging in to your account.
+                </p>
               </div>
-              {fieldErrors.email && <p className="text-[11px] text-red-600 font-medium">{fieldErrors.email}</p>}
-            </div>
 
-            {/* Phone */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-brand-charcoal/70 block">Mobile Number</label>
-              <div className="relative">
-                <Phone className="w-4 h-4 text-brand-charcoal/30 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                <input
-                  type="tel"
-                  required
-                  autoComplete="tel"
-                  value={phone}
-                  onChange={(e) => { setPhone(e.target.value); setFieldErrors((p) => ({ ...p, phone: '' })) }}
-                  placeholder="10-digit mobile number"
-                  className={`${inputClass('phone')} pl-10 pr-4`}
-                />
-              </div>
-              {fieldErrors.phone && <p className="text-[11px] text-red-600 font-medium">{fieldErrors.phone}</p>}
-            </div>
-
-            {/* Password */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-brand-charcoal/70 block">Password</label>
-              <div className="relative">
-                <Lock className="w-4 h-4 text-brand-charcoal/30 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  required
-                  autoComplete="new-password"
-                  minLength={MIN_PASSWORD_LENGTH}
-                  value={password}
-                  onChange={(e) => { setPassword(e.target.value); setFieldErrors((p) => ({ ...p, password: '' })) }}
-                  placeholder={`Minimum ${MIN_PASSWORD_LENGTH} characters`}
-                  className={`${inputClass('password')} pl-10 pr-10`}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-brand-charcoal/30 hover:text-brand-charcoal/60"
-                  tabIndex={-1}
-                >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-              </div>
-              {fieldErrors.password && <p className="text-[11px] text-red-600 font-medium">{fieldErrors.password}</p>}
-            </div>
-
-            {/* Confirm Password */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-brand-charcoal/70 block">Confirm Password</label>
-              <div className="relative">
-                <Lock className="w-4 h-4 text-brand-charcoal/30 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                <input
-                  type={showConfirm ? 'text' : 'password'}
-                  required
-                  autoComplete="new-password"
-                  value={confirmPassword}
-                  onChange={(e) => { setConfirmPassword(e.target.value); setFieldErrors((p) => ({ ...p, confirmPassword: '' })) }}
-                  placeholder="Re-enter your password"
-                  className={`${inputClass('confirmPassword')} pl-10 pr-10`}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowConfirm(!showConfirm)}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-brand-charcoal/30 hover:text-brand-charcoal/60"
-                  tabIndex={-1}
-                >
-                  {showConfirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-              </div>
-              {fieldErrors.confirmPassword && <p className="text-[11px] text-red-600 font-medium">{fieldErrors.confirmPassword}</p>}
-            </div>
-
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="w-full py-3 rounded-xl bg-brand-green text-white text-xs font-bold flex items-center justify-center gap-2 hover:bg-brand-dark transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
-            >
-              <UserPlus className="w-4 h-4" />
-              {isSubmitting ? 'Creating account…' : 'Create Account & Continue'}
-            </button>
-          </form>
-
-          <div className="pt-2 border-t border-brand-green/10 text-center">
-            <p className="text-xs text-brand-charcoal/60">
-              Already have an account?{' '}
               <Link
                 href={`/owner-login${redirectTo !== '/list-your-property' ? `?redirect=${encodeURIComponent(redirectTo)}` : ''}`}
-                className="text-brand-green font-bold hover:underline"
+                className="w-full py-3.5 rounded-xl bg-brand-green text-white text-xs font-bold flex items-center justify-center gap-2 hover:bg-brand-dark transition-colors mt-4"
               >
-                Login
+                <span>Proceed to Login</span>
+                <ArrowRight className="w-4 h-4" />
               </Link>
-            </p>
-          </div>
+            </div>
+          ) : (
+            <>
+              <div className="space-y-1">
+                <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-brand-green">Property Owner Portal</p>
+                <h1 className="font-serif text-3xl font-bold text-brand-charcoal">Create Account</h1>
+                <p className="text-xs text-brand-charcoal/60 font-medium">List and manage your properties with House & Sky</p>
+              </div>
+
+              {error && (
+                <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3">
+                  <p className="text-xs font-semibold text-red-700">{error}</p>
+                </div>
+              )}
+
+              <form onSubmit={handleSubmit} className="space-y-4">
+                {/* Full Name */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-brand-charcoal/70 block">Full Name</label>
+                  <div className="relative">
+                    <User className="w-4 h-4 text-brand-charcoal/30 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="text"
+                      required
+                      autoComplete="name"
+                      value={fullName}
+                      onChange={(e) => { setFullName(e.target.value); setFieldErrors((p) => ({ ...p, fullName: '' })) }}
+                      placeholder="Your full name"
+                      className={`${inputClass('fullName')} pl-10 pr-4`}
+                    />
+                  </div>
+                  {fieldErrors.fullName && <p className="text-[11px] text-red-600 font-medium">{fieldErrors.fullName}</p>}
+                </div>
+
+                {/* Email */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-brand-charcoal/70 block">Email Address</label>
+                  <div className="relative">
+                    <Mail className="w-4 h-4 text-brand-charcoal/30 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="email"
+                      required
+                      autoComplete="email"
+                      value={email}
+                      onChange={(e) => { setEmail(e.target.value); setFieldErrors((p) => ({ ...p, email: '' })) }}
+                      placeholder="you@example.com"
+                      className={`${inputClass('email')} pl-10 pr-4`}
+                    />
+                  </div>
+                  {fieldErrors.email && <p className="text-[11px] text-red-600 font-medium">{fieldErrors.email}</p>}
+                </div>
+
+                {/* Phone */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-brand-charcoal/70 block">Mobile Number</label>
+                  <div className="relative">
+                    <Phone className="w-4 h-4 text-brand-charcoal/30 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="tel"
+                      required
+                      autoComplete="tel"
+                      value={phone}
+                      onChange={(e) => { setPhone(e.target.value); setFieldErrors((p) => ({ ...p, phone: '' })) }}
+                      placeholder="10-digit mobile number"
+                      className={`${inputClass('phone')} pl-10 pr-4`}
+                    />
+                  </div>
+                  {fieldErrors.phone && <p className="text-[11px] text-red-600 font-medium">{fieldErrors.phone}</p>}
+                </div>
+
+                {/* Password */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-brand-charcoal/70 block">Password</label>
+                  <div className="relative">
+                    <Lock className="w-4 h-4 text-brand-charcoal/30 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      required
+                      autoComplete="new-password"
+                      minLength={MIN_PASSWORD_LENGTH}
+                      value={password}
+                      onChange={(e) => { setPassword(e.target.value); setFieldErrors((p) => ({ ...p, password: '' })) }}
+                      placeholder={`Minimum ${MIN_PASSWORD_LENGTH} characters`}
+                      className={`${inputClass('password')} pl-10 pr-10`}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-brand-charcoal/30 hover:text-brand-charcoal/60"
+                      tabIndex={-1}
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                  {fieldErrors.password && <p className="text-[11px] text-red-600 font-medium">{fieldErrors.password}</p>}
+                </div>
+
+                {/* Confirm Password */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-brand-charcoal/70 block">Confirm Password</label>
+                  <div className="relative">
+                    <Lock className="w-4 h-4 text-brand-charcoal/30 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                    <input
+                      type={showConfirm ? 'text' : 'password'}
+                      required
+                      autoComplete="new-password"
+                      value={confirmPassword}
+                      onChange={(e) => { setConfirmPassword(e.target.value); setFieldErrors((p) => ({ ...p, confirmPassword: '' })) }}
+                      placeholder="Re-enter your password"
+                      className={`${inputClass('confirmPassword')} pl-10 pr-10`}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirm(!showConfirm)}
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-brand-charcoal/30 hover:text-brand-charcoal/60"
+                      tabIndex={-1}
+                    >
+                      {showConfirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                  {fieldErrors.confirmPassword && <p className="text-[11px] text-red-600 font-medium">{fieldErrors.confirmPassword}</p>}
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="w-full py-3 rounded-xl bg-brand-green text-white text-xs font-bold flex items-center justify-center gap-2 hover:bg-brand-dark transition-colors disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
+                >
+                  <UserPlus className="w-4 h-4" />
+                  {isSubmitting ? 'Creating account…' : 'Create Account'}
+                </button>
+              </form>
+
+              <div className="pt-2 border-t border-brand-green/10 text-center">
+                <p className="text-xs text-brand-charcoal/60">
+                  Already have an account?{' '}
+                  <Link
+                    href={`/owner-login${redirectTo !== '/list-your-property' ? `?redirect=${encodeURIComponent(redirectTo)}` : ''}`}
+                    className="text-brand-green font-bold hover:underline"
+                  >
+                    Login
+                  </Link>
+                </p>
+              </div>
+            </>
+          )}
         </div>
 
         <p className="text-center text-[11px] text-brand-charcoal/40 mt-4">

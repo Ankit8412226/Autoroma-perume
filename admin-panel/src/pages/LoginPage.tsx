@@ -252,51 +252,72 @@ export const LoginPage: React.FC = () => {
               </p>
             </div>
 
-            {forgotFeedback && (
-              <div
-                className={`p-3 rounded-xl text-xs font-bold text-center border ${forgotFeedback.type === 'success'
-                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                    : 'bg-red-50 text-red-600 border-red-200'
-                  }`}
-              >
-                {forgotFeedback.msg}
-              </div>
-            )}
-
-            <form onSubmit={handleForgotPasswordSubmit} className="space-y-4">
-              <div>
-                <label className="text-xs text-[#171A18]/70 font-semibold block mb-1">Email Address</label>
-                <div className="relative">
-                  <Mail className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#171A18]/50" />
-                  <input
-                    type="email"
-                    required
-                    placeholder="you@example.com"
-                    value={forgotEmail}
-                    onChange={(e) => setForgotEmail(e.target.value)}
-                    className="w-full bg-[#FAF9F6] border border-[#0B4F3C]/20 rounded-xl pl-9 pr-4 py-2.5 text-xs text-[#171A18] focus:outline-none focus:border-[#0B4F3C]"
-                  />
+            {forgotFeedback?.type === 'success' ? (
+              <div className="py-4 space-y-4 text-center">
+                <div className="w-12 h-12 bg-emerald-50 rounded-full flex items-center justify-center mx-auto text-emerald-600 border border-emerald-200">
+                  <Send className="w-6 h-6" />
                 </div>
-              </div>
-
-              <div className="flex items-center gap-2 pt-2">
+                <div className="space-y-1">
+                  <h4 className="font-bold text-[#171A18] text-sm">Reset Link Sent!</h4>
+                  <p className="text-xs text-[#171A18]/70 font-medium">
+                    {forgotFeedback.msg}
+                  </p>
+                </div>
                 <button
                   type="button"
-                  onClick={() => setShowForgotModal(false)}
-                  className="w-1/2 py-2.5 rounded-xl border border-gray-200 text-xs font-semibold text-gray-600 hover:bg-gray-50"
+                  onClick={() => {
+                    setShowForgotModal(false);
+                    setForgotFeedback(null);
+                  }}
+                  className="w-full py-2.5 rounded-xl bg-[#0B4F3C] hover:bg-[#063B2D] text-white font-bold text-xs shadow-sm transition-colors cursor-pointer"
                 >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSendingForgot}
-                  className="w-1/2 py-2.5 rounded-xl bg-[#0B4F3C] hover:bg-[#063B2D] text-white text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm disabled:opacity-60"
-                >
-                  <Send className="w-3.5 h-3.5" />
-                  <span>{isSendingForgot ? 'Sending...' : 'Send Link'}</span>
+                  Close Window
                 </button>
               </div>
-            </form>
+            ) : (
+              <>
+                {forgotFeedback && (
+                  <div className="p-3 rounded-xl text-xs font-bold text-center border bg-red-50 text-red-600 border-red-200">
+                    {forgotFeedback.msg}
+                  </div>
+                )}
+
+                <form onSubmit={handleForgotPasswordSubmit} className="space-y-4">
+                  <div>
+                    <label className="text-xs text-[#171A18]/70 font-semibold block mb-1">Email Address</label>
+                    <div className="relative">
+                      <Mail className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#171A18]/50" />
+                      <input
+                        type="email"
+                        required
+                        placeholder="you@example.com"
+                        value={forgotEmail}
+                        onChange={(e) => setForgotEmail(e.target.value)}
+                        className="w-full bg-[#FAF9F6] border border-[#0B4F3C]/20 rounded-xl pl-9 pr-4 py-2.5 text-xs text-[#171A18] focus:outline-none focus:border-[#0B4F3C]"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 pt-2">
+                    <button
+                      type="button"
+                      onClick={() => setShowForgotModal(false)}
+                      className="w-1/2 py-2.5 rounded-xl border border-gray-200 text-xs font-semibold text-gray-600 hover:bg-gray-50 cursor-pointer"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={isSendingForgot}
+                      className="w-1/2 py-2.5 rounded-xl bg-[#0B4F3C] hover:bg-[#063B2D] text-white text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm disabled:opacity-60 cursor-pointer"
+                    >
+                      <Send className="w-3.5 h-3.5" />
+                      <span>{isSendingForgot ? 'Sending...' : 'Send Link'}</span>
+                    </button>
+                  </div>
+                </form>
+              </>
+            )}
           </div>
         </div>
       )}
