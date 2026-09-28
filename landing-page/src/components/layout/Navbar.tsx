@@ -123,7 +123,7 @@ export function Navbar() {
                         </div>
                         <div>
                           <p className="text-xs font-extrabold text-amber-900 group-hover:text-amber-700">Special Dholera SIR</p>
-                          <p className="text-[10px] text-amber-700/80 leading-tight mt-0.5">India's largest planned smart city — invest in DMIC-backed plots</p>
+                          <p className="text-[10px] text-amber-700/80 leading-tight mt-0.5">India&apos;s largest planned smart city — invest in DMIC-backed plots</p>
                         </div>
                       </Link>
                       <Link href="/projects" className="block px-4 py-2.5 text-xs font-bold text-brand-green hover:bg-brand-soft transition-colors">All Projects</Link>
