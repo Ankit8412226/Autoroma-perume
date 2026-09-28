@@ -295,7 +295,7 @@ export default function BulkDealsPage() {
               </div>
             </div>
 
-            {/* 99acres-Style Location & Parameter Search Bar */}
+            {/* Smart Location & Parameter Search Bar */}
             <div className="mt-8 bg-neutral-900/90 border border-emerald-500/30 rounded-3xl p-4 shadow-2xl space-y-3">
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 {/* Keyword & Location Search Input with Autocomplete */}
@@ -325,7 +325,7 @@ export default function BulkDealsPage() {
                     </button>
                   )}
 
-                  {/* 99acres Location Suggestions Popup */}
+                  {/* Location Suggestions Popup */}
                   {showLocationDropdown && locationSuggestions.length > 0 && (
                     <div className="absolute top-full left-0 right-0 mt-1 bg-neutral-900 border border-white/10 rounded-2xl shadow-2xl z-30 max-h-60 overflow-y-auto divide-y divide-white/5">
                       {locationSuggestions.map((item, i) => {

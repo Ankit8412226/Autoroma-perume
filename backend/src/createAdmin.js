@@ -24,6 +24,7 @@ async function createAdmin() {
         admin.role = 'ADMIN';
         admin.isActive = true;
         admin.approvalStatus = 'APPROVED';
+        admin.isVerified = true;
         await admin.save();
         console.log(`Updated existing admin ${email}`);
       } else {
@@ -34,7 +35,8 @@ async function createAdmin() {
           phone: '+91 9999999999',
           role: 'ADMIN',
           isActive: true,
-          approvalStatus: 'APPROVED'
+          approvalStatus: 'APPROVED',
+          isVerified: true
         });
         console.log(`Created admin ${email}`);
       }

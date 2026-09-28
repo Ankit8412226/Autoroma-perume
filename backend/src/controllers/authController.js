@@ -1,12 +1,18 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 const User = require('../models/User');
 const Employee = require('../models/Employee');
 const { JWT_SECRET, JWT_EXPIRE } = require('../config/jwt');
 const { resolveSponsorByInviteCode } = require('../utils/agentInvite');
+const { sendVerificationEmail, sendPasswordResetEmail } = require('../services/emailService');
 
 const generateToken = (id) => {
   return jwt.sign({ id }, JWT_SECRET, { expiresIn: JWT_EXPIRE });
+};
+
+const generateRandomToken = () => {
+  return crypto.randomBytes(32).toString('hex');
 };
 
 // 1. Direct Registration (e.g. from Admin/Agent portal or internal creation)
@@ -18,7 +24,7 @@ exports.register = async (req, res, next) => {
       return res.status(400).json({ message: 'Email and password are required' });
     }
 
-    let user = await User.findOne({ email });
+    let user = await User.findOne({ email: email.toLowerCase().trim() });
     if (user) {
       return res.status(400).json({ message: 'User with this email already exists' });
     }
@@ -26,14 +32,21 @@ exports.register = async (req, res, next) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
+    const userRole = role || 'AGENT';
+    const isAdminRole = ['ADMIN', 'DIRECTOR'].includes(userRole);
+    const vToken = generateRandomToken();
+
     user = await User.create({
-      email,
+      email: email.toLowerCase().trim(),
       password: hashedPassword,
       fullName,
       phone,
-      role: role || 'AGENT',
+      role: userRole,
       isActive: true,
-      approvalStatus: 'APPROVED'
+      approvalStatus: 'APPROVED',
+      isVerified: isAdminRole ? true : false,
+      verificationToken: isAdminRole ? null : vToken,
+      verificationTokenExpires: isAdminRole ? null : new Date(Date.now() + 24 * 60 * 60 * 1000)
     });
 
     const empCount = await Employee.countDocuments();
@@ -47,17 +60,34 @@ exports.register = async (req, res, next) => {
       parentId: parentEmployeeId || null
     });
 
+    // Send verification email if not admin
+    if (!isAdminRole) {
+      const clientOrigin = req.headers.origin || req.headers.referer;
+      sendVerificationEmail({
+        toEmail: user.email,
+        fullName: user.fullName,
+        token: vToken,
+        clientOrigin,
+        role: user.role
+      }).catch(err => console.error('Failed to send verification email:', err.message));
+    }
+
     const token = generateToken(user._id);
 
     res.status(201).json({
+      message: isAdminRole
+        ? 'User created successfully.'
+        : 'Account created! A verification email has been sent to your email address. Please verify before logging in.',
       token,
+      isVerified: user.isVerified,
       user: {
         id: user._id,
         fullName: user.fullName,
         email: user.email,
         phone: user.phone,
         role: user.role,
-        approvalStatus: user.approvalStatus
+        approvalStatus: user.approvalStatus,
+        isVerified: user.isVerified
       },
       employee: {
         id: employee._id,
@@ -70,7 +100,7 @@ exports.register = async (req, res, next) => {
   }
 };
 
-// 2. Public Agent Application Registration (Requires Admin / Manager Approval)
+// 2. Public Agent Application Registration
 exports.registerPublicAgent = async (req, res, next) => {
   try {
     const { email, password, fullName, phone, inviteCode } = req.body;
@@ -87,7 +117,7 @@ exports.registerPublicAgent = async (req, res, next) => {
       }
     }
 
-    let user = await User.findOne({ email });
+    let user = await User.findOne({ email: email.toLowerCase().trim() });
     if (user) {
       return res.status(400).json({ message: 'An account with this email already exists' });
     }
@@ -95,20 +125,25 @@ exports.registerPublicAgent = async (req, res, next) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
+    const vToken = generateRandomToken();
+
     user = await User.create({
-      email,
+      email: email.toLowerCase().trim(),
       password: hashedPassword,
       fullName,
       phone,
       role: 'AGENT',
       isActive: false,
-      approvalStatus: 'PENDING_APPROVAL'
+      approvalStatus: 'PENDING_APPROVAL',
+      isVerified: false,
+      verificationToken: vToken,
+      verificationTokenExpires: new Date(Date.now() + 24 * 60 * 60 * 1000)
     });
 
     const empCount = await Employee.countDocuments();
     const employeeCode = `H&S-${1000 + empCount + 1}`;
 
-    const employee = await Employee.create({
+    await Employee.create({
       userId: user._id,
       employeeCode,
       joiningDate: new Date(),
@@ -116,13 +151,24 @@ exports.registerPublicAgent = async (req, res, next) => {
       parentId: sponsor ? sponsor._id : null
     });
 
+    // Send verification email
+    const clientOrigin = req.headers.origin || req.headers.referer;
+    sendVerificationEmail({
+      toEmail: user.email,
+      fullName: user.fullName,
+      token: vToken,
+      clientOrigin,
+      role: user.role
+    }).catch(err => console.error('Failed to send verification email:', err.message));
+
     res.status(201).json({
-      message: '🎉 Agent application submitted successfully! Your account is pending Admin/Manager approval. You will be notified once activated.',
+      message: '🎉 Agent application submitted! Check your email to verify your address. Account activation is subject to Admin approval.',
       user: {
         id: user._id,
         fullName: user.fullName,
         email: user.email,
-        approvalStatus: user.approvalStatus
+        approvalStatus: user.approvalStatus,
+        isVerified: user.isVerified
       }
     });
   } catch (error) {
@@ -130,12 +176,12 @@ exports.registerPublicAgent = async (req, res, next) => {
   }
 };
 
-// 3. User & Agent Login with Approval Guard
+// 3. User & Agent Login with Email Verification & Approval Guards
 exports.login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email: email.toLowerCase().trim() });
     if (!user) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
@@ -143,6 +189,17 @@ exports.login = async (req, res, next) => {
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(401).json({ message: 'Invalid credentials' });
+    }
+
+    const isAdmin = ['ADMIN', 'DIRECTOR'].includes(user.role);
+
+    // Email verification check (Exempt for ADMIN / DIRECTOR)
+    if (!isAdmin && !user.isVerified) {
+      return res.status(403).json({
+        message: 'Your email is not verified yet. Please check your inbox for the verification email or click Resend Verification.',
+        isVerified: false,
+        email: user.email
+      });
     }
 
     if (user.approvalStatus === 'PENDING_APPROVAL') {
@@ -169,7 +226,8 @@ exports.login = async (req, res, next) => {
         email: user.email,
         phone: user.phone,
         role: user.role,
-        approvalStatus: user.approvalStatus
+        approvalStatus: user.approvalStatus,
+        isVerified: user.isVerified
       },
       employee: employee ? {
         id: employee._id,
@@ -185,41 +243,160 @@ exports.login = async (req, res, next) => {
   }
 };
 
-exports.forgotPassword = async (req, res, next) => {
+// 4. Verify Email Token
+exports.verifyEmail = async (req, res, next) => {
   try {
-    const { email } = req.body;
-    const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(404).json({ message: 'No account found with this email address' });
+    const token = req.body.token || req.query.token;
+
+    if (!token) {
+      return res.status(400).json({ message: 'Verification token is required' });
     }
-    const resetToken = jwt.sign({ id: user._id, type: 'RESET' }, JWT_SECRET, { expiresIn: '15m' });
+
+    const user = await User.findOne({
+      verificationToken: token,
+      verificationTokenExpires: { $gt: new Date() }
+    });
+
+    if (!user) {
+      return res.status(400).json({ message: 'Invalid or expired verification token. Please request a new verification email.' });
+    }
+
+    user.isVerified = true;
+    user.verificationToken = null;
+    user.verificationTokenExpires = null;
+    await user.save();
+
     res.json({
-      message: 'Password reset token generated successfully. Enter new password to update.',
-      resetToken
+      success: true,
+      message: '✅ Email verified successfully! You can now log in to your account.'
     });
   } catch (error) {
     next(error);
   }
 };
 
+// 5. Resend Verification Email
+exports.resendVerificationEmail = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ message: 'Email address is required' });
+    }
+
+    const user = await User.findOne({ email: email.toLowerCase().trim() });
+    if (!user) {
+      return res.status(404).json({ message: 'No account found with this email address' });
+    }
+
+    if (user.isVerified) {
+      return res.status(400).json({ message: 'Your email address is already verified. You can log in.' });
+    }
+
+    const vToken = generateRandomToken();
+    user.verificationToken = vToken;
+    user.verificationTokenExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    await user.save();
+
+    const clientOrigin = req.headers.origin || req.headers.referer;
+    await sendVerificationEmail({
+      toEmail: user.email,
+      fullName: user.fullName,
+      token: vToken,
+      clientOrigin,
+      role: user.role
+    });
+
+    res.json({
+      success: true,
+      message: 'Verification email sent successfully! Please check your inbox.'
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// 6. Forgot Password (Request Reset Link)
+exports.forgotPassword = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ message: 'Email address is required' });
+    }
+
+    const user = await User.findOne({ email: email.toLowerCase().trim() });
+    if (!user) {
+      return res.status(404).json({ message: 'No account found with this email address' });
+    }
+
+    const rToken = generateRandomToken();
+    user.resetPasswordToken = rToken;
+    user.resetPasswordExpires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+    await user.save();
+
+    const clientOrigin = req.headers.origin || req.headers.referer;
+    await sendPasswordResetEmail({
+      toEmail: user.email,
+      fullName: user.fullName,
+      token: rToken,
+      clientOrigin,
+      role: user.role
+    });
+
+    res.json({
+      success: true,
+      message: 'Password reset link sent to your email address! Please check your inbox.'
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// 7. Reset Password with Token
 exports.resetPassword = async (req, res, next) => {
   try {
-    const { resetToken, newPassword } = req.body;
-    if (!resetToken || !newPassword) {
+    const { resetToken, token, newPassword } = req.body;
+    const activeToken = resetToken || token;
+
+    if (!activeToken || !newPassword) {
       return res.status(400).json({ message: 'Reset token and new password are required' });
     }
-    const decoded = jwt.verify(resetToken, JWT_SECRET);
-    if (decoded.type !== 'RESET') {
-      return res.status(400).json({ message: 'Invalid reset token' });
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({ message: 'Password must be at least 6 characters long' });
     }
-    const user = await User.findById(decoded.id);
+
+    let user = await User.findOne({
+      resetPasswordToken: activeToken,
+      resetPasswordExpires: { $gt: new Date() }
+    });
+
+    // Fallback: Support JWT reset token if passed from old format
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      try {
+        const decoded = jwt.verify(activeToken, JWT_SECRET);
+        if (decoded && decoded.type === 'RESET') {
+          user = await User.findById(decoded.id);
+        }
+      } catch (e) {
+        // Ignore JWT verify error
+      }
     }
+
+    if (!user) {
+      return res.status(400).json({ message: 'Invalid or expired password reset link. Please request a new password reset.' });
+    }
+
     const salt = await bcrypt.genSalt(10);
     user.password = await bcrypt.hash(newPassword, salt);
+    user.resetPasswordToken = null;
+    user.resetPasswordExpires = null;
     await user.save();
-    res.json({ message: 'Password updated successfully! Please login with your new password.' });
+
+    res.json({
+      success: true,
+      message: 'Password reset successfully! You can now log in with your new password.'
+    });
   } catch (error) {
     next(error);
   }
@@ -239,7 +416,6 @@ exports.getMe = async (req, res, next) => {
   }
 };
 
-
 exports.registerPropertyOwner = async (req, res, next) => {
   try {
     const { fullName, email, phone, password } = req.body;
@@ -256,6 +432,8 @@ exports.registerPropertyOwner = async (req, res, next) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
+    const vToken = generateRandomToken();
+
     const user = await User.create({
       email: email.toLowerCase().trim(),
       password: hashedPassword,
@@ -263,15 +441,25 @@ exports.registerPropertyOwner = async (req, res, next) => {
       phone: String(phone).trim(),
       role: 'PROPERTY_OWNER',
       isActive: true,
-      approvalStatus: 'APPROVED'
+      approvalStatus: 'APPROVED',
+      isVerified: false,
+      verificationToken: vToken,
+      verificationTokenExpires: new Date(Date.now() + 24 * 60 * 60 * 1000)
     });
 
-    const token = generateToken(user._id);
+    const clientOrigin = req.headers.origin || req.headers.referer;
+    sendVerificationEmail({
+      toEmail: user.email,
+      fullName: user.fullName,
+      token: vToken,
+      clientOrigin,
+      role: user.role
+    }).catch(err => console.error('Failed to send verification email:', err.message));
 
     res.status(201).json({
       success: true,
-      message: 'Account created successfully! You can now list your property.',
-      token,
+      message: 'Account created! Please check your email to verify your address before logging in.',
+      isVerified: false,
       user: {
         id: user._id,
         fullName: user.fullName,

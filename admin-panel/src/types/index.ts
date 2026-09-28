@@ -139,6 +139,7 @@ export const PROPERTY_TYPES = [
   'VILLA',
   'SHOWROOM',
   'APARTMENT',
+  'STUDIO_APARTMENT',
   'LAND'
 ] as const;
 

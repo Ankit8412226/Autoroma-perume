@@ -13,6 +13,7 @@ const PROPERTY_TYPE_LABELS: Record<string, string> = {
   VILLA: 'Villa',
   SHOWROOM: 'Commercial Showroom',
   APARTMENT: 'Apartment',
+  STUDIO_APARTMENT: 'Studio Apartment',
   LAND: 'Land'
 };
 

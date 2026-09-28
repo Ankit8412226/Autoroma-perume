@@ -16,6 +16,7 @@ import {
 // --- Option sets & Constants ---
 const PROPERTY_TYPE_OPTIONS: { label: string; value: string; desc: string; icon: string }[] = [
   { label: 'Apartment / Flat', value: 'APARTMENT', desc: 'Modern living in multi-story residential complexes', icon: '🏢' },
+  { label: 'Studio Apartment', value: 'STUDIO_APARTMENT', desc: 'Compact single-room living space with kitchen & bath', icon: '🛋️' },
   { label: 'Villa / Independent House', value: 'VILLA', desc: 'Luxury standalone homes with private land', icon: '🏡' },
   { label: 'Residential Plot', value: 'RESIDENTIAL_PLOT', desc: 'Approved housing land ready for construction', icon: '📐' },
   { label: 'Commercial Space', value: 'COMMERCIAL', desc: 'Offices, retail hubs & business plazas', icon: '🏙️' },
@@ -408,8 +409,8 @@ export default function ListPropertyPage() {
   }
 
   const isRent = form.listingType === 'RENT' || form.listingType === 'LEASE'
-  const showBedBath = ['APARTMENT', 'VILLA'].includes(form.propertyType)
-  const showFloor = ['APARTMENT', 'COMMERCIAL', 'SHOWROOM'].includes(form.propertyType)
+  const showBedBath = ['APARTMENT', 'STUDIO_APARTMENT', 'VILLA'].includes(form.propertyType)
+  const showFloor = ['APARTMENT', 'STUDIO_APARTMENT', 'COMMERCIAL', 'SHOWROOM'].includes(form.propertyType)
 
   // Step Validation logic
   const validateStep = (currentStep: number): boolean => {

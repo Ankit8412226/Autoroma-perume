@@ -33,7 +33,7 @@ const upload = multer({ storage: multer.memoryStorage() });
 
 const ROLES = ['ADMIN', 'MANAGER', 'EMPLOYEE', 'AGENT', 'DIRECTOR'];
 const PLOT_STATUSES = ['AVAILABLE', 'BOOKED', 'PENDING', 'SOLD'];
-const PROPERTY_TYPES = ['RESIDENTIAL_PLOT', 'COMMERCIAL', 'VILLA', 'SHOWROOM', 'APARTMENT', 'LAND'];
+const PROPERTY_TYPES = ['RESIDENTIAL_PLOT', 'COMMERCIAL', 'VILLA', 'SHOWROOM', 'APARTMENT', 'STUDIO_APARTMENT', 'LAND'];
 const LISTING_TYPES = ['SALE', 'RENT', 'LEASE'];
 const PROPERTY_STATUSES = ['AVAILABLE', 'BOOKED', 'SOLD', 'UPCOMING'];
 
@@ -114,13 +114,15 @@ router.post('/auth/login', authLimiter, validate({
   email: { required: true, type: 'email' },
   password: { required: true, type: 'string' }
 }), authController.login);
+router.post('/auth/verify-email', authLimiter, authController.verifyEmail);
+router.get('/auth/verify-email', authLimiter, authController.verifyEmail);
+router.post('/auth/resend-verification', authLimiter, validate({
+  email: { required: true, type: 'email' }
+}), authController.resendVerificationEmail);
 router.post('/auth/forgot-password', authLimiter, validate({
   email: { required: true, type: 'email' }
 }), authController.forgotPassword);
-router.post('/auth/reset-password', authLimiter, validate({
-  resetToken: { required: true, type: 'string' },
-  newPassword: { required: true, type: 'string', minLength: 6 }
-}), authController.resetPassword);
+router.post('/auth/reset-password', authLimiter, authController.resetPassword);
 router.get('/auth/me', protect, authController.getMe);
 
 router.post('/auth/register-public-agent', authLimiter, validate({

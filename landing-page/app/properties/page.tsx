@@ -39,6 +39,7 @@ const PROPERTY_TYPE_OPTIONS = [
   { label: 'Luxury Villa', value: 'VILLA' },
   { label: 'Showroom', value: 'SHOWROOM' },
   { label: 'Apartment', value: 'APARTMENT' },
+  { label: 'Studio Apartment', value: 'STUDIO_APARTMENT' },
   { label: 'Land', value: 'LAND' }
 ]
 
@@ -91,9 +92,37 @@ function PropertiesContent() {
     fetchLocations()
   }, [])
 
-  // Dynamically computed list of unique cities (combining API + loaded properties)
+const DEFAULT_MAJOR_INDIAN_CITIES = [
+  'Dholera',
+  'Noida',
+  'Bhopal',
+  'Narmadapuram',
+  'Ahmedabad',
+  'Delhi NCR',
+  'Gurgaon',
+  'Mumbai',
+  'Bangalore',
+  'Hyderabad',
+  'Pune',
+  'Indore',
+  'Jaipur',
+  'Lucknow',
+  'Surat',
+  'Kolkata',
+  'Chennai',
+  'Goa',
+  'Chandigarh',
+  'Ayodhya',
+  'Thane',
+  'Navi Mumbai',
+  'Nagpur',
+  'Ludhiana',
+  'Patna'
+]
+
+  // Dynamically computed list of unique cities (combining API + Indian cities + loaded properties)
   const availableCities = React.useMemo(() => {
-    const set = new Set<string>(dbCities)
+    const set = new Set<string>([...DEFAULT_MAJOR_INDIAN_CITIES, ...dbCities])
     allProperties.forEach((p) => {
       if (p.location?.city && p.location.city.trim()) {
         set.add(p.location.city.trim())
@@ -229,14 +258,13 @@ function PropertiesContent() {
 
   return (
     <div className="min-h-screen bg-bg-primary space-y-8 pb-16">
-      {/* 99acres-Style Hero Search Header Banner */}
       <div className="bg-gradient-to-r from-[#051711] via-[#0A2E23] to-[#0B4F3C] text-white pt-10 pb-12 px-4 sm:px-6 lg:px-8 border-b border-emerald-500/20 shadow-xl relative overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(16,185,129,0.15),transparent_50%)]" />
 
         <div className="max-w-7xl mx-auto relative z-10 space-y-6">
           <div className="text-center max-w-3xl mx-auto space-y-2">
             <span className="px-3 py-1 bg-emerald-500/20 text-emerald-300 rounded-full text-xs font-extrabold uppercase tracking-widest border border-emerald-500/30 inline-flex items-center gap-1.5 shadow-sm">
-              <Sparkles className="w-3.5 h-3.5 text-emerald-400" /> 99acres Style Dynamic Real Estate Finder
+              <Sparkles className="w-3.5 h-3.5 text-emerald-400" /> Smart Dynamic Real Estate Finder
             </span>
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-serif font-bold text-white tracking-tight">
               Location-Wise Property Directory
@@ -245,11 +273,8 @@ function PropertiesContent() {
               Search verified residential plots, commercial spaces, luxury villas, and showrooms by typing any city, locality, sector, or project name.
             </p>
           </div>
-
-          {/* 99acres-Style Multi-Option Search Bar */}
           <div className="bg-white rounded-3xl p-3 sm:p-4 shadow-2xl border border-emerald-500/20 max-w-5xl mx-auto text-slate-800">
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2.5">
-              {/* Keyword & Location Search Box with Autocomplete Dropdown */}
               <div className="relative">
                 <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                 <input
@@ -276,7 +301,7 @@ function PropertiesContent() {
                   </button>
                 )}
 
-                {/* 99acres Location Suggestions Popup */}
+                {/* Location Suggestions Popup */}
                 {showLocationDropdown && locationSuggestions.length > 0 && (
                   <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-2xl shadow-xl z-30 max-h-60 overflow-y-auto divide-y divide-slate-100">
                     {locationSuggestions.map((item, i) => {
@@ -369,11 +394,10 @@ function PropertiesContent() {
                     key={lType}
                     type="button"
                     onClick={() => setSelectedListingType(lType)}
-                    className={`px-3 py-1 rounded-xl text-xs font-bold transition-all ${
-                      selectedListingType === lType
-                        ? 'bg-slate-900 text-white shadow-sm'
-                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                    }`}
+                    className={`px-3 py-1 rounded-xl text-xs font-bold transition-all ${selectedListingType === lType
+                      ? 'bg-slate-900 text-white shadow-sm'
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                      }`}
                   >
                     {lType === 'ALL' ? 'All Listings' : lType}
                   </button>
@@ -421,16 +445,14 @@ function PropertiesContent() {
                   key={city}
                   type="button"
                   onClick={() => setSelectedCity(city)}
-                  className={`px-4 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center gap-2 shrink-0 border cursor-pointer ${
-                    isSelected
-                      ? 'bg-emerald-600 text-white border-emerald-600 shadow-md scale-102'
-                      : 'bg-white text-slate-700 border-slate-200 hover:border-emerald-300 hover:bg-slate-50'
-                  }`}
+                  className={`px-4 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center gap-2 shrink-0 border cursor-pointer ${isSelected
+                    ? 'bg-emerald-600 text-white border-emerald-600 shadow-md scale-102'
+                    : 'bg-white text-slate-700 border-slate-200 hover:border-emerald-300 hover:bg-slate-50'
+                    }`}
                 >
                   <span>{city === 'All Cities' ? '🌐' : '📍'} {city}</span>
-                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                    isSelected ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'
-                  }`}>
+                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${isSelected ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'
+                    }`}>
                     {count}
                   </span>
                 </button>
@@ -550,9 +572,8 @@ function PropertiesContent() {
               <button
                 type="button"
                 onClick={() => setViewMode('grid')}
-                className={`p-1.5 rounded-lg transition-all ${
-                  viewMode === 'grid' ? 'bg-white text-emerald-700 shadow-sm' : 'text-slate-500 hover:text-slate-800'
-                }`}
+                className={`p-1.5 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-white text-emerald-700 shadow-sm' : 'text-slate-500 hover:text-slate-800'
+                  }`}
                 title="Grid View"
               >
                 <Grid className="w-4 h-4" />
@@ -560,9 +581,8 @@ function PropertiesContent() {
               <button
                 type="button"
                 onClick={() => setViewMode('list')}
-                className={`p-1.5 rounded-lg transition-all ${
-                  viewMode === 'list' ? 'bg-white text-emerald-700 shadow-sm' : 'text-slate-500 hover:text-slate-800'
-                }`}
+                className={`p-1.5 rounded-lg transition-all ${viewMode === 'list' ? 'bg-white text-emerald-700 shadow-sm' : 'text-slate-500 hover:text-slate-800'
+                  }`}
                 title="List View"
               >
                 <List className="w-4 h-4" />
@@ -579,21 +599,51 @@ function PropertiesContent() {
             ))}
           </div>
         ) : filteredProperties.length === 0 ? (
-          <div className="bg-white border border-slate-200 rounded-3xl p-16 text-center shadow-sm space-y-4">
-            <div className="w-16 h-16 bg-amber-50 text-amber-600 rounded-full flex items-center justify-center mx-auto">
-              <Building2 className="w-8 h-8" />
+          <div className="bg-gradient-to-br from-white via-[#FAF9F6] to-emerald-50/40 border border-emerald-500/20 rounded-3xl p-8 sm:p-12 text-center shadow-xl space-y-6">
+            <div className="w-16 h-16 bg-emerald-500/10 text-emerald-700 border border-emerald-500/20 rounded-full flex items-center justify-center mx-auto shadow-inner">
+              <MapPin className="w-8 h-8 text-emerald-600" />
             </div>
-            <h3 className="font-serif text-xl font-bold text-slate-900">No Properties Found</h3>
-            <p className="text-xs text-slate-500 max-w-md mx-auto">
-              No properties match your current search parameters in <span className="font-bold text-slate-800">{selectedCity}</span>. Try broadening your filter or resetting criteria.
-            </p>
-            <button
-              type="button"
-              onClick={handleResetFilters}
-              className="px-5 py-2.5 bg-emerald-600 text-white text-xs font-bold uppercase tracking-wider rounded-xl hover:bg-emerald-500 transition-colors shadow-sm"
-            >
-              Reset Filters
-            </button>
+            <div className="max-w-xl mx-auto space-y-2">
+              <span className="px-3 py-1 bg-emerald-100 text-emerald-800 rounded-full text-[10px] font-extrabold uppercase tracking-widest border border-emerald-200 inline-block">
+                {selectedCity !== 'All Cities' ? `📍 Destination: ${selectedCity}` : 'Verified Property Finder'}
+              </span>
+              <h3 className="font-serif text-2xl sm:text-3xl font-bold text-slate-900">
+                {selectedCity !== 'All Cities'
+                  ? `Upcoming Real Estate Projects in ${selectedCity}`
+                  : 'No Matching Properties Found'}
+              </h3>
+              <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-medium">
+                {selectedCity !== 'All Cities'
+                  ? `House & Sky is actively registering verified NA plots, smart township parcels, and commercial spaces in ${selectedCity}. Be the first to inquire or list your property in ${selectedCity}.`
+                  : 'No properties matched your exact filter combination. Try adjusting budget or resetting filters.'}
+              </p>
+            </div>
+
+            <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+              {selectedCity !== 'All Cities' && (
+                <a
+                  href={`https://wa.me/919311227789?text=${encodeURIComponent(`Hi House & Sky, I am looking for property inventory / plot options in ${selectedCity}. Please notify me when available.`)}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="px-5 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs uppercase tracking-wider rounded-2xl shadow-md transition-all flex items-center gap-2 cursor-pointer"
+                >
+                  <MessageCircle className="w-4 h-4 text-emerald-200" /> Inquire for {selectedCity}
+                </a>
+              )}
+              <Link
+                href="/list-your-property"
+                className="px-5 py-3 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs uppercase tracking-wider rounded-2xl shadow-md transition-all flex items-center gap-2 cursor-pointer"
+              >
+                <Building2 className="w-4 h-4 text-emerald-400" /> List Property in {selectedCity !== 'All Cities' ? selectedCity : 'Your City'}
+              </Link>
+              <button
+                type="button"
+                onClick={handleResetFilters}
+                className="px-5 py-3 border border-slate-300 text-slate-700 hover:bg-slate-100 font-bold text-xs uppercase tracking-wider rounded-2xl transition-all cursor-pointer"
+              >
+                View All Cities
+              </button>
+            </div>
           </div>
         ) : (
           <div className={viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6' : 'space-y-4'}>
