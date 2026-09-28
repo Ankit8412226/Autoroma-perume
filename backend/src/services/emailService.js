@@ -49,49 +49,67 @@ const sendVerificationEmail = async ({ toEmail, fullName, token, clientOrigin, r
 
   const htmlContent = `
     <!DOCTYPE html>
-    <html>
+    <html lang="en">
     <head>
       <meta charset="utf-8">
-      <style>
-        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #f4f6f8; margin: 0; padding: 20px; }
-        .container { max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; }
-        .header { background-color: #0B4F3C; color: #ffffff; padding: 30px 20px; text-align: center; }
-        .header h1 { margin: 0; font-size: 24px; font-weight: 700; font-family: Georgia, serif; letter-spacing: 0.5px; }
-        .header p { margin: 5px 0 0 0; font-size: 11px; text-transform: uppercase; tracking: 2px; color: #C9A96E; font-weight: bold; }
-        .body { padding: 35px 30px; color: #1a202c; line-height: 1.6; }
-        .body h2 { color: #0B4F3C; margin-top: 0; font-size: 20px; }
-        .btn { display: inline-block; background-color: #0B4F3C; color: #ffffff !important; padding: 14px 28px; text-decoration: none; border-radius: 10px; font-weight: bold; font-size: 14px; margin: 20px 0; shadow: 0 4px 10px rgba(11,79,60,0.2); }
-        .footer { background-color: #f8fafc; padding: 20px; text-align: center; font-size: 12px; color: #64748b; border-top: 1px solid #e2e8f0; }
-        .token-box { background: #FAF9F6; border: 1px dashed #0B4F3C; padding: 12px; font-family: monospace; font-size: 14px; word-break: break-all; border-radius: 8px; margin: 15px 0; }
-      </style>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Verify Your Email - House & Sky</title>
     </head>
-    <body>
-      <div class="container">
-        <div class="header">
-          <h1>House & Sky</h1>
-          <p>Building Trust. Delivering Value.</p>
-        </div>
-        <div class="body">
-          <h2>Verify Your Email Address</h2>
-          <p>Hello <strong>${fullName || 'User'}</strong>,</p>
-          <p>Thank you for registering with House & Sky. Please click the button below to verify your email address and activate your account access:</p>
-          
-          <div style="text-align: center;">
-            <a href="${verifyLink}" target="_blank" class="btn">Verify Email Address</a>
-          </div>
+    <body style="margin:0; padding:0; background-color:#f4f6f8; font-family:'Helvetica Neue', Helvetica, Arial, sans-serif;">
+      <table border="0" cellpadding="0" cellspacing="0" width="100%" style="table-layout:fixed; background-color:#f4f6f8; padding: 30px 10px;">
+        <tr>
+          <td align="center">
+            <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width:600px; background-color:#ffffff; border-radius:16px; overflow:hidden; border:1px solid #e2e8f0; box-shadow:0 4px 15px rgba(0,0,0,0.06);">
+              
+              <!-- Header -->
+              <tr>
+                <td align="center" style="background-color:#0B4F3C; padding: 32px 20px;">
+                  <h1 style="margin:0; color:#ffffff; font-size:26px; font-weight:700; font-family:Georgia, serif; letter-spacing:0.5px;">House & Sky</h1>
+                  <p style="margin:6px 0 0 0; color:#C9A96E; font-size:11px; text-transform:uppercase; letter-spacing:2px; font-weight:bold;">Building Trust. Delivering Value.</p>
+                </td>
+              </tr>
 
-          <p>Or copy and paste this verification link into your browser:</p>
-          <div class="token-box">${verifyLink}</div>
+              <!-- Body Content -->
+              <tr>
+                <td style="padding: 35px 30px; color:#1a202c; font-size:15px; line-height:1.6;">
+                  <h2 style="margin-top:0; color:#0B4F3C; font-size:20px; font-weight:700;">Verify Your Email Address</h2>
+                  <p style="margin:0 0 16px 0;">Hello <strong>${fullName || 'User'}</strong>,</p>
+                  <p style="margin:0 0 24px 0; color:#4a5568;">Thank you for registering with House & Sky. Please click the button below to verify your email address and activate your account access:</p>
+                  
+                  <!-- Bulletproof Inline Styled Button -->
+                  <table border="0" cellpadding="0" cellspacing="0" width="100%" style="margin: 28px 0;">
+                    <tr>
+                      <td align="center">
+                        <a href="${verifyLink}" target="_blank" style="background-color:#0B4F3C; color:#ffffff; display:inline-block; font-family:'Helvetica Neue', Helvetica, Arial, sans-serif; font-size:15px; font-weight:bold; text-decoration:none; padding:16px 36px; border-radius:10px; border:1px solid #0B4F3C; text-align:center; box-shadow: 0 4px 12px rgba(11,79,60,0.25);">
+                          Verify Email Address &rarr;
+                        </a>
+                      </td>
+                    </tr>
+                  </table>
 
-          <p style="font-size: 12px; color: #64748b; margin-top: 25px;">
-            Note: This link will expire in 24 hours. If you did not create an account with House & Sky, please ignore this email.
-          </p>
-        </div>
-        <div class="footer">
-          &copy; ${new Date().getFullYear()} House & Sky. All rights reserved.<br/>
-          Contact: info@houseandsky.com
-        </div>
-      </div>
+                  <p style="margin:24px 0 8px 0; font-size:13px; color:#718096; font-weight:600;">Or copy and paste this verification link into your browser:</p>
+                  <div style="background-color:#FAF9F6; border:1px dashed #0B4F3C; padding:12px 14px; font-family:Consolas, Monaco, monospace; font-size:13px; color:#0B4F3C; word-break:break-all; border-radius:8px; line-height:1.4;">
+                    <a href="${verifyLink}" target="_blank" style="color:#0B4F3C; text-decoration:underline;">${verifyLink}</a>
+                  </div>
+
+                  <p style="font-size:12px; color:#a0aec0; margin: 30px 0 0 0; line-height:1.5;">
+                    Note: This link will expire in 24 hours. If you did not create an account with House & Sky, please ignore this email.
+                  </p>
+                </td>
+              </tr>
+
+              <!-- Footer -->
+              <tr>
+                <td align="center" style="background-color:#f8fafc; padding:20px; font-size:12px; color:#64748b; border-top:1px solid #e2e8f0; line-height:1.5;">
+                  &copy; ${new Date().getFullYear()} House & Sky. All rights reserved.<br/>
+                  Need help? Contact <a href="mailto:info@houseandsky.com" style="color:#0B4F3C; text-decoration:none; font-weight:bold;">info@houseandsky.com</a>
+                </td>
+              </tr>
+
+            </table>
+          </td>
+        </tr>
+      </table>
     </body>
     </html>
   `;
@@ -106,55 +124,76 @@ const sendVerificationEmail = async ({ toEmail, fullName, token, clientOrigin, r
   return transporter.sendMail(mailOptions);
 };
 
+/**
+ * Send Password Reset Link to User/Agent
+ */
 const sendPasswordResetEmail = async ({ toEmail, fullName, token, clientOrigin, role }) => {
   const baseUrl = getBaseUrl(clientOrigin, role);
   const resetLink = `${baseUrl}/reset-password?token=${token}`;
 
   const htmlContent = `
     <!DOCTYPE html>
-    <html>
+    <html lang="en">
     <head>
       <meta charset="utf-8">
-      <style>
-        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #f4f6f8; margin: 0; padding: 20px; }
-        .container { max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; }
-        .header { background-color: #0B4F3C; color: #ffffff; padding: 30px 20px; text-align: center; }
-        .header h1 { margin: 0; font-size: 24px; font-weight: 700; font-family: Georgia, serif; letter-spacing: 0.5px; }
-        .header p { margin: 5px 0 0 0; font-size: 11px; text-transform: uppercase; tracking: 2px; color: #C9A96E; font-weight: bold; }
-        .body { padding: 35px 30px; color: #1a202c; line-height: 1.6; }
-        .body h2 { color: #0B4F3C; margin-top: 0; font-size: 20px; }
-        .btn { display: inline-block; background-color: #0B4F3C; color: #ffffff !important; padding: 14px 28px; text-decoration: none; border-radius: 10px; font-weight: bold; font-size: 14px; margin: 20px 0; shadow: 0 4px 10px rgba(11,79,60,0.2); }
-        .footer { background-color: #f8fafc; padding: 20px; text-align: center; font-size: 12px; color: #64748b; border-top: 1px solid #e2e8f0; }
-        .token-box { background: #FAF9F6; border: 1px dashed #0B4F3C; padding: 12px; font-family: monospace; font-size: 14px; word-break: break-all; border-radius: 8px; margin: 15px 0; }
-      </style>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Reset Password - House & Sky</title>
     </head>
-    <body>
-      <div class="container">
-        <div class="header">
-          <h1>House & Sky</h1>
-          <p>Building Trust. Delivering Value.</p>
-        </div>
-        <div class="body">
-          <h2>Reset Your Password</h2>
-          <p>Hello <strong>${fullName || 'User'}</strong>,</p>
-          <p>We received a request to reset your password for your House & Sky account. Click the button below to set up a new password:</p>
-          
-          <div style="text-align: center;">
-            <a href="${resetLink}" target="_blank" class="btn">Reset Password</a>
-          </div>
+    <body style="margin:0; padding:0; background-color:#f4f6f8; font-family:'Helvetica Neue', Helvetica, Arial, sans-serif;">
+      <table border="0" cellpadding="0" cellspacing="0" width="100%" style="table-layout:fixed; background-color:#f4f6f8; padding: 30px 10px;">
+        <tr>
+          <td align="center">
+            <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width:600px; background-color:#ffffff; border-radius:16px; overflow:hidden; border:1px solid #e2e8f0; box-shadow:0 4px 15px rgba(0,0,0,0.06);">
+              
+              <!-- Header -->
+              <tr>
+                <td align="center" style="background-color:#0B4F3C; padding: 32px 20px;">
+                  <h1 style="margin:0; color:#ffffff; font-size:26px; font-weight:700; font-family:Georgia, serif; letter-spacing:0.5px;">House & Sky</h1>
+                  <p style="margin:6px 0 0 0; color:#C9A96E; font-size:11px; text-transform:uppercase; letter-spacing:2px; font-weight:bold;">Building Trust. Delivering Value.</p>
+                </td>
+              </tr>
 
-          <p>Or copy and paste this link into your browser:</p>
-          <div class="token-box">${resetLink}</div>
+              <!-- Body Content -->
+              <tr>
+                <td style="padding: 35px 30px; color:#1a202c; font-size:15px; line-height:1.6;">
+                  <h2 style="margin-top:0; color:#0B4F3C; font-size:20px; font-weight:700;">Reset Your Password</h2>
+                  <p style="margin:0 0 16px 0;">Hello <strong>${fullName || 'User'}</strong>,</p>
+                  <p style="margin:0 0 24px 0; color:#4a5568;">We received a request to reset your password for your House & Sky account. Click the button below to set up a new password:</p>
+                  
+                  <!-- Bulletproof Inline Styled Button -->
+                  <table border="0" cellpadding="0" cellspacing="0" width="100%" style="margin: 28px 0;">
+                    <tr>
+                      <td align="center">
+                        <a href="${resetLink}" target="_blank" style="background-color:#0B4F3C; color:#ffffff; display:inline-block; font-family:'Helvetica Neue', Helvetica, Arial, sans-serif; font-size:15px; font-weight:bold; text-decoration:none; padding:16px 36px; border-radius:10px; border:1px solid #0B4F3C; text-align:center; box-shadow: 0 4px 12px rgba(11,79,60,0.25);">
+                          Reset Password &rarr;
+                        </a>
+                      </td>
+                    </tr>
+                  </table>
 
-          <p style="font-size: 12px; color: #64748b; margin-top: 25px;">
-            Note: This link is valid for 1 hour. If you did not request a password reset, you can safely ignore this email — your password will remain unchanged.
-          </p>
-        </div>
-        <div class="footer">
-          &copy; ${new Date().getFullYear()} House & Sky. All rights reserved.<br/>
-          Contact: info@houseandsky.com
-        </div>
-      </div>
+                  <p style="margin:24px 0 8px 0; font-size:13px; color:#718096; font-weight:600;">Or copy and paste this link into your browser:</p>
+                  <div style="background-color:#FAF9F6; border:1px dashed #0B4F3C; padding:12px 14px; font-family:Consolas, Monaco, monospace; font-size:13px; color:#0B4F3C; word-break:break-all; border-radius:8px; line-height:1.4;">
+                    <a href="${resetLink}" target="_blank" style="color:#0B4F3C; text-decoration:underline;">${resetLink}</a>
+                  </div>
+
+                  <p style="font-size:12px; color:#a0aec0; margin: 30px 0 0 0; line-height:1.5;">
+                    Note: This link is valid for 1 hour. If you did not request a password reset, you can safely ignore this email — your password will remain unchanged.
+                  </p>
+                </td>
+              </tr>
+
+              <!-- Footer -->
+              <tr>
+                <td align="center" style="background-color:#f8fafc; padding:20px; font-size:12px; color:#64748b; border-top:1px solid #e2e8f0; line-height:1.5;">
+                  &copy; ${new Date().getFullYear()} House & Sky. All rights reserved.<br/>
+                  Need help? Contact <a href="mailto:info@houseandsky.com" style="color:#0B4F3C; text-decoration:none; font-weight:bold;">info@houseandsky.com</a>
+                </td>
+              </tr>
+
+            </table>
+          </td>
+        </tr>
+      </table>
     </body>
     </html>
   `;
