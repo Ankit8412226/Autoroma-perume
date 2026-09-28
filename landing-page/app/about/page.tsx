@@ -11,10 +11,10 @@ export const metadata = {
 
 export default function AboutPage() {
   const milestones = [
-    { year: '2014', title: 'Platform Founded', desc: 'Established to connect buyers with architecturally significant properties and open sky plots.' },
+    { year: '2004', title: 'Platform Founded', desc: 'Established to connect buyers with architecturally significant properties and open sky plots.' },
     { year: '2018', title: 'Pan-India Footprint', desc: 'Extended advisory desks across Mumbai, Goa, Delhi NCR, Bangalore, and Hyderabad.' },
     { year: '2022', title: '₹3,000 Cr Milestone', desc: 'Surpassed ₹3,000 Cr in residential property and land plot transaction volume.' },
-    { year: '2026', title: 'Hippo MLM & Naksa Engine', desc: 'Pioneered AI Government Naksa OCR canvas maps and 7-rank sales tier networks.' },
+    { year: '2026', title: 'AI Property Intelligence', desc: 'Launched AI-powered property discovery, government map integration, and a pan-India advisory network spanning 7 tiers.' },
   ]
 
   return (

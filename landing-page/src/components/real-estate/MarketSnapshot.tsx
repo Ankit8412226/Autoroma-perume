@@ -66,7 +66,7 @@ export function MarketSnapshot() {
         </div>
 
         <span className="text-xs font-mono text-brand-charcoal/60">
-          Source: Live Hippo Database Analytics · Updated Real-Time
+          Source: House & Sky Market Intelligence · Updated Real-Time
         </span>
       </div>
 
