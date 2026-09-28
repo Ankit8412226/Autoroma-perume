@@ -130,6 +130,7 @@ export interface Project {
   pendingCount?: number;
   bookedCount?: number;
   soldCount?: number;
+  isDholera?: boolean;
 }
 
 export const PROPERTY_TYPES = [

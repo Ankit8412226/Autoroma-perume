@@ -141,6 +141,11 @@ const projectSchema = new mongoose.Schema({
     titleType: { type: String, default: '' },
     approvalAuthority: { type: String, default: '' }
   },
+
+  isDholera: {
+    type: Boolean,
+    default: false
+  },
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'

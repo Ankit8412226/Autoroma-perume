@@ -8,11 +8,12 @@ import { AnnouncementTicker } from './AnnouncementTicker'
 import { getApiBaseUrl } from '@/utils/api'
 import { SITE } from '@/utils/siteConfig'
 import { useOwnerAuth } from '@/stores/auth.store'
-import { Bookmark, Menu, X, PhoneCall, ChevronDown, Mail, Facebook, MessageCircle, UserCircle, LogOut, Home, LogIn, Flame } from 'lucide-react'
+import { Bookmark, Menu, X, PhoneCall, ChevronDown, Mail, Facebook, MessageCircle, UserCircle, LogOut, Home, LogIn, Flame, Star } from 'lucide-react'
 
 interface NavProject {
   _id: string
   name: string
+  isDholera?: boolean
 }
 
 const MAIN_LINKS = [
@@ -110,11 +111,25 @@ export function Navbar() {
                   Projects <ChevronDown className="w-3 h-3" />
                 </Link>
                 {openMenu === 'projects' && (
-                  <div className="absolute top-full left-0 pt-2 min-w-[220px] z-[100]">
+                  <div className="absolute top-full left-0 pt-2 min-w-[260px] z-[100]">
                     <div className="bg-white border border-brand-green/15 rounded-xl shadow-xl py-1.5 overflow-hidden">
+                      {/* Special Dholera Featured Entry */}
+                      <Link
+                        href="/projects?filter=dholera"
+                        className="flex items-start gap-2.5 px-4 py-3 bg-amber-50/80 border-b border-amber-200 hover:bg-amber-100/80 transition-colors group"
+                      >
+                        <div className="w-7 h-7 rounded-lg bg-amber-400 flex items-center justify-center shrink-0 mt-0.5">
+                          <Star className="w-3.5 h-3.5 fill-amber-900 text-amber-900" />
+                        </div>
+                        <div>
+                          <p className="text-xs font-extrabold text-amber-900 group-hover:text-amber-700">Special Dholera SIR</p>
+                          <p className="text-[10px] text-amber-700/80 leading-tight mt-0.5">India's largest planned smart city — invest in DMIC-backed plots</p>
+                        </div>
+                      </Link>
                       <Link href="/projects" className="block px-4 py-2.5 text-xs font-bold text-brand-green hover:bg-brand-soft transition-colors">All Projects</Link>
                       {projects.map((project) => (
-                        <Link key={project._id} href={`/projects/${project._id}`} className="block px-4 py-2 text-xs font-semibold text-brand-charcoal hover:bg-brand-soft hover:text-brand-green transition-colors truncate">
+                        <Link key={project._id} href={`/projects/${project._id}`} className="flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-brand-charcoal hover:bg-brand-soft hover:text-brand-green transition-colors truncate">
+                          {project.isDholera && <Star className="w-3 h-3 text-amber-500 fill-amber-400 shrink-0" />}
                           {project.name}
                         </Link>
                       ))}
@@ -282,6 +297,15 @@ export function Navbar() {
                 </button>
                 {isMobileProjectsOpen && (
                   <div className="pl-3 py-1 space-y-1 bg-brand-soft/50 rounded-lg my-1">
+                    {/* Special Dholera entry */}
+                    <Link
+                      href="/projects?filter=dholera"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="flex items-center gap-2 text-xs font-extrabold text-amber-800 py-2 px-2 bg-amber-50 rounded-lg border border-amber-200"
+                    >
+                      <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500 shrink-0" />
+                      Special Dholera SIR
+                    </Link>
                     <Link href="/projects" onClick={() => setIsMobileMenuOpen(false)} className="block text-xs font-bold text-brand-green py-1.5">
                       All Projects
                     </Link>
@@ -290,8 +314,9 @@ export function Navbar() {
                         key={project._id}
                         href={`/projects/${project._id}`}
                         onClick={() => setIsMobileMenuOpen(false)}
-                        className="block text-xs font-semibold text-brand-charcoal py-1.5 hover:text-brand-green truncate"
+                        className="flex items-center gap-1.5 text-xs font-semibold text-brand-charcoal py-1.5 hover:text-brand-green truncate"
                       >
+                        {project.isDholera && <Star className="w-3 h-3 text-amber-500 fill-amber-400 shrink-0" />}
                         {project.name}
                       </Link>
                     ))}

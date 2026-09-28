@@ -8,7 +8,7 @@ import { EmptyState } from '../components/common/EmptyState';
 import { ErrorState } from '../components/common/ErrorState';
 import { Pagination } from '../components/common/Pagination';
 import { formatNumber } from '../utils/formatters';
-import { MapPin, Plus, Trash2, Edit, RefreshCw, Building2 } from 'lucide-react';
+import { MapPin, Plus, Trash2, Edit, RefreshCw, Building2, Star } from 'lucide-react';
 import { useToast } from '../context/ToastContext';
 
 export const ProjectsPage: React.FC = () => {
@@ -18,6 +18,7 @@ export const ProjectsPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState<boolean>(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
+  const [dholeraFilter, setDholeraFilter] = useState<'all' | 'dholera'>('all');
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -42,7 +43,8 @@ export const ProjectsPage: React.FC = () => {
     }
   };
 
-  const paginatedProjects = projects.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+  const filteredProjects = dholeraFilter === 'dholera' ? projects.filter(p => p.isDholera) : projects;
+  const paginatedProjects = filteredProjects.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   const handleDelete = async (id: string) => {
     if (!window.confirm('Are you sure you want to delete this project and all associated plots?')) return;
@@ -59,10 +61,34 @@ export const ProjectsPage: React.FC = () => {
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
       {/* Header & Add Project Action */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
         <div>
           <h2 className="text-2xl font-serif font-bold text-[#171A18]">Real Estate Projects & Townships</h2>
           <p className="text-xs text-[#171A18]/70 mt-1">Active townships, masterplan settings, and project-specific pricing configurations</p>
+          {/* Filter Tabs */}
+          <div className="flex items-center gap-2 mt-3">
+            <button
+              onClick={() => { setDholeraFilter('all'); setCurrentPage(1); }}
+              className={`px-3 py-1 rounded-full text-xs font-bold border transition-all cursor-pointer ${
+                dholeraFilter === 'all'
+                  ? 'bg-[#0B4F3C] text-white border-[#0B4F3C]'
+                  : 'bg-white text-[#171A18]/70 border-[#0B4F3C]/20 hover:border-[#0B4F3C]'
+              }`}
+            >
+              All Projects ({projects.length})
+            </button>
+            <button
+              onClick={() => { setDholeraFilter('dholera'); setCurrentPage(1); }}
+              className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border transition-all cursor-pointer ${
+                dholeraFilter === 'dholera'
+                  ? 'bg-amber-500 text-white border-amber-500'
+                  : 'bg-amber-50 text-amber-800 border-amber-300 hover:bg-amber-100'
+              }`}
+            >
+              <Star className="w-3 h-3 fill-current" />
+              Special Dholera ({projects.filter(p => p.isDholera).length})
+            </button>
+          </div>
         </div>
         <div className="flex items-center gap-3">
           <button
@@ -90,13 +116,13 @@ export const ProjectsPage: React.FC = () => {
           message={error}
           onRetry={fetchProjects}
         />
-      ) : projects.length === 0 ? (
+      ) : filteredProjects.length === 0 ? (
         <EmptyState
-          title="No Projects Found"
-          description="There are currently no real estate projects or townships registered in the system."
-          icon={Building2}
-          actionLabel="Create First Project"
-          onAction={() => setIsAddModalOpen(true)}
+          title={dholeraFilter === 'dholera' ? 'No Special Dholera Projects' : 'No Projects Found'}
+          description={dholeraFilter === 'dholera' ? 'No projects are tagged as Special Dholera SIR yet. Enable the toggle in any project to mark it.' : 'There are currently no real estate projects or townships registered in the system.'}
+          icon={dholeraFilter === 'dholera' ? Star : Building2}
+          actionLabel={dholeraFilter === 'dholera' ? 'View All Projects' : 'Create First Project'}
+          onAction={dholeraFilter === 'dholera' ? () => setDholeraFilter('all') : () => setIsAddModalOpen(true)}
         />
       ) : (
         <>
@@ -124,6 +150,12 @@ export const ProjectsPage: React.FC = () => {
                   <span className="absolute top-3 left-3 px-2.5 py-0.5 rounded-full bg-[#EAF3EF]/90 backdrop-blur-sm text-[#0B4F3C] text-[10px] font-bold border border-[#0B4F3C]/20">
                     {p.status || 'ACTIVE'}
                   </span>
+                  {/* Dholera Badge */}
+                  {p.isDholera && (
+                    <span className="absolute top-3 left-1/2 -translate-x-1/2 flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-400/95 backdrop-blur-sm text-amber-950 text-[10px] font-extrabold shadow-sm">
+                      <Star className="w-2.5 h-2.5 fill-amber-900" /> Special Dholera
+                    </span>
+                  )}
                   {/* Code Badge */}
                   <span className="absolute top-3 right-3 font-mono text-xs bg-black/50 text-white px-2 py-0.5 rounded-md backdrop-blur-sm">
                     {p.code || 'PRJ'}
@@ -188,7 +220,7 @@ export const ProjectsPage: React.FC = () => {
 
           <Pagination
             currentPage={currentPage}
-            totalItems={projects.length}
+            totalItems={filteredProjects.length}
             pageSize={pageSize}
             onPageChange={setCurrentPage}
             onPageSizeChange={(newSize) => {

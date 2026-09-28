@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Building2, UploadCloud, Plus } from 'lucide-react';
+import { X, Building2, UploadCloud, Plus, Star } from 'lucide-react';
 import api from '../../services/api';
 import { GalleryImage, Project } from '../../types';
 import { useToast } from '../../context/ToastContext';
@@ -49,6 +49,7 @@ export const EditProjectModal: React.FC<EditProjectModalProps> = ({ project, onC
   const [googleMapsUrl, setGoogleMapsUrl] = useState(project.googleMapsUrl || '');
   const [fileName, setFileName] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDholera, setIsDholera] = useState(project.isDholera || false);
 
   const [isUploading, setIsUploading] = useState(false);
 
@@ -137,7 +138,8 @@ export const EditProjectModal: React.FC<EditProjectModalProps> = ({ project, onC
         surveyNumber,
         village,
         googleMapsUrl,
-        mapImageS3Key
+        mapImageS3Key,
+        isDholera
       });
 
       toast.success('Project updated successfully!');
@@ -408,6 +410,28 @@ export const EditProjectModal: React.FC<EditProjectModalProps> = ({ project, onC
             <label className="text-[#171A18]/70 font-semibold">Brochure URL (PDF)</label>
             <input type="url" placeholder="https://…/brochure.pdf" value={brochureUrl} onChange={(e) => setBrochureUrl(e.target.value)}
               className="w-full mt-1 bg-[#FAF9F6] border border-[#0B4F3C]/20 rounded-xl px-3 py-2 text-[#171A18] font-bold focus:outline-none focus:border-[#0B4F3C]" />
+          </div>
+
+          {/* Special Dholera SIR Toggle */}
+          <div className="flex items-center justify-between p-3.5 bg-amber-50 border border-amber-300 rounded-xl">
+            <div>
+              <p className="font-bold text-amber-900 text-xs flex items-center gap-1.5">
+                <Star className="w-3.5 h-3.5 fill-amber-600 text-amber-600" />
+                Special Dholera SIR Project
+              </p>
+              <p className="text-[10px] text-amber-700 mt-0.5">Mark as part of Dholera Special Investment Region. It will appear under the dedicated Dholera section on the website.</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setIsDholera(!isDholera)}
+              className={`relative w-11 h-6 rounded-full transition-colors duration-200 cursor-pointer flex-shrink-0 ml-4 ${
+                isDholera ? 'bg-amber-500' : 'bg-[#171A18]/20'
+              }`}
+            >
+              <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform duration-200 ${
+                isDholera ? 'translate-x-5' : 'translate-x-0'
+              }`} />
+            </button>
           </div>
 
           {/* Legal Info */}

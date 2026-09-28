@@ -11,7 +11,8 @@ import {
   ChevronLeft,
   Trash2,
   Edit,
-  Plus
+  Plus,
+  Star
 } from 'lucide-react';
 import api from '../../services/api';
 import { useToast } from '../../context/ToastContext';
@@ -86,6 +87,7 @@ export const AddProjectModal: React.FC<AddProjectModalProps> = ({ onClose, onSuc
   const [village, setVillage] = useState('');
   const [googleMapsUrl, setGoogleMapsUrl] = useState('');
   const [logoImage, setLogoImage] = useState('');
+  const [isDholera, setIsDholera] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [fileName, setFileName] = useState('');
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -281,6 +283,7 @@ export const AddProjectModal: React.FC<AddProjectModalProps> = ({ onClose, onSuc
         village,
         logoImage,
         status: 'ACTIVE',
+        isDholera,
         ocrPlots: extractedPlots.length > 0 ? extractedPlots : undefined,
         mapId: ocrMapId || undefined
       });
@@ -549,6 +552,28 @@ export const AddProjectModal: React.FC<AddProjectModalProps> = ({ onClose, onSuc
                 <input type="url" placeholder="https://youtube.com/…" value={videoUrl} onChange={(e) => setVideoUrl(e.target.value)}
                   className="w-full bg-[#FAF9F6] border border-[#0B4F3C]/20 rounded-xl px-3 py-2 text-[#171A18] font-bold focus:outline-none focus:border-[#0B4F3C]" />
               </div>
+            </div>
+
+            {/* Special Dholera SIR Toggle */}
+            <div className="flex items-center justify-between p-3.5 bg-amber-50 border border-amber-300 rounded-xl">
+              <div>
+                <p className="font-bold text-amber-900 text-xs flex items-center gap-1.5">
+                  <Star className="w-3.5 h-3.5 fill-amber-600 text-amber-600" />
+                  Special Dholera SIR Project
+                </p>
+                <p className="text-[10px] text-amber-700 mt-0.5">Mark this project as part of the Dholera Special Investment Region. It will appear under the dedicated Dholera section in the website navigation.</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsDholera(!isDholera)}
+                className={`relative w-11 h-6 rounded-full transition-colors duration-200 cursor-pointer flex-shrink-0 ml-4 ${
+                  isDholera ? 'bg-amber-500' : 'bg-[#171A18]/20'
+                }`}
+              >
+                <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform duration-200 ${
+                  isDholera ? 'translate-x-5' : 'translate-x-0'
+                }`} />
+              </button>
             </div>
 
             {/* Legal Info */}
