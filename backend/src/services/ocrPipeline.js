@@ -106,7 +106,7 @@ function buildFullCoverageTiles() {
   })));
 }
 const TILE_ATTEMPTS = 3;
-const MAX_OUTPUT_TOKENS = 16384;
+const MAX_OUTPUT_TOKENS = 8192;
 
 function mimeFromFileName(fileName, fallback = 'image/jpeg') {
   const ext = path.extname(fileName || '').toLowerCase();
@@ -186,13 +186,20 @@ function visionModels() {
     'gemini-2.5-pro',
     'gemini-2.5-flash',
     'gemini-2.0-flash',
-    'gemini-1.5-pro'
+    'gemini-1.5-pro',
+    'gemini-1.5-flash'
   ]));
 }
 
 function isModelMissingError(error) {
   const message = String(error?.message || '');
-  return message.includes('404') || message.includes('no longer available') || message.includes('not found');
+  return message.includes('404') ||
+         message.includes('400') ||
+         message.includes('no longer available') ||
+         message.includes('not found') ||
+         message.includes('unsupported') ||
+         message.includes('not supported') ||
+         message.includes('Invalid');
 }
 
 function isRateLimitError(error) {
@@ -212,7 +219,11 @@ async function generateJsonFromImage({ fileBuffer, mimeType, prompt }) {
         const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
         const model = genAI.getGenerativeModel({
           model: modelName,
-          generationConfig: { temperature: 0.1, maxOutputTokens: MAX_OUTPUT_TOKENS }
+          generationConfig: {
+            temperature: 0.1,
+            maxOutputTokens: MAX_OUTPUT_TOKENS,
+            responseMimeType: 'application/json'
+          }
         });
         const result = await model.generateContent([
           prompt,
