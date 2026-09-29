@@ -130,8 +130,10 @@ export const AddProjectModal: React.FC<AddProjectModalProps> = ({ onClose, onSuc
     if (selectedFile) {
       setFile(selectedFile);
       setFileName(selectedFile.name);
+      let localUrl = '';
       if (selectedFile.type.startsWith('image/')) {
-        setPreviewUrl(URL.createObjectURL(selectedFile));
+        localUrl = URL.createObjectURL(selectedFile);
+        setPreviewUrl(localUrl);
       }
 
       try {
@@ -145,20 +147,27 @@ export const AddProjectModal: React.FC<AddProjectModalProps> = ({ onClose, onSuc
         if (response.data?.url) {
           setMapImageUrl(response.data.url);
           setMapImageS3Key(response.data.s3Key || '');
-          toast.success('Map uploaded to S3 successfully!');
+          toast.success('Map uploaded! Auto-analyzing Naksha with Gemini 2.5 Pro...');
+          runAiOcrAnalysis(selectedFile, response.data.url);
+        } else {
+          runAiOcrAnalysis(selectedFile, localUrl);
         }
       } catch (err) {
         console.error('S3 Upload Error:', err);
-        toast.error('Using local image preview for OCR');
+        toast.error('Using local preview for AI OCR');
+        runAiOcrAnalysis(selectedFile, localUrl);
       } finally {
         setIsUploading(false);
       }
     }
   };
 
-  const runAiOcrAnalysis = async () => {
-    if (!file && !mapImageUrl) {
-      toast.error('Please upload a Naksha blueprint file or enter Image URL first');
+  const runAiOcrAnalysis = async (fileToAnalyze = file, imageUrlOverride = mapImageUrl) => {
+    const targetFile = fileToAnalyze || file;
+    const targetUrl = imageUrlOverride || mapImageUrl;
+
+    if (!targetFile && !targetUrl) {
+      toast.error('Please upload a Naksha layout blueprint file first');
       return;
     }
 
@@ -166,10 +175,10 @@ export const AddProjectModal: React.FC<AddProjectModalProps> = ({ onClose, onSuc
     setIsScanning(true);
 
     const messages = [
-      'Uploading Naksha map to AI Engine...',
-      'Running Google Gemini Vision on Naksha...',
-      'Detecting plot boundaries & plot numbers...',
-      'Extracting dimensions, sqft & costs...',
+      'Uploading Naksha map to Gemini 2.5 Pro AI Engine...',
+      'Running Google Gemini 2.5 Pro Vision layout extraction...',
+      'Scanning 3x3 tile grid for plot numbers & boundaries...',
+      'Extracting dimensions, sqft, rates & SOLD stamps...',
       'Building plot vector overlay layout...'
     ];
     let i = 0;
@@ -181,7 +190,7 @@ export const AddProjectModal: React.FC<AddProjectModalProps> = ({ onClose, onSuc
 
     try {
       const formData = new FormData();
-      if (file) formData.append('file', file);
+      if (targetFile) formData.append('file', targetFile);
       formData.append('mapName', name ? `${name} Naksha` : 'Project Masterplan Layout');
 
       const response = await api.post('/ocr/analyze', formData);
@@ -676,7 +685,7 @@ export const AddProjectModal: React.FC<AddProjectModalProps> = ({ onClose, onSuc
 
                   <button
                     type="button"
-                    onClick={runAiOcrAnalysis}
+                    onClick={() => runAiOcrAnalysis()}
                     className="w-full py-2.5 rounded-xl bg-gradient-to-r from-[#0B4F3C] to-emerald-700 hover:from-[#063B2D] hover:to-emerald-800 text-white font-bold text-xs shadow-md flex items-center justify-center gap-2 cursor-pointer border border-emerald-500/30"
                   >
                     <Sparkles className="w-4 h-4 text-amber-300" /> Run AI Naksha OCR Plot Extraction

@@ -180,24 +180,24 @@ function parseModelJson(responseText) {
 }
 
 function visionModels() {
-  const preferredModel = process.env.GEMINI_VISION_MODEL || 'gemini-3.6-flash';
+  const preferredModel = process.env.GEMINI_VISION_MODEL || 'gemini-2.5-pro';
   return Array.from(new Set([
     preferredModel,
-    'gemini-3.6-flash',
-    'gemini-2.5-flash',
     'gemini-2.5-pro',
-    'gemini-3-flash-preview'
+    'gemini-2.5-flash',
+    'gemini-2.0-flash',
+    'gemini-1.5-pro'
   ]));
 }
 
 function isModelMissingError(error) {
   const message = String(error?.message || '');
-  return message.includes('404') || message.includes('no longer available');
+  return message.includes('404') || message.includes('no longer available') || message.includes('not found');
 }
 
 function isRateLimitError(error) {
   const message = String(error?.message || '');
-  return message.includes('429') || message.includes('Too Many Requests');
+  return message.includes('429') || message.includes('Too Many Requests') || message.includes('quota') || message.includes('RESOURCE_EXHAUSTED');
 }
 
 function sleep(ms) {
@@ -227,14 +227,16 @@ async function generateJsonFromImage({ fileBuffer, mimeType, prompt }) {
           const daily = String(error.message).includes('PerDay') || String(error.message).includes('free_tier_requests');
           if (daily) break;
           const waitMatch = String(error.message).match(/retry in (\d+)/i);
-          const waitMs = ((waitMatch ? Number(waitMatch[1]) : 20) + 2) * 1000;
-          console.warn(`[OCR] rate limited, waiting ${waitMs}ms`);
+          const waitMs = Math.min(((waitMatch ? Number(waitMatch[1]) : 5) + attempt * 2) * 1000, 15000);
+          console.warn(`[OCR] rate limited on ${modelName}, waiting ${waitMs}ms before retrying...`);
           await sleep(waitMs);
+        } else {
+          await sleep(1000 * attempt);
         }
       }
     }
   }
-  throw lastError || new Error('Gemini vision failed');
+  throw lastError || new Error('Gemini vision analysis failed after trying all fallback models');
 }
 
 function toGlobalPercent(localPercent, start, end) {
@@ -289,6 +291,7 @@ async function extractPlotsFromTiles(fileBuffer) {
       failedTiles.push(tile.id);
       console.warn(`[OCR] tile ${tile.id} failed:`, error.message);
     }
+    await sleep(350);
   }
 
   if (failedTiles.length >= 3) {

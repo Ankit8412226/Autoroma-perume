@@ -29,6 +29,47 @@ export const UploadNaksaModal: React.FC<UploadNaksaModalProps> = ({
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
   const [ocrResult, setOcrResult] = useState<any>(null);
+  const [analysisStatus, setAnalysisStatus] = useState<string>('');
+
+  const handleRunOcr = async (fileToAnalyze = file, targetProjectId = projectId) => {
+    if (!targetProjectId) {
+      toast.error('Please select a project first to analyze Naksha.');
+      return;
+    }
+    if (!fileToAnalyze) {
+      toast.error('Please select a Naksha image or PDF first.');
+      return;
+    }
+
+    try {
+      setIsAnalyzing(true);
+      setAnalysisStatus('Uploading layout & initializing Gemini 2.5 Pro Vision AI...');
+
+      const formData = new FormData();
+      formData.append('file', fileToAnalyze);
+      formData.append('projectId', targetProjectId);
+      formData.append('mapName', mapName || 'Naksha Layout');
+
+      const statusInterval = setInterval(() => {
+        setAnalysisStatus((prev) => {
+          if (prev.includes('initializing')) return 'Scanning 3x3 Naksha tile grid with Gemini 2.5 Pro...';
+          if (prev.includes('Scanning')) return 'Detecting plot numbers, boundaries & price rates...';
+          return 'Finalizing plot inventory & map vector overlay...';
+        });
+      }, 1500);
+
+      const res = await api.post('/ocr/analyze', formData);
+      clearInterval(statusInterval);
+
+      toast.success(`AI extracted ${res.data?.extractedPlots?.length || 0} plots from the Naksha layout!`);
+      setOcrResult(res.data);
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'AI analysis failed. You can retry below.');
+    } finally {
+      setIsAnalyzing(false);
+      setAnalysisStatus('');
+    }
+  };
 
   const handleFileSelect = (f: File) => {
     setFile(f);
@@ -37,33 +78,11 @@ export const UploadNaksaModal: React.FC<UploadNaksaModalProps> = ({
     } else {
       setPreviewUrl(null);
     }
-  };
-
-  const handleRunOcr = async () => {
-    if (!projectId) {
-      toast.error('Please select a project first.');
-      return;
-    }
-    if (!file) {
-      toast.error('Please upload a Naksha image first.');
-      return;
-    }
-
-    try {
-      setIsAnalyzing(true);
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('projectId', projectId);
-      formData.append('mapName', mapName || 'Naksha Layout');
-
-      const res = await api.post('/ocr/analyze', formData);
-
-      toast.success(`Extracted ${res.data?.extractedPlots?.length || 0} plots!`);
-      setOcrResult(res.data);
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || 'AI analysis failed. Please try again.');
-    } finally {
-      setIsAnalyzing(false);
+    // Auto-trigger analysis immediately if project is selected
+    if (projectId) {
+      handleRunOcr(f, projectId);
+    } else {
+      toast.error('Please select a project above to run AI analysis.');
     }
   };
 
@@ -178,26 +197,33 @@ export const UploadNaksaModal: React.FC<UploadNaksaModalProps> = ({
                 )}
               </div>
 
+              {/* Analysis Status Banner */}
+              {isAnalyzing && (
+                <div className="p-3 bg-[#EAF3EF] border border-[#0B4F3C]/30 rounded-xl flex items-center gap-3 text-xs text-[#0B4F3C] font-bold animate-pulse">
+                  <div className="w-4 h-4 border-2 border-[#0B4F3C] border-t-transparent rounded-full animate-spin shrink-0" />
+                  <span>{analysisStatus || 'Analyzing Naksha layout with Gemini 2.5 Pro...'}</span>
+                </div>
+              )}
+
               {/* Buttons */}
               <div className="flex gap-3">
                 <button
                   onClick={() => handleRunOcr()}
                   disabled={isAnalyzing || !file || !projectId}
-                  className="flex-1 py-3 rounded-xl bg-[#0B4F3C] hover:bg-[#063B2D] text-white font-bold text-sm shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="flex-1 py-3 rounded-xl bg-[#0B4F3C] hover:bg-[#063B2D] text-white font-bold text-sm shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed border border-[#0B4F3C]"
                 >
                   {isAnalyzing ? (
                     <>
                       <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      AI Analyzing...
+                      Gemini Vision AI Analyzing...
                     </>
                   ) : (
                     <>
-                      <ScanText className="w-4 h-4" />
-                      Analyze with AI
+                      <ScanText className="w-4 h-4 text-emerald-300" />
+                      {file ? 'Re-run AI Analysis' : 'Upload & Analyze with AI'}
                     </>
                   )}
                 </button>
-
               </div>
             </>
           ) : (

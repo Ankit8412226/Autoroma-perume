@@ -127,25 +127,30 @@ export const ProjectsPage: React.FC = () => {
       ) : (
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {paginatedProjects.map((p) => (
-              <div key={p._id} className="bg-white rounded-2xl border border-[#0B4F3C]/15 hover:border-[#0B4F3C]/40 transition-all relative group shadow-sm overflow-hidden">
+            {paginatedProjects.map((p) => {
+              const projectImage = p.bannerImage || p.mapImageUrl || p.gallery?.[0]?.url || p.logoImage;
+              return (
+                <div key={p._id} className="bg-white rounded-2xl border border-[#0B4F3C]/15 hover:border-[#0B4F3C]/40 transition-all relative group shadow-sm overflow-hidden">
 
-                <div className="relative aspect-[16/9] w-full bg-gradient-to-br from-[#EAF3EF] to-[#D0E8DC] overflow-hidden">
-                  {p.bannerImage ? (
-                    <img
-                      src={p.bannerImage}
-                      alt={p.name || 'Project'}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).style.display = 'none';
-                      }}
-                    />
-                  ) : (
-                    <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 text-[#0B4F3C]/30">
-                      <Building2 className="w-10 h-10" />
-                      <span className="text-[10px] font-bold uppercase tracking-wider">No Image Uploaded</span>
+                  <div className="relative aspect-[16/9] w-full bg-gradient-to-br from-[#EAF3EF] to-[#D0E8DC] overflow-hidden">
+                    {projectImage ? (
+                      <img
+                        src={projectImage}
+                        alt={p.name || 'Project'}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = 'none';
+                          const fallbackEl = target.parentElement?.querySelector('.image-fallback-placeholder');
+                          if (fallbackEl) (fallbackEl as HTMLElement).style.display = 'flex';
+                        }}
+                      />
+                    ) : null}
+                    
+                    <div className={`image-fallback-placeholder absolute inset-0 flex flex-col items-center justify-center gap-1 text-[#0B4F3C]/40 bg-[#EAF3EF] ${projectImage ? 'hidden' : 'flex'}`}>
+                      <Building2 className="w-10 h-10 text-[#0B4F3C]/30" />
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-[#0B4F3C]/60">No Image Uploaded</span>
                     </div>
-                  )}
                   {/* Status Badge */}
                   <span className="absolute top-3 left-3 px-2.5 py-0.5 rounded-full bg-[#EAF3EF]/90 backdrop-blur-sm text-[#0B4F3C] text-[10px] font-bold border border-[#0B4F3C]/20">
                     {p.status || 'ACTIVE'}
@@ -215,8 +220,9 @@ export const ProjectsPage: React.FC = () => {
                   )}
                 </div>
               </div>
-            ))}
-          </div>
+            );
+          })}
+        </div>
 
           <Pagination
             currentPage={currentPage}

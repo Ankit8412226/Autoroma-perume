@@ -83,8 +83,14 @@ exports.approveMapOverlay = async (req, res, next) => {
       mapImageUrl: plotMap.imageUrl,
       totalPlots: normalizedPlots.length
     };
+    if (!project.bannerImage) {
+      projectPatch.bannerImage = plotMap.imageUrl;
+    }
     if (plotMap.imageS3Key) {
       projectPatch.mapImageS3Key = plotMap.imageS3Key;
+      if (!project.bannerImageS3Key) {
+        projectPatch.bannerImageS3Key = plotMap.imageS3Key;
+      }
     }
     Object.assign(projectPatch, mergeProjectMeta(project, normalizeProjectMeta(plotMap.extractedProjectMeta || {})));
     await Project.findByIdAndUpdate(plotMap.projectId, projectPatch);

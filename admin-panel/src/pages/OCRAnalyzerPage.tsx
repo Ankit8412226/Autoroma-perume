@@ -48,29 +48,12 @@ export const OCRAnalyzerPage: React.FC = () => {
     }
   }, [isAdmin]);
 
-  const handleFileSelect = (f: File) => {
-    setFile(f);
-    if (f.type.startsWith('image/')) {
-      const url = URL.createObjectURL(f);
-      setPreviewUrl(url);
-    } else {
-      setPreviewUrl(null);
-    }
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-    const f = e.dataTransfer.files[0];
-    if (f) handleFileSelect(f);
-  };
-
-  const handleAnalyze = async (useSample = false) => {
-    if (!selectedProjectId) {
+  const handleAnalyze = async (useSample = false, targetFile = file, targetProjectId = selectedProjectId) => {
+    if (!targetProjectId) {
       toast.error('Please select a project first.');
       return;
     }
-    if (!useSample && !file) {
+    if (!useSample && !targetFile) {
       toast.error('Please upload a Naksha image or PDF first.');
       return;
     }
@@ -78,22 +61,22 @@ export const OCRAnalyzerPage: React.FC = () => {
     setStep(1);
     const messages = [
       'Uploading image to secure storage...',
-      'Running AI vision analysis on the Naksha...',
-      'Detecting plot boundaries and numbers...',
-      'Extracting dimensions and pricing data...',
-      'Finalizing results...'
+      'Running Gemini 2.5 Pro Vision AI on Naksha...',
+      'Scanning 3x3 tile layout grid for plot boundaries...',
+      'Extracting plot numbers, dimensions & SOLD stamps...',
+      'Finalizing vector overlay results...'
     ];
     let i = 0;
     setStatusMsg(messages[0]);
     const interval = setInterval(() => {
       i++;
       if (i < messages.length) setStatusMsg(messages[i]);
-    }, 1800);
+    }, 1500);
 
     try {
       const formData = new FormData();
-      if (file && !useSample) formData.append('file', file);
-      formData.append('projectId', selectedProjectId);
+      if (targetFile && !useSample) formData.append('file', targetFile);
+      formData.append('projectId', targetProjectId);
       formData.append('mapName', mapName || 'Naksha Layout');
 
       const response = await api.post('/ocr/analyze', formData);
@@ -107,6 +90,28 @@ export const OCRAnalyzerPage: React.FC = () => {
       setStep(0);
       toast.error(error?.response?.data?.message || 'AI analysis failed. Please try again.');
     }
+  };
+
+  const handleFileSelect = (f: File) => {
+    setFile(f);
+    if (f.type.startsWith('image/')) {
+      const url = URL.createObjectURL(f);
+      setPreviewUrl(url);
+    } else {
+      setPreviewUrl(null);
+    }
+    if (selectedProjectId) {
+      handleAnalyze(false, f, selectedProjectId);
+    } else {
+      toast.error('Please select a project above to run AI analysis.');
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const f = e.dataTransfer.files[0];
+    if (f) handleFileSelect(f);
   };
 
   const handleReset = () => {
