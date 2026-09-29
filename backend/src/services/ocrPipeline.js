@@ -180,14 +180,14 @@ function parseModelJson(responseText) {
 }
 
 function visionModels() {
-  const preferredModel = process.env.GEMINI_VISION_MODEL || 'gemini-2.5-pro';
+  const preferredModel = process.env.GEMINI_VISION_MODEL || 'gemini-3.1-pro-preview';
   return Array.from(new Set([
     preferredModel,
-    'gemini-2.5-pro',
-    'gemini-2.5-flash',
-    'gemini-2.0-flash',
-    'gemini-1.5-pro',
-    'gemini-1.5-flash'
+    'gemini-3.1-pro-preview',
+    'gemini-3.8-flash',
+    'gemini-1.5-pro-latest',
+    'gemini-1.5-flash-latest',
+    'gemini-2.0-flash-exp'
   ]));
 }
 
@@ -441,7 +441,48 @@ async function processMapImageOCR({ projectId, mapName, fileBuffer, fileName, mi
   };
 }
 
+async function processMapImageFromUrl({ projectId, imageUrl, mapName }) {
+  if (!imageUrl) return null;
+  try {
+    console.log(`[OCR] Auto-triggering Gemini Pro analysis for project ${projectId} from image URL: ${imageUrl}`);
+    let buffer;
+    if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
+      const response = await fetch(imageUrl);
+      if (!response.ok) throw new Error(`Failed to download image from URL: ${response.statusText}`);
+      const arrayBuffer = await response.arrayBuffer();
+      buffer = Buffer.from(arrayBuffer);
+    } else if (imageUrl.startsWith('data:image')) {
+      const base64Data = imageUrl.replace(/^data:image\/\w+;base64,/, '');
+      buffer = Buffer.from(base64Data, 'base64');
+    } else {
+      return null;
+    }
+
+    const result = await processMapImageOCR({
+      projectId,
+      mapName: mapName || 'Site Layout Plan',
+      fileBuffer: buffer,
+      fileName: 'naksha_auto_analysis.jpg',
+      mimeType: 'image/jpeg'
+    });
+
+    if (result && result.mapId && projectId) {
+      const { approveMapOverlay } = require('../controllers/ocrController');
+      await approveMapOverlay(
+        { params: { mapId: result.mapId }, body: { updatedVectorOverlayData: result.extractedPlots } },
+        { json: () => {}, status: () => ({ json: () => {} }) },
+        (err) => { if (err) console.error('[OCR] Auto-approve background error:', err); }
+      );
+    }
+    return result;
+  } catch (error) {
+    console.error(`[OCR] Auto-analysis background task failed for project ${projectId}:`, error.message);
+    return null;
+  }
+}
+
 module.exports = {
   processMapImageOCR,
+  processMapImageFromUrl,
   applySoldStamps
 };

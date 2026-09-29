@@ -67,6 +67,8 @@ exports.getProjects = async (req, res, next) => {
   }
 };
 
+const { processMapImageFromUrl } = require('../services/ocrPipeline');
+
 exports.createProject = async (req, res, next) => {
   try {
     const maps = applyProjectMaps(req.body);
@@ -123,6 +125,15 @@ exports.createProject = async (req, res, next) => {
         projectId: project._id,
         status: 'APPROVED'
       });
+    }
+
+    const mapLayoutImage = req.body.mapImageUrl || req.body.bannerImage;
+    if (mapLayoutImage && normalizedPlots.length === 0) {
+      processMapImageFromUrl({
+        projectId: project._id,
+        imageUrl: mapLayoutImage,
+        mapName: `${project.name} Naksha Layout`
+      }).catch((err) => console.error('[OCR] Background auto-analysis task failed:', err));
     }
 
     res.status(201).json(project);
