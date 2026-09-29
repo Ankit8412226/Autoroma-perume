@@ -180,14 +180,14 @@ function parseModelJson(responseText) {
 }
 
 function visionModels() {
-  const preferredModel = process.env.GEMINI_VISION_MODEL || 'gemini-3.1-pro-preview';
+  const preferredModel = process.env.GEMINI_VISION_MODEL || 'gemini-3.8-flash';
   return Array.from(new Set([
     preferredModel,
-    'gemini-3.1-pro-preview',
     'gemini-3.8-flash',
-    'gemini-1.5-pro-latest',
+    'gemini-2.5-flash',
+    'gemini-3.1-pro-preview',
     'gemini-1.5-flash-latest',
-    'gemini-2.0-flash-exp'
+    'gemini-1.5-pro-latest'
   ]));
 }
 
@@ -278,31 +278,37 @@ async function extractPlotsFromTiles(fileBuffer) {
   const warnings = [];
   const tiles = buildFullCoverageTiles();
 
-  for (const tile of tiles) {
-    const tileBuffer = await cropTile(fileBuffer, tile, imageWidth, imageHeight);
-    try {
-      const parsed = await generateJsonFromImage({
-        fileBuffer: tileBuffer,
-        mimeType: 'image/jpeg',
-        prompt: PLOT_TILE_PROMPT
-      });
-      const payload = parseGeminiPayload(parsed);
-      const mapped = payload.plots.map((plot, index) => {
-        const localX = plot.markerXPercent ?? plot.marker?.xPercent;
-        const localY = plot.markerYPercent ?? plot.marker?.yPercent;
-        return normalizeExtractedPlot({
-          ...plot,
-          markerXPercent: toGlobalPercent(localX, tile.x0, tile.x1),
-          markerYPercent: toGlobalPercent(localY, tile.y0, tile.y1)
-        }, index);
-      }).filter(Boolean);
-      console.log(`[OCR] tile ${tile.id} extracted ${mapped.length} plots`);
-      allPlots.push(...mapped);
-    } catch (error) {
-      failedTiles.push(tile.id);
-      console.warn(`[OCR] tile ${tile.id} failed:`, error.message);
-    }
-    await sleep(350);
+  const BATCH_SIZE = 3;
+  for (let i = 0; i < tiles.length; i += BATCH_SIZE) {
+    const batch = tiles.slice(i, i + BATCH_SIZE);
+    await Promise.all(
+      batch.map(async (tile) => {
+        const tileBuffer = await cropTile(fileBuffer, tile, imageWidth, imageHeight);
+        try {
+          const parsed = await generateJsonFromImage({
+            fileBuffer: tileBuffer,
+            mimeType: 'image/jpeg',
+            prompt: PLOT_TILE_PROMPT
+          });
+          const payload = parseGeminiPayload(parsed);
+          const mapped = payload.plots.map((plot, index) => {
+            const localX = plot.markerXPercent ?? plot.marker?.xPercent;
+            const localY = plot.markerYPercent ?? plot.marker?.yPercent;
+            return normalizeExtractedPlot({
+              ...plot,
+              markerXPercent: toGlobalPercent(localX, tile.x0, tile.x1),
+              markerYPercent: toGlobalPercent(localY, tile.y0, tile.y1)
+            }, index);
+          }).filter(Boolean);
+          console.log(`[OCR] tile ${tile.id} extracted ${mapped.length} plots`);
+          allPlots.push(...mapped);
+        } catch (error) {
+          failedTiles.push(tile.id);
+          console.warn(`[OCR] tile ${tile.id} failed:`, error.message);
+        }
+      })
+    );
+    if (i + BATCH_SIZE < tiles.length) await sleep(200);
   }
 
   if (failedTiles.length >= 3) {

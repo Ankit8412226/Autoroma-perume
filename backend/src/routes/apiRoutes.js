@@ -248,6 +248,7 @@ router.get('/plot-maps/:id', protect, plotMapController.getPlotMapById);
 router.post('/ocr/analyze', protect, authorize('ADMIN', 'DIRECTOR'), upload.single('file'), ocrController.analyzeMap);
 router.post('/ocr/approve/:mapId', protect, authorize('ADMIN', 'DIRECTOR'), ocrController.approveMapOverlay);
 router.post('/ocr/reject/:mapId', protect, authorize('ADMIN', 'DIRECTOR'), ocrController.rejectMapOverlay);
+router.get('/ocr/latest/:projectId', protect, authorize('ADMIN', 'DIRECTOR'), ocrController.getLatestMapByProject);
 
 
 router.get('/commissions', protect, commissionController.getCommissions);

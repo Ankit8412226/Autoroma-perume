@@ -87,8 +87,22 @@ export const OCRAnalyzerPage: React.FC = () => {
       toast.success(`Extracted ${response.data?.extractedPlots?.length || 0} plots from the Naksha!`);
     } catch (error: any) {
       clearInterval(interval);
+      // Attempt recovery of completed background OCR map if network/timeout occurred
+      if (targetProjectId) {
+        try {
+          const recovered = await api.get(`/ocr/latest/${targetProjectId}`);
+          if (recovered.data?.extractedPlots?.length) {
+            setOcrResult(recovered.data);
+            setStep(2);
+            toast.success(`AI analysis completed in background! Recovered ${recovered.data.extractedPlots.length} plots.`);
+            return;
+          }
+        } catch (_recoveryErr) {
+          // ignore
+        }
+      }
       setStep(0);
-      toast.error(error?.response?.data?.message || 'AI analysis failed. Please try again.');
+      toast.error(error?.response?.data?.message || 'AI analysis timed out or failed. Please retry or pick project.');
     }
   };
 

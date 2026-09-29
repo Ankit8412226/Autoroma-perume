@@ -164,3 +164,22 @@ exports.rejectMapOverlay = async (req, res, next) => {
     next(error);
   }
 };
+
+exports.getLatestMapByProject = async (req, res, next) => {
+  try {
+    const { projectId } = req.params;
+    const plotMap = await PlotMap.findOne({ projectId }).sort({ createdAt: -1 });
+    if (!plotMap) return res.status(404).json({ message: 'No OCR map found for this project' });
+    res.json({
+      mapId: plotMap._id,
+      mapName: plotMap.mapName,
+      imageUrl: plotMap.imageUrl,
+      imageS3Key: plotMap.imageS3Key,
+      extractedPlots: plotMap.vectorOverlayData || [],
+      projectMeta: plotMap.extractedProjectMeta || {},
+      status: plotMap.status
+    });
+  } catch (error) {
+    next(error);
+  }
+};
