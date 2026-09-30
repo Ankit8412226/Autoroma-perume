@@ -478,14 +478,16 @@ export const BulkDealsPage: React.FC = () => {
               }`}
             >
               <div>
-                {/* Header Image & Badges */}
-                <div className="relative h-44 bg-slate-900 overflow-hidden">
+                <div className="relative h-44 bg-gradient-to-br from-slate-900 via-slate-850 to-slate-950 overflow-hidden">
                   <img
-                    src={deal.bannerImage || deal.projectId?.bannerImage || deal.propertyId?.heroImage || '/placeholder-realestate.jpg'}
-                    alt={deal.title}
+                    src={deal.bannerImage || deal.projectId?.bannerImage || deal.propertyId?.heroImage || ''}
+                    alt=""
+                    onError={(e) => {
+                      (e.target as HTMLElement).style.display = 'none';
+                    }}
                     className="w-full h-full object-cover"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-black/10" />
 
                   {/* Top Badges */}
                   <div className="absolute top-3 left-3 right-3 flex items-center justify-between">

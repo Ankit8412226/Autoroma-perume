@@ -248,10 +248,12 @@ export function HomepageContactSection() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full py-3.5 bg-brand-green hover:bg-brand-dark text-white font-bold text-xs uppercase tracking-[0.18em] rounded-xl transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                  className="w-full py-3.5 px-4 bg-brand-green hover:bg-brand-dark active:scale-[0.98] text-white font-extrabold text-[11px] sm:text-xs uppercase tracking-wider sm:tracking-[0.15em] rounded-xl transition-all shadow-md flex items-center justify-center text-center gap-2.5 cursor-pointer disabled:opacity-50"
                 >
-                  <Send className="w-4 h-4 text-white" />
-                  <span>{isSubmitting ? 'Submitting Request...' : 'Confirm VIP Site Visit Request'}</span>
+                  <Send className="w-4 h-4 text-white shrink-0" />
+                  <span className="text-center leading-snug">
+                    {isSubmitting ? 'Submitting Request...' : 'Confirm VIP Site Visit Request'}
+                  </span>
                 </button>
               </div>
 
