@@ -34,7 +34,7 @@ export interface Property {
   pricePerSqFt: number
   formattedPricePerSqFt: string
   propertyType: 'Villa' | 'Penthouse' | 'Apartment' | 'Waterfront' | 'Estate' | 'Commercial'
-  listingType: 'Buy' | 'Rent'
+  listingType: 'Buy' | 'Rent' | 'Lease'
   location: LocationInfo
   specs: PropertySpec
   amenities: Amenity[]

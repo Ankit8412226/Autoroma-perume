@@ -2,8 +2,7 @@
 
 import * as React from 'react'
 import { useRouter } from 'next/navigation'
-import { CustomSelect } from './CustomSelect'
-import { Search, MapPin, Home, IndianRupee, SlidersHorizontal, ArrowRight } from 'lucide-react'
+import { Search, MapPin, Mic, Crosshair, ChevronDown } from 'lucide-react'
 
 interface PropertySearchProps {
   initialLocation?: string
@@ -14,125 +13,144 @@ interface PropertySearchProps {
   variant?: 'hero' | 'compact'
 }
 
+const TABS = ['Buy', 'Rent', 'New Launch', 'Commercial', 'Plots/Land', 'Projects']
+
 export function PropertySearch({
   initialLocation = '',
-  initialType = '',
-  initialPriceRange = '',
-  initialBedrooms = '',
   className = '',
   variant = 'hero',
 }: PropertySearchProps) {
   const router = useRouter()
-  const [location, setLocation] = React.useState(initialLocation)
-  const [propertyType, setPropertyType] = React.useState(initialType)
-  const [priceRange, setPriceRange] = React.useState(initialPriceRange)
-  const [bedrooms, setBedrooms] = React.useState(initialBedrooms)
+  const [activeTab, setActiveTab] = React.useState('Buy')
+  const [searchQuery, setSearchQuery] = React.useState(initialLocation)
+  const [propertyType, setPropertyType] = React.useState('All Residential')
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
     const params = new URLSearchParams()
-    if (location) params.set('location', location)
-    if (propertyType) params.set('type', propertyType)
-    if (priceRange) params.set('price', priceRange)
-    if (bedrooms) params.set('bedrooms', bedrooms)
+    if (searchQuery) params.set('location', searchQuery)
+    params.set('intent', activeTab.toLowerCase())
+    if (propertyType !== 'All Residential') {
+      params.set('type', propertyType)
+    }
 
     router.push(`/properties?${params.toString()}`)
   }
 
-  const locationOptions = [
-    { value: '', label: 'All Destinations' },
-    { value: 'mumbai', label: 'Mumbai (Bandra / Worli / Juhu)' },
-    { value: 'goa', label: 'Goa (Assagao / Anjuna)' },
-    { value: 'delhi-ncr', label: 'Delhi NCR & Gurgaon' },
-    { value: 'bangalore', label: 'Bangalore (Sadashivnagar)' },
-    { value: 'hyderabad', label: 'Hyderabad (Jubilee Hills)' },
-    { value: 'pune', label: 'Pune (Koregaon Park)' },
-  ]
-
-  const typeOptions = [
-    { value: '', label: 'All Property Types' },
-    { value: 'Penthouse', label: 'Penthouse & Sky Villa' },
-    { value: 'Villa', label: 'Architectural Villa' },
-    { value: 'Apartment', label: 'Luxury Apartment' },
-    { value: 'Estate', label: 'Heritage Estate' },
-    { value: 'Commercial', label: 'Commercial Assets' },
-  ]
-
-  const priceOptions = [
-    { value: '', label: 'Any Budget' },
-    { value: '0-15', label: 'Up to ₹15 Cr' },
-    { value: '15-30', label: '₹15 Cr – ₹30 Cr' },
-    { value: '30-50', label: '₹30 Cr – ₹50 Cr' },
-    { value: '50+', label: '₹50 Cr+' },
-  ]
-
-  const bedroomOptions = [
-    { value: '', label: 'Any Bedrooms' },
-    { value: '3', label: '3+ Bedrooms' },
-    { value: '4', label: '4+ Bedrooms' },
-    { value: '5', label: '5+ Bedrooms' },
-  ]
-
   return (
     <div
-      className={`bg-white border border-brand-green/20 rounded-lg shadow-xl p-5 sm:p-6 lg:p-7 ${
-        variant === 'hero' ? 'max-w-5xl mx-auto' : 'w-full'
+      className={`bg-white rounded-2xl shadow-xl w-full ${
+        variant === 'hero' ? 'max-w-5xl mx-auto' : ''
       } ${className}`}
     >
-      {/* Search Header Badge */}
-      <div className="flex items-center gap-2 mb-5 pb-3 border-b border-brand-green/10">
-        <span className="w-2 h-2 bg-brand-green rounded-full" />
-        <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-brand-green">
-          PROPERTY DISCOVERY ENGINE
-        </span>
-      </div>
-
-      {/* Main Search Controls */}
-      <form onSubmit={handleSearch} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <CustomSelect
-          label="Location"
-          icon={MapPin}
-          options={locationOptions}
-          value={location}
-          onChange={setLocation}
-        />
-
-        <CustomSelect
-          label="Property Type"
-          icon={Home}
-          options={typeOptions}
-          value={propertyType}
-          onChange={setPropertyType}
-        />
-
-        <CustomSelect
-          label="Budget"
-          icon={IndianRupee}
-          options={priceOptions}
-          value={priceRange}
-          onChange={setPriceRange}
-        />
-
-        <CustomSelect
-          label="Bedrooms"
-          icon={SlidersHorizontal}
-          options={bedroomOptions}
-          value={bedrooms}
-          onChange={setBedrooms}
-        />
-
-        {/* Search Action Button */}
-        <div className="sm:col-span-2 lg:col-span-4 pt-2">
-          <button
-            type="submit"
-            className="w-full py-3.5 bg-brand-green text-white font-bold text-xs uppercase tracking-[0.18em] rounded-md hover:bg-brand-dark transition-all duration-200 flex items-center justify-center gap-2 group shadow-md cursor-pointer"
-          >
-            <Search className="w-4 h-4 text-white group-hover:scale-110 transition-transform" />
-            <span className="text-white font-bold">Search Properties</span>
-            <ArrowRight className="w-4 h-4 text-white group-hover:translate-x-1 transition-transform" />
+      {/* ── Tabs Row ───────────────────────────────────────────────────────── */}
+      <div className="flex flex-wrap items-center justify-between border-b border-gray-200 px-4 sm:px-6 pt-3">
+        <div className="flex items-center gap-6 overflow-x-auto custom-scrollbar">
+          {TABS.map((tab) => {
+            const isActive = activeTab === tab
+            const isNewLaunch = tab === 'New Launch'
+            return (
+              <button
+                key={tab}
+                type="button"
+                onClick={() => setActiveTab(tab)}
+                className={`relative pb-3 text-sm font-semibold whitespace-nowrap transition-colors cursor-pointer flex items-center gap-1 ${
+                  isActive ? 'text-brand-charcoal' : 'text-gray-500 hover:text-brand-charcoal'
+                }`}
+              >
+                {tab}
+                {isNewLaunch && (
+                  <span className="w-1.5 h-1.5 rounded-full bg-red-500 absolute -top-0.5 -right-2" />
+                )}
+                {isActive && (
+                  <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-brand-green rounded-t-full" />
+                )}
+              </button>
+            )
+          })}
+        </div>
+        <div className="hidden md:block pb-3">
+          <button type="button" className="text-sm font-semibold text-gray-700 hover:text-brand-charcoal flex items-center gap-1 cursor-pointer">
+            Post Property
+            <span className="bg-emerald-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider ml-1">
+              Free
+            </span>
           </button>
         </div>
-      </form>
+      </div>
+
+      {/* ── Search Bar Row ─────────────────────────────────────────────────── */}
+      <div className="p-3 sm:p-4">
+        <form
+          onSubmit={handleSearch}
+          className="flex flex-col sm:flex-row items-center bg-gray-50/80 border border-gray-200 rounded-xl p-1.5 focus-within:ring-2 focus-within:ring-brand-green/20 focus-within:border-brand-green transition-all"
+        >
+          {/* Dropdown */}
+          <div className="relative flex items-center gap-1 px-4 py-2 border-b sm:border-b-0 sm:border-r border-gray-300 w-full sm:w-auto shrink-0">
+            <select
+              value={propertyType}
+              onChange={(e) => setPropertyType(e.target.value)}
+              className="appearance-none bg-transparent text-sm font-medium text-gray-700 focus:outline-none pr-5 w-full cursor-pointer"
+            >
+              <option>All Residential</option>
+              <option>Apartments</option>
+              <option>Villas</option>
+              <option>Plots</option>
+            </select>
+            <ChevronDown className="w-4 h-4 text-gray-400 absolute right-3 pointer-events-none" />
+          </div>
+
+          {/* Search Input */}
+          <div className="flex-grow flex items-center gap-2 px-4 py-2 w-full">
+            <Search className="w-4 h-4 text-gray-400 shrink-0" />
+            <input
+              type="text"
+              placeholder='Search "Hyderabad"'
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full bg-transparent text-sm text-brand-charcoal focus:outline-none font-medium placeholder-gray-400"
+            />
+          </div>
+
+          {/* Action Icons & Button */}
+          <div className="flex items-center gap-1 sm:gap-2 px-2 w-full sm:w-auto shrink-0 justify-end sm:justify-start">
+            <button
+              type="button"
+              className="p-2 text-brand-green hover:bg-brand-green/10 rounded-full transition-colors cursor-pointer"
+              title="Use current location"
+            >
+              <Crosshair className="w-4 h-4" />
+            </button>
+            <button
+              type="button"
+              className="p-2 text-brand-green hover:bg-brand-green/10 rounded-full transition-colors cursor-pointer"
+              title="Voice Search"
+            >
+              <Mic className="w-4 h-4" />
+            </button>
+            <button
+              type="submit"
+              className="px-6 py-2.5 bg-brand-green text-white text-sm font-bold rounded-lg hover:bg-brand-dark transition-colors cursor-pointer ml-1 shadow-sm"
+            >
+              Search
+            </button>
+          </div>
+        </form>
+
+        {/* ── Recent Searches (Optional) ─────────────────────────────────── */}
+        <div className="hidden sm:flex items-center gap-4 px-2 mt-4 text-[11px] text-gray-500 font-medium">
+          <span>Recent searches:</span>
+          <button type="button" className="flex items-center gap-1 hover:text-brand-charcoal cursor-pointer">
+            <MapPin className="w-3 h-3" />
+            Buy in Delhi , Farm House
+          </button>
+          <span className="text-gray-300">|</span>
+          <button type="button" className="flex items-center gap-1 hover:text-brand-charcoal cursor-pointer">
+            <Search className="w-3 h-3" />
+            View all searches
+          </button>
+        </div>
+      </div>
     </div>
   )
 }

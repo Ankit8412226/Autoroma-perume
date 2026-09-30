@@ -69,7 +69,7 @@ export function mapBackendProperty(raw: any): Property {
     pricePerSqFt: Number(raw.pricePerSqft) || 0,
     formattedPricePerSqFt: raw.pricePerSqft ? `₹${Number(raw.pricePerSqft).toLocaleString('en-IN')} / sq ft` : '',
     propertyType: TYPE_MAP[raw.propertyType] || 'Estate',
-    listingType: raw.listingType === 'RENT' ? 'Rent' : 'Buy',
+    listingType: raw.listingType === 'RENT' ? 'Rent' : raw.listingType === 'LEASE' ? 'Lease' : 'Buy',
     location: {
       city: raw.city || '',
       area: raw.area || raw.location || '',

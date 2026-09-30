@@ -9,82 +9,14 @@ const {
   parseGeminiPayload,
   finalizeExtractedPlots
 } = require('../utils/plotFromOcr');
+const {
+  PLOT_TILE_PROMPT,
+  SOLD_STAMP_PROMPT,
+  META_PROMPT,
+  MAX_OUTPUT_TOKENS
+} = require('./ocrPrompts');
 
-const PLOT_TILE_PROMPT = `You are an expert real-estate site-plan extractor.
 
-This is a ZOOMED slice of a township naksha. Extract EVERY individual saleable plot rectangle in this tile.
-
-Primary fields per plot:
-1. area (100 sq.yd, 400 Sq.Yd., 215 sq.yd, etc.)
-2. status: SOLD or AVAILABLE
-3. block (A or B if visible)
-4. center of the plot box
-
-IMPORTANT RULES:
-- Inspect the whole tile. Do NOT skip small plots. Do NOT merge adjacent plots.
-- Treat every visually separated pale/yellow/green box as one plot.
-- Read text inside each plot carefully.
-- If "SOLD" or "SOLD OUT" is written inside or across a plot, status = "SOLD".
-- If the plot has no SOLD stamp, status = "AVAILABLE".
-- Never guess a plot number or area. If unreadable, leave plotNo empty and put whatever area text you can read in label.
-- Leave plotNo empty unless a real plot number (not an area) is printed.
-- Ignore roads, Site Office, Other Site, parks, logos, marketing text.
-- Do not count SITE OFFICE or OTHER SITE as plots.
-
-Return STRICT JSON only. No markdown.
-{
-  "plots": [
-    {
-      "label": "400 Sq.Yd.",
-      "plotNo": "",
-      "block": "B",
-      "sellableSqYrd": 400,
-      "status": "AVAILABLE",
-      "markerXPercent": 12.4,
-      "markerYPercent": 48.1
-    }
-  ]
-}
-
-Rules:
-1. One object per saleable rectangle. Typical tiles have 6-20 plots.
-2. markerXPercent / markerYPercent = center of that box as a percent of THIS TILE (0-100).
-3. status must be "SOLD" or "AVAILABLE".
-4. Valid JSON only.`;
-
-const SOLD_STAMP_PROMPT = `You are reading a township naksha for SOLD stamps only.
-
-Find every saleable plot box that has the word SOLD or SOLD OUT printed on it.
-Ignore roads, Site Office, Other Site, and plots with no SOLD text.
-
-Return STRICT JSON only:
-{
-  "plots": [
-    {
-      "label": "400 Sq.Yd.",
-      "sellableSqYrd": 400,
-      "status": "SOLD",
-      "markerXPercent": 18.2,
-      "markerYPercent": 51.4
-    }
-  ]
-}
-
-markerXPercent / markerYPercent = center of the SOLD plot as a percent of THIS image (0-100).
-If no plot is sold, return {"plots":[]}. Never invent SOLD.`;
-
-const META_PROMPT = `Read only the marketing text on this township sheet. Return STRICT JSON:
-{
-  "projectMeta": {
-    "location": "",
-    "surveyNumber": "",
-    "village": "",
-    "highlights": [],
-    "locationAdvantages": [{"distance":"","landmark":""}],
-    "amenities": []
-  }
-}
-Use only printed text. No plots.`;
 
 function buildFullCoverageTiles() {
   const columns = [
@@ -106,7 +38,6 @@ function buildFullCoverageTiles() {
   })));
 }
 const TILE_ATTEMPTS = 3;
-const MAX_OUTPUT_TOKENS = 8192;
 
 function mimeFromFileName(fileName, fallback = 'image/jpeg') {
   const ext = path.extname(fileName || '').toLowerCase();

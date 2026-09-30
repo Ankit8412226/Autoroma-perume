@@ -660,41 +660,54 @@ exports.createBuyInquiry = async (req, res, next) => {
     const { id } = req.params;
     if (!isValidObjectId(id)) return res.status(400).json({ message: 'Invalid property id' });
 
-    const property = await Property.findById(id).select('title city state propertyType status approvalStatus isPublished');
+    const property = await Property.findById(id).select('title city state propertyType listingType status approvalStatus isPublished');
     if (!property) return res.status(404).json({ message: 'Property not found' });
     if (property.status === 'SOLD') return res.status(400).json({ message: 'This property has already been sold.' });
 
-    const { name, phone, email, message: userMessage, budget } = req.body;
+    const { name, phone, email, message: userMessage, budget, inquiryIntent } = req.body;
 
     if (!name || String(name).trim().length < 2) return res.status(400).json({ message: 'Full name is required' });
     if (!phone || String(phone).trim().length < 5) return res.status(400).json({ message: 'Phone number is required' });
+
+    // Determine inquiry type from client intent or fall back to listing type
+    const VALID_INTENTS = ['BUY', 'RENT', 'LEASE'];
+    const resolvedIntent = VALID_INTENTS.includes(inquiryIntent) ? inquiryIntent :
+      (property.listingType === 'RENT' ? 'RENT' : property.listingType === 'LEASE' ? 'LEASE' : 'BUY');
+
+    const INTENT_MAP = {
+      BUY:   { inquiryType: 'PROPERTY_BUY',   icon: '🏠', verb: 'Buy',   successMsg: 'Your buy inquiry has been submitted! Our team will contact you shortly.' },
+      RENT:  { inquiryType: 'PROPERTY_RENT',  icon: '🔑', verb: 'Rent',  successMsg: 'Your rent inquiry has been submitted! Our team will reach out shortly.' },
+      LEASE: { inquiryType: 'PROPERTY_LEASE', icon: '📋', verb: 'Lease', successMsg: 'Your lease inquiry has been submitted! Our team will contact you within 24 hours.' },
+    };
+    const intentCfg = INTENT_MAP[resolvedIntent];
 
     const Inquiry = require('../models/Inquiry');
 
     const inquiry = await Inquiry.create({
       name: String(name).trim().substring(0, 80),
-      email: String(email || '').trim().toLowerCase().substring(0, 100) || `${String(phone).trim()}@buyer.inquiry`,
+      email: String(email || '').trim().toLowerCase().substring(0, 100) || `${String(phone).trim()}@property.inquiry`,
       phone: String(phone).trim().substring(0, 20),
-      inquiryType: 'PROPERTY_BUY',
+      inquiryType: intentCfg.inquiryType,
       message: [
-        `[Buy Inquiry] Property: ${property.title}`,
+        `[${intentCfg.verb} Inquiry] Property: ${property.title}`,
         `City: ${[property.city, property.state].filter(Boolean).join(', ') || 'N/A'}`,
-        `Type: ${property.propertyType.replace('_', ' ')}`,
-        budget ? `Budget: ${budget}` : '',
-        userMessage ? `Message: ${String(userMessage).trim().substring(0, 500)}` : ''
+        `Type: ${property.propertyType.replace(/_/g, ' ')} · Listing: ${property.listingType || 'SALE'}`,
+        budget ? `Budget/Range: ${budget}` : '',
+        userMessage ? `Notes: ${String(userMessage).trim().substring(0, 600)}` : ''
       ].filter(Boolean).join('\n'),
       status: 'NEW',
       source: 'PROPERTY_PAGE'
     });
 
     notifyAdmins({
-      title: `🏠 Buy Inquiry — ${property.title}`,
-      message: `${String(name).trim()} · ${String(phone).trim()}${budget ? ` · Budget: ${budget}` : ''} · ${property.city || 'Location N/A'}`,
+      title: `${intentCfg.icon} ${intentCfg.verb} Inquiry — ${property.title}`,
+      message: `${String(name).trim()} · ${String(phone).trim()}${budget ? ` · ${budget}` : ''} · ${property.city || 'N/A'}`,
       category: 'INQUIRY',
       meta: {
         inquiryId: inquiry._id,
         propertyId: id,
         propertyTitle: property.title,
+        inquiryIntent: resolvedIntent,
         name: String(name).trim(),
         phone: String(phone).trim(),
         email: String(email || '').trim(),
@@ -704,7 +717,7 @@ exports.createBuyInquiry = async (req, res, next) => {
 
     res.status(201).json({
       success: true,
-      message: 'Your buy inquiry has been submitted! Our team will contact you shortly.',
+      message: intentCfg.successMsg,
       inquiryId: inquiry._id
     });
   } catch (error) {

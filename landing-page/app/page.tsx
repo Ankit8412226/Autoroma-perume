@@ -18,6 +18,7 @@ import { TestimonialsCommunityInsights } from '@/components/real-estate/Testimon
 import { PropertyCardSkeleton } from '@/components/common/Skeleton'
 import { formatCurrency } from '@/utils/formatters'
 import { PropertyCard } from '@/components/real-estate/PropertyCard'
+import { PropertySearch } from '@/components/real-estate/PropertySearch'
 import { mapBackendProperty } from '@/utils/mapListing'
 import {
   CheckCircle2,
@@ -121,8 +122,9 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-
-      {/* 2. BRAND STATS BAR */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-20 -mt-20 mb-10">
+        <PropertySearch />
+      </section>
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 bg-white border border-brand-green/15 rounded-2xl p-6 sm:p-8 shadow-sm">
           {stats.map((s) => (
@@ -137,8 +139,6 @@ export default function HomePage() {
           ))}
         </div>
       </section>
-
-      {/* 3. FEATURED PLOT PROJECTS (PRIMARY DB PROJECTS) */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between mb-8">
           <SectionHeading
@@ -155,7 +155,6 @@ export default function HomePage() {
             <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
           </button>
         </div>
-
         {isLoading ? (
           <PropertyCardSkeleton count={3} />
         ) : (
@@ -168,7 +167,6 @@ export default function HomePage() {
                 rel="noopener noreferrer"
                 className="group bg-white rounded-3xl overflow-hidden shadow-sm border border-brand-green/10 hover:shadow-xl hover:border-brand-green/30 transition-all duration-300 flex flex-col"
               >
-                {/* Image with gradient */}
                 <div className="relative aspect-[4/3] overflow-hidden bg-brand-charcoal">
                   <Image
                     src={proj.bannerImage || 'https://images.unsplash.com/photo-1582407947304-fd86f28f3fdc?w=800&q=80'}
@@ -178,11 +176,10 @@ export default function HomePage() {
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
                   <div className="absolute top-4 left-4">
-                    <span className={`px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider ${
-                      proj.status === 'ACTIVE' ? 'bg-emerald-500 text-white' :
-                      proj.status === 'UPCOMING' ? 'bg-amber-400 text-amber-900' :
-                      'bg-sky-500 text-white'
-                    }`}>
+                    <span className={`px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider ${proj.status === 'ACTIVE' ? 'bg-emerald-500 text-white' :
+                        proj.status === 'UPCOMING' ? 'bg-amber-400 text-amber-900' :
+                          'bg-sky-500 text-white'
+                      }`}>
                       {proj.status || 'ACTIVE'}
                     </span>
                   </div>
@@ -199,7 +196,6 @@ export default function HomePage() {
                   </div>
                 </div>
 
-                {/* Card body */}
                 <div className="p-5 flex-1 flex flex-col gap-3">
                   <div className="grid grid-cols-3 gap-2 text-center">
                     <div className="bg-[#EAF3EF] rounded-xl p-2 border border-brand-green/15">
