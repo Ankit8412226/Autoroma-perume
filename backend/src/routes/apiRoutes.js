@@ -56,6 +56,10 @@ router.get('/public/locations', inquiryController.getPublicLocations);
 router.get('/public/properties', propertyController.getPublicProperties);
 router.get('/public/properties/locations', propertyController.getPublicPropertyLocations);
 router.get('/public/properties/:slug', propertyController.getPublicPropertyBySlug);
+router.post('/public/properties/:id/buy-inquiry', inquiryLimiter, validate({
+  name: { required: true, type: 'string', minLength: 2, maxLength: 80 },
+  phone: { required: true, type: 'string', minLength: 5, maxLength: 20 }
+}), propertyController.createBuyInquiry);
 router.get('/public/gallery', galleryController.getPublicGallery);
 router.get('/public/bulk-deals', bulkDealController.getPublicBulkDeals);
 router.get('/public/bulk-deals/locations', bulkDealController.getPublicBulkDealLocations);
@@ -214,6 +218,9 @@ router.put('/properties/:id', protect, authorize('ADMIN', 'DIRECTOR'), validate(
   price: { type: 'number', min: 0 },
   projectId: { type: 'objectId' }
 }), propertyController.updateProperty);
+router.patch('/properties/:id/status', protect, authorize('ADMIN', 'DIRECTOR', 'MANAGER'), validate({
+  status: { required: true, type: 'string', enum: PROPERTY_STATUSES }
+}), propertyController.updatePropertyStatus);
 router.delete('/properties/:id', protect, authorize('ADMIN'), propertyController.deleteProperty);
 
 // --- Plot Management & Sales Routes ---

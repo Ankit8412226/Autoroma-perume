@@ -272,6 +272,23 @@ const DEFAULT_MAJOR_INDIAN_CITIES = [
             <p className="text-white/70 text-xs sm:text-sm max-w-2xl mx-auto font-normal">
               Search verified residential plots, commercial spaces, luxury villas, and showrooms by typing any city, locality, sector, or project name.
             </p>
+            {/* Buy & Sell CTA Pills */}
+            <div className="flex items-center justify-center gap-3 pt-1 flex-wrap">
+              <Link
+                href="/list-your-property"
+                className="inline-flex items-center gap-2 px-5 py-2 bg-amber-400 hover:bg-amber-300 text-slate-900 font-bold text-xs uppercase tracking-wider rounded-full transition-all shadow-lg cursor-pointer border border-amber-300"
+              >
+                <Home className="w-4 h-4" />
+                🏠 Sell / List Your Property — Free
+              </Link>
+              <a
+                href="#properties-grid"
+                className="inline-flex items-center gap-2 px-5 py-2 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-200 font-bold text-xs uppercase tracking-wider rounded-full transition-all border border-emerald-500/30 cursor-pointer"
+              >
+                <Layers className="w-4 h-4" />
+                Browse &amp; Buy Properties ↓
+              </a>
+            </div>
           </div>
           <div className="bg-white rounded-3xl p-3 sm:p-4 shadow-2xl border border-emerald-500/20 max-w-5xl mx-auto text-slate-800">
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2.5">
@@ -500,48 +517,69 @@ const DEFAULT_MAJOR_INDIAN_CITIES = [
           </div>
         )}
 
-        {/* Callout Action Banners (Bulk Buy & List Property) */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="bg-gradient-to-r from-emerald-950 via-emerald-900 to-slate-900 rounded-3xl p-5 text-white border border-emerald-500/20 shadow-md flex items-center justify-between gap-4">
+        {/* Callout Action Banners: Buy, Bulk Buy, Sell */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Sell / List Your Property */}
+          <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-3xl p-5 border border-amber-200 shadow-md flex flex-col justify-between gap-3">
+            <div>
+              <span className="px-2.5 py-0.5 bg-amber-500/20 text-amber-700 rounded-md text-[10px] font-extrabold uppercase tracking-wider border border-amber-300">
+                🏠 FREE SELLER LISTING
+              </span>
+              <h4 className="font-serif text-base font-bold text-slate-900 mt-2">Sell Your Property</h4>
+              <p className="text-xs text-slate-600 mt-0.5">
+                List your plot, villa, apartment, or commercial space. Reach lakhs of verified buyers — zero brokerage.
+              </p>
+            </div>
+            <Link
+              href="/list-your-property"
+              className="w-full px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs uppercase tracking-wider rounded-2xl cursor-pointer flex items-center justify-center gap-1.5 transition-all shadow-md"
+            >
+              <Home className="w-4 h-4" /> List Your Property — Free
+            </Link>
+          </div>
+
+          {/* Bulk Buy */}
+          <div className="bg-gradient-to-r from-emerald-950 via-emerald-900 to-slate-900 rounded-3xl p-5 text-white border border-emerald-500/20 shadow-md flex flex-col justify-between gap-3">
             <div>
               <span className="px-2.5 py-0.5 bg-amber-500/20 text-amber-300 rounded-md text-[10px] font-extrabold uppercase tracking-wider border border-amber-500/30">
                 HOT INVESTOR DEAL
               </span>
-              <h4 className="font-serif text-base font-bold text-white mt-1">Bulk Buy Property Deals</h4>
-              <p className="text-xs text-white/70 mt-0.5 max-w-sm">
-                Looking for multiple plots or high-ticket investor syndicates? Submit your bulk quota requirement.
+              <h4 className="font-serif text-base font-bold text-white mt-2">Bulk Buy Deals</h4>
+              <p className="text-xs text-white/70 mt-0.5">
+                Looking for multiple plots or high-ticket investor syndicates? Submit your bulk requirement.
               </p>
             </div>
             <button
               type="button"
               onClick={() => setIsBulkBuyOpen(true)}
-              className="px-4 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs uppercase tracking-wider rounded-2xl shrink-0 shadow-lg cursor-pointer flex items-center gap-1.5 transition-all"
+              className="w-full px-4 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs uppercase tracking-wider rounded-2xl cursor-pointer flex items-center justify-center gap-1.5 transition-all shadow-lg"
             >
-              <Building2 className="w-4 h-4" /> Bulk Buy
+              <Building2 className="w-4 h-4" /> Submit Bulk Inquiry
             </button>
           </div>
 
-          <div className="bg-white rounded-3xl p-5 border border-slate-200 shadow-md flex items-center justify-between gap-4">
+          {/* Browse Properties */}
+          <div className="bg-white rounded-3xl p-5 border border-slate-200 shadow-md flex flex-col justify-between gap-3">
             <div>
               <span className="px-2.5 py-0.5 bg-emerald-100 text-emerald-800 rounded-md text-[10px] font-extrabold uppercase tracking-wider border border-emerald-200">
-                FREE SELLER LISTING
+                🔍 BROWSE &amp; BUY
               </span>
-              <h4 className="font-serif text-base font-bold text-slate-900 mt-1">Own Property? List For Free</h4>
-              <p className="text-xs text-slate-500 mt-0.5 max-w-sm">
-                Reach thousands of verified buyers & investors. Admin reviewed before going live.
+              <h4 className="font-serif text-base font-bold text-slate-900 mt-2">Find &amp; Buy Property</h4>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Browse verified listings and click <strong>Buy Now</strong> on any property card to submit your purchase inquiry instantly.
               </p>
             </div>
-            <Link
-              href="/list-your-property"
-              className="px-4 py-2.5 border-2 border-slate-900 text-slate-900 hover:bg-slate-900 hover:text-white font-bold text-xs uppercase tracking-wider rounded-2xl shrink-0 cursor-pointer flex items-center gap-1.5 transition-all"
+            <a
+              href="#properties-grid"
+              className="w-full px-4 py-2.5 bg-[#0B4F3C] hover:bg-[#0a4434] text-white font-bold text-xs uppercase tracking-wider rounded-2xl cursor-pointer flex items-center justify-center gap-1.5 transition-all shadow-md"
             >
-              <Building2 className="w-4 h-4" /> List Free
-            </Link>
+              <Layers className="w-4 h-4" /> Browse Properties Below ↓
+            </a>
           </div>
         </div>
 
         {/* Directory Controls & Sorting Bar */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div id="properties-grid" className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <h2 className="font-serif text-lg font-bold text-slate-900">
               {selectedCity === 'All Cities' ? 'All Verified Properties' : `Properties in ${selectedCity}`}

@@ -36,3 +36,8 @@ export async function rejectProperty(id: string, reason?: string) {
   const res = await api.post(`/properties/${id}/reject`, { reason: reason || '' });
   return res.data;
 }
+
+export async function updatePropertyStatus(id: string, status: 'AVAILABLE' | 'BOOKED' | 'SOLD' | 'UPCOMING') {
+  const res = await api.patch(`/properties/${id}/status`, { status });
+  return res.data;
+}

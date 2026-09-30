@@ -9,7 +9,8 @@ import { PriceDisplay } from './PriceDisplay'
 import { useCompareStore } from '@/stores/compare.store'
 import { PropertyQuickViewModal } from './PropertyQuickViewModal'
 import { BulkBuyModal } from './BulkBuyModal'
-import { Bed, Bath, Maximize2, MapPin, ArrowRight, Eye, Scale, Building2 } from 'lucide-react'
+import { BuyPropertyModal } from './BuyPropertyModal'
+import { Bed, Bath, Maximize2, MapPin, ArrowRight, Eye, Scale, Building2, ShoppingCart } from 'lucide-react'
 
 const FRONTEND_TYPE_TO_API: Record<string, string> = {
   Villa: 'VILLA',
@@ -43,6 +44,7 @@ export function PropertyCard({
 }: PropertyCardProps) {
   const [isQuickViewOpen, setIsQuickViewOpen] = React.useState(false)
   const [isBulkBuyOpen, setIsBulkBuyOpen] = React.useState(false)
+  const [isBuyOpen, setIsBuyOpen] = React.useState(false)
   const [mounted, setMounted] = React.useState(false)
   const bulkBuyContext = {
     propertyId: property.id,
@@ -55,6 +57,12 @@ export function PropertyCard({
     e.preventDefault()
     e.stopPropagation()
     setIsBulkBuyOpen(true)
+  }
+
+  const handleBuyClick = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsBuyOpen(true)
   }
 
   const isComparingStore = useCompareStore((state) => state.isComparing(property.id))
@@ -112,6 +120,14 @@ export function PropertyCard({
                 </button>
                 <button
                   type="button"
+                  onClick={handleBuyClick}
+                  className="px-3 py-1 bg-emerald-500 hover:bg-emerald-600 text-white text-[10px] font-bold uppercase tracking-wider rounded-md border border-emerald-500 flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
+                >
+                  <ShoppingCart className="w-3.5 h-3.5" />
+                  <span>Buy Now</span>
+                </button>
+                <button
+                  type="button"
                   onClick={handleBulkBuyClick}
                   className="px-3 py-1 bg-brand-green text-white text-[10px] font-semibold uppercase tracking-wider rounded-md border border-brand-green flex items-center gap-1.5 shadow-sm hover:bg-brand-dark transition-all cursor-pointer"
                 >
@@ -159,6 +175,14 @@ export function PropertyCard({
           isOpen={isBulkBuyOpen}
           onClose={() => setIsBulkBuyOpen(false)}
           context={bulkBuyContext}
+        />
+        <BuyPropertyModal
+          isOpen={isBuyOpen}
+          onClose={() => setIsBuyOpen(false)}
+          propertyId={property.id}
+          propertyTitle={property.title}
+          propertyCity={property.location?.city}
+          propertyPrice={property.formattedPrice}
         />
       </>
     )
@@ -223,6 +247,14 @@ export function PropertyCard({
               <div className="flex items-center gap-3">
                 <button
                   type="button"
+                  onClick={handleBuyClick}
+                  className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white border border-emerald-600 text-xs font-bold uppercase tracking-wider rounded-md transition-colors cursor-pointer flex items-center gap-1"
+                >
+                  <ShoppingCart className="w-3.5 h-3.5" />
+                  Buy Now
+                </button>
+                <button
+                  type="button"
                   onClick={handleBulkBuyClick}
                   className="px-3 py-1.5 bg-white hover:bg-brand-green hover:text-white border border-brand-green/20 text-brand-green text-xs font-semibold uppercase tracking-wider rounded-md transition-colors cursor-pointer"
                 >
@@ -255,6 +287,14 @@ export function PropertyCard({
           isOpen={isBulkBuyOpen}
           onClose={() => setIsBulkBuyOpen(false)}
           context={bulkBuyContext}
+        />
+        <BuyPropertyModal
+          isOpen={isBuyOpen}
+          onClose={() => setIsBuyOpen(false)}
+          propertyId={property.id}
+          propertyTitle={property.title}
+          propertyCity={property.location?.city}
+          propertyPrice={property.formattedPrice}
         />
       </>
     )
@@ -335,6 +375,14 @@ export function PropertyCard({
             <div className="flex items-center justify-between gap-2 pt-1 border-t border-brand-green/5 text-xs">
               <button
                 type="button"
+                onClick={handleBuyClick}
+                className="inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-wider text-emerald-700 hover:text-emerald-900 transition-colors bg-emerald-50 hover:bg-emerald-100 px-2 py-1 rounded-lg"
+              >
+                <ShoppingCart className="w-3 h-3" />
+                <span>Buy Now</span>
+              </button>
+              <button
+                type="button"
                 onClick={handleBulkBuyClick}
                 className="inline-flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wider text-brand-green hover:text-brand-dark transition-colors"
               >
@@ -361,6 +409,14 @@ export function PropertyCard({
         isOpen={isBulkBuyOpen}
         onClose={() => setIsBulkBuyOpen(false)}
         context={bulkBuyContext}
+      />
+      <BuyPropertyModal
+        isOpen={isBuyOpen}
+        onClose={() => setIsBuyOpen(false)}
+        propertyId={property.id}
+        propertyTitle={property.title}
+        propertyCity={property.location?.city}
+        propertyPrice={property.formattedPrice}
       />
     </>
   )

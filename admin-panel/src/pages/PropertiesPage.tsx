@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { Edit, Home, Plus, RefreshCw, Trash2, CheckCircle, XCircle, Clock, ExternalLink, ShieldCheck, X, FileText, UserCheck } from 'lucide-react';
+import { Edit, Home, Plus, RefreshCw, Trash2, CheckCircle, XCircle, Clock, ExternalLink, ShieldCheck, X, FileText, UserCheck, Tag, ShoppingCart, ChevronDown } from 'lucide-react';
 import { ListingProperty } from '../types';
-import { deleteProperty, fetchProperties, approveProperty, rejectProperty } from '../services/propertiesService';
+import { deleteProperty, fetchProperties, approveProperty, rejectProperty, updatePropertyStatus } from '../services/propertiesService';
 import { AddPropertyModal } from '../components/properties/AddPropertyModal';
 import { EditPropertyModal } from '../components/properties/EditPropertyModal';
 import { EmptyState } from '../components/common/EmptyState';
@@ -16,6 +16,20 @@ const TYPE_LABEL: Record<string, string> = {
   APARTMENT: 'Apartment',
   LAND: 'Land'
 };
+
+const STATUS_COLORS: Record<string, string> = {
+  AVAILABLE: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+  BOOKED: 'bg-amber-50 text-amber-700 border-amber-200',
+  SOLD: 'bg-red-50 text-red-700 border-red-200',
+  UPCOMING: 'bg-sky-50 text-sky-700 border-sky-200',
+};
+
+const PROPERTY_STATUSES = [
+  { value: 'AVAILABLE', label: 'Available', icon: '🟢' },
+  { value: 'BOOKED', label: 'Booked', icon: '🟡' },
+  { value: 'SOLD', label: 'Sold', icon: '🔴' },
+  { value: 'UPCOMING', label: 'Upcoming', icon: '🔵' },
+] as const;
 
 type ApprovalTab = 'ALL' | 'PENDING' | 'APPROVED' | 'REJECTED';
 
@@ -251,6 +265,7 @@ export const PropertiesPage: React.FC = () => {
   const [rejectTarget, setRejectTarget] = useState<ListingProperty | null>(null);
   const [kycTarget, setKycTarget] = useState<ListingProperty | null>(null);
   const [activeTab, setActiveTab] = useState<ApprovalTab>('ALL');
+  const [statusUpdating, setStatusUpdating] = useState<string | null>(null);
 
   const load = async () => {
     setIsLoading(true);
@@ -287,6 +302,20 @@ export const PropertiesPage: React.FC = () => {
       load();
     } catch (e: any) {
       toast.error(e?.friendlyMessage || 'Failed to approve property');
+    }
+  };
+
+  const handleStatusUpdate = async (property: ListingProperty, newStatus: 'AVAILABLE' | 'BOOKED' | 'SOLD' | 'UPCOMING') => {
+    if (property.status === newStatus) return;
+    setStatusUpdating(property._id);
+    try {
+      await updatePropertyStatus(property._id, newStatus);
+      toast.success(`Property marked as ${newStatus}`);
+      load();
+    } catch (e: any) {
+      toast.error(e?.friendlyMessage || 'Failed to update status');
+    } finally {
+      setStatusUpdating(null);
     }
   };
 
@@ -401,7 +430,33 @@ export const PropertiesPage: React.FC = () => {
                   <span className="text-sm font-extrabold text-[#0B4F3C]">
                     {property.priceRange || (property.price ? `₹${property.price.toLocaleString('en-IN')}` : 'Price on request')}
                   </span>
-                  <span className="text-[10px] font-bold uppercase text-[#171A18]/50">{property.status}</span>
+                  {/* Status Quick-Change Dropdown */}
+                  <div className="relative group/status">
+                    <button
+                      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[10px] font-bold cursor-pointer ${STATUS_COLORS[property.status] || 'bg-slate-50 text-slate-600 border-slate-200'}`}
+                      title="Click to change status"
+                      disabled={statusUpdating === property._id}
+                    >
+                      {statusUpdating === property._id ? 'Updating…' : property.status}
+                      <ChevronDown className="w-3 h-3" />
+                    </button>
+                    <div className="absolute right-0 top-full mt-1 w-36 bg-white border border-[#0B4F3C]/20 rounded-xl shadow-xl z-20 overflow-hidden hidden group-hover/status:block">
+                      {PROPERTY_STATUSES.map((s) => (
+                        <button
+                          key={s.value}
+                          onClick={() => handleStatusUpdate(property, s.value)}
+                          className={`w-full text-left px-3 py-2 text-xs font-bold transition-colors cursor-pointer flex items-center gap-2 ${
+                            property.status === s.value
+                              ? 'bg-[#EAF3EF] text-[#0B4F3C]'
+                              : 'text-[#171A18] hover:bg-[#EAF3EF]/60'
+                          }`}
+                        >
+                          <span>{s.icon}</span> {s.label}
+                          {property.status === s.value && <CheckCircle className="w-3 h-3 ml-auto text-emerald-600" />}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 </div>
                 <p className="text-[10px] text-[#171A18]/50">{property.gallery?.length || 0} gallery photos</p>
 

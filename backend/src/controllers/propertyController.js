@@ -651,6 +651,96 @@ exports.rejectProperty = async (req, res, next) => {
   }
 };
 
+// ---------------------------------------------------------------------------
+// PUBLIC: BUYER INQUIRY FOR A SPECIFIC PROPERTY
+// ---------------------------------------------------------------------------
+
+exports.createBuyInquiry = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    if (!isValidObjectId(id)) return res.status(400).json({ message: 'Invalid property id' });
+
+    const property = await Property.findById(id).select('title city state propertyType status approvalStatus isPublished');
+    if (!property) return res.status(404).json({ message: 'Property not found' });
+    if (property.status === 'SOLD') return res.status(400).json({ message: 'This property has already been sold.' });
+
+    const { name, phone, email, message: userMessage, budget } = req.body;
+
+    if (!name || String(name).trim().length < 2) return res.status(400).json({ message: 'Full name is required' });
+    if (!phone || String(phone).trim().length < 5) return res.status(400).json({ message: 'Phone number is required' });
+
+    const Inquiry = require('../models/Inquiry');
+
+    const inquiry = await Inquiry.create({
+      name: String(name).trim().substring(0, 80),
+      email: String(email || '').trim().toLowerCase().substring(0, 100) || `${String(phone).trim()}@buyer.inquiry`,
+      phone: String(phone).trim().substring(0, 20),
+      inquiryType: 'PROPERTY_BUY',
+      message: [
+        `[Buy Inquiry] Property: ${property.title}`,
+        `City: ${[property.city, property.state].filter(Boolean).join(', ') || 'N/A'}`,
+        `Type: ${property.propertyType.replace('_', ' ')}`,
+        budget ? `Budget: ${budget}` : '',
+        userMessage ? `Message: ${String(userMessage).trim().substring(0, 500)}` : ''
+      ].filter(Boolean).join('\n'),
+      status: 'NEW',
+      source: 'PROPERTY_PAGE'
+    });
+
+    notifyAdmins({
+      title: `🏠 Buy Inquiry — ${property.title}`,
+      message: `${String(name).trim()} · ${String(phone).trim()}${budget ? ` · Budget: ${budget}` : ''} · ${property.city || 'Location N/A'}`,
+      category: 'INQUIRY',
+      meta: {
+        inquiryId: inquiry._id,
+        propertyId: id,
+        propertyTitle: property.title,
+        name: String(name).trim(),
+        phone: String(phone).trim(),
+        email: String(email || '').trim(),
+        budget
+      }
+    });
+
+    res.status(201).json({
+      success: true,
+      message: 'Your buy inquiry has been submitted! Our team will contact you shortly.',
+      inquiryId: inquiry._id
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// ---------------------------------------------------------------------------
+// ADMIN: QUICK STATUS UPDATE (AVAILABLE / BOOKED / SOLD / UPCOMING)
+// ---------------------------------------------------------------------------
+
+exports.updatePropertyStatus = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    if (!isValidObjectId(id)) return res.status(400).json({ message: 'Invalid property id' });
+
+    const { status } = req.body;
+    const PROPERTY_STATUSES = ['AVAILABLE', 'BOOKED', 'SOLD', 'UPCOMING'];
+    if (!PROPERTY_STATUSES.includes(status)) {
+      return res.status(400).json({ message: `Invalid status. Must be one of: ${PROPERTY_STATUSES.join(', ')}` });
+    }
+
+    const property = await Property.findByIdAndUpdate(
+      id,
+      { status },
+      { new: true }
+    ).select('title status');
+
+    if (!property) return res.status(404).json({ message: 'Property not found' });
+
+    res.json({ success: true, message: `Property marked as ${status}`, data: { status: property.status } });
+  } catch (error) {
+    next(error);
+  }
+};
+
 exports.getPublicPropertyLocations = async (req, res, next) => {
   try {
     const Project = require('../models/Project');
