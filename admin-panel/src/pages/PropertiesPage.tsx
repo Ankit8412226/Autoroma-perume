@@ -48,6 +48,52 @@ function ApprovalBadge({ status }: { status?: string }) {
   );
 }
 
+function PropertyImageBanner({ property, isPublicSubmission }: { property: ListingProperty; isPublicSubmission: boolean }) {
+  const [hasError, setHasError] = useState(false);
+
+  const rawImage =
+    property.heroImage ||
+    property.gallery?.[0]?.url ||
+    (typeof property.gallery?.[0] === 'string' ? (property.gallery[0] as unknown as string) : '');
+
+  const candidateImage =
+    !hasError && rawImage && typeof rawImage === 'string' && rawImage.trim().length > 4
+      ? rawImage.trim()
+      : null;
+
+  return (
+    <div className="h-40 bg-[#EAF3EF] relative overflow-hidden group/img">
+      {candidateImage ? (
+        <img
+          src={candidateImage}
+          alt=""
+          onError={() => setHasError(true)}
+          className="w-full h-full object-cover group-hover/img:scale-105 transition-transform duration-500"
+        />
+      ) : (
+        <div className="w-full h-full flex flex-col items-center justify-center gap-1 text-[#0B4F3C]/40 bg-gradient-to-br from-[#EAF3EF] to-[#dbeef3]">
+          <Home className="w-10 h-10 text-[#0B4F3C]/30" />
+          <span className="text-[9.5px] font-bold uppercase tracking-wider text-[#0B4F3C]/60">
+            No Image Uploaded
+          </span>
+        </div>
+      )}
+
+      {/* Property Type Badge */}
+      <span className="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-white/95 backdrop-blur-sm text-[10px] font-extrabold text-[#0B4F3C] shadow-sm border border-[#0B4F3C]/10">
+        {TYPE_LABEL[property.propertyType] || property.propertyType}
+      </span>
+
+      {/* Public Submission Badge */}
+      {isPublicSubmission && (
+        <span className="absolute top-3 right-3 px-2.5 py-1 rounded-full bg-sky-50 text-sky-700 border border-sky-200 text-[10px] font-extrabold shadow-sm">
+          PUBLIC
+        </span>
+      )}
+    </div>
+  );
+}
+
 interface KycModalProps {
   property: ListingProperty;
   onClose: () => void;
@@ -368,23 +414,7 @@ export const PropertiesPage: React.FC = () => {
           const isPending = property.approvalStatus === 'PENDING';
           return (
             <article key={property._id} className={`bg-white border rounded-3xl overflow-hidden shadow-sm ${isPending ? 'border-amber-300' : 'border-[#0B4F3C]/10'}`}>
-              <div className="h-40 bg-[#EAF3EF] relative">
-                {property.heroImage ? (
-                  <img src={property.heroImage} alt={property.title} className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-[#0B4F3C]/40">
-                    <Home className="w-10 h-10" />
-                  </div>
-                )}
-                <span className="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-white/90 text-[10px] font-extrabold text-[#0B4F3C]">
-                  {TYPE_LABEL[property.propertyType] || property.propertyType}
-                </span>
-                {isPublicSubmission && (
-                  <span className="absolute top-3 right-3 px-2.5 py-1 rounded-full bg-brand-sky/10 text-sky-700 text-[10px] font-extrabold">
-                    PUBLIC
-                  </span>
-                )}
-              </div>
+              <PropertyImageBanner property={property} isPublicSubmission={isPublicSubmission} />
               <div className="p-4 space-y-2">
                 <div className="flex items-start justify-between gap-2">
                   <h3 className="font-serif font-bold text-[#171A18] leading-snug flex-1">{property.title}</h3>

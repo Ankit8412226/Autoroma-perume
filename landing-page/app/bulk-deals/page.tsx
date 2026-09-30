@@ -544,68 +544,68 @@ export default function BulkDealsPage() {
 
                       {/* HOUSE & SKY LAND SPECIFICATIONS SHEET TABLE */}
                       <div className="bg-gradient-to-b from-[#0A2E23] to-[#051813] border border-amber-500/30 rounded-2xl p-3 space-y-2">
-                        <div className="flex items-center justify-between border-b border-amber-400/20 pb-1.5">
-                          <span className="text-[11px] font-serif font-bold text-amber-300 flex items-center gap-1">
-                            <Layers className="w-3.5 h-3.5" /> My Property Details Spec
+                        <div className="flex items-center justify-between border-b border-amber-400/20 pb-1.5 gap-2">
+                          <span className="text-[11px] font-serif font-bold text-amber-300 flex items-center gap-1 truncate">
+                            <Layers className="w-3.5 h-3.5 shrink-0" /> My Property Details Spec
                           </span>
                           <button
                             type="button"
                             onClick={() => setViewingSpecDeal(deal)}
-                            className="text-[9.5px] text-emerald-300 font-bold hover:underline"
+                            className="text-[9.5px] text-emerald-300 font-bold hover:underline shrink-0"
                           >
                             Full Sheet →
                           </button>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-1.5 text-[11px]">
-                          <div className="bg-black/40 px-2.5 py-1 rounded-lg border border-white/5 flex justify-between">
-                            <span className="text-neutral-400">Survey No:</span>
-                            <span className="font-bold text-white">{deal.surveyNumber || '427'}</span>
+                        <div className="grid grid-cols-2 gap-1.5 text-[10.5px] sm:text-[11px]">
+                          <div className="bg-black/40 px-2 py-1 rounded-lg border border-white/5 flex items-center justify-between gap-1">
+                            <span className="text-neutral-400 shrink-0">Survey No:</span>
+                            <span className="font-bold text-white truncate text-right">{deal.surveyNumber || '427'}</span>
                           </div>
-                          <div className="bg-black/40 px-2.5 py-1 rounded-lg border border-white/5 flex justify-between">
-                            <span className="text-neutral-400">Old FP No:</span>
-                            <span className="font-bold text-white">{deal.finalPlotNo || '521/1/1'}</span>
+                          <div className="bg-black/40 px-2 py-1 rounded-lg border border-white/5 flex items-center justify-between gap-1">
+                            <span className="text-neutral-400 shrink-0">Old FP No:</span>
+                            <span className="font-bold text-white truncate text-right">{deal.finalPlotNo || '521/1/1'}</span>
                           </div>
-                          <div className="bg-black/40 px-2.5 py-1 rounded-lg border border-white/5 flex justify-between">
-                            <span className="text-neutral-400">Area:</span>
-                            <span className="font-bold text-white">{deal.areaSize || '6100 SQYD'}</span>
+                          <div className="bg-black/40 px-2 py-1 rounded-lg border border-white/5 flex items-center justify-between gap-1">
+                            <span className="text-neutral-400 shrink-0">Area:</span>
+                            <span className="font-bold text-white truncate text-right">{deal.areaSize || '6100 SQYD'}</span>
                           </div>
-                          <div className="bg-black/40 px-2.5 py-1 rounded-lg border border-white/5 flex justify-between">
-                            <span className="text-neutral-400">Road:</span>
-                            <span className="font-bold text-white">{deal.roadWidth || '70 MTR'}</span>
+                          <div className="bg-black/40 px-2 py-1 rounded-lg border border-white/5 flex items-center justify-between gap-1">
+                            <span className="text-neutral-400 shrink-0">Road:</span>
+                            <span className="font-bold text-white truncate text-right">{deal.roadWidth || '70 MTR'}</span>
                           </div>
-                          <div className="bg-black/40 px-2.5 py-1 rounded-lg border border-white/5 flex justify-between col-span-2">
-                            <span className="text-neutral-400">TP / Sector:</span>
-                            <span className="font-bold text-white truncate max-w-[170px]">{deal.tpSectorVillage || '3C / Sector-12 / Rampura'}</span>
+                          <div className="bg-black/40 px-2 py-1 rounded-lg border border-white/5 flex items-center justify-between gap-1 col-span-2">
+                            <span className="text-neutral-400 shrink-0">TP / Sector:</span>
+                            <span className="font-bold text-white truncate text-right">{deal.tpSectorVillage || '3C / Sector-12 / Rampura'}</span>
                           </div>
-                          <div className="bg-black/40 px-2.5 py-1 rounded-lg border border-white/5 flex justify-between">
-                            <span className="text-neutral-400">Corner:</span>
-                            <span className="font-bold text-amber-300">{deal.isCorner || 'Corner'}</span>
+                          <div className="bg-black/40 px-2 py-1 rounded-lg border border-white/5 flex items-center justify-between gap-1">
+                            <span className="text-neutral-400 shrink-0">Corner:</span>
+                            <span className="font-bold text-amber-300 truncate text-right">{deal.isCorner || 'Corner'}</span>
                           </div>
-                          <div className="bg-black/40 px-2.5 py-1 rounded-lg border border-white/5 flex justify-between">
-                            <span className="text-neutral-400">NA Status:</span>
-                            <span className="font-bold text-emerald-400">{deal.naStatus || 'READY'}</span>
+                          <div className="bg-black/40 px-2 py-1 rounded-lg border border-white/5 flex items-center justify-between gap-1">
+                            <span className="text-neutral-400 shrink-0">NA Status:</span>
+                            <span className="font-bold text-emerald-400 truncate text-right">{deal.naStatus || 'READY'}</span>
                           </div>
                         </div>
 
                         {/* Rate Highlight Bar */}
-                        <div className="bg-gradient-to-r from-amber-500 to-amber-600 rounded-xl p-2 px-3 text-slate-950 flex items-center justify-between font-extrabold text-xs">
-                          <span>{deal.areaSize || '6100 SQYD'}</span>
-                          <span className="text-sm">RATE: ₹{Number(deal.ratePerUnit || 18000).toLocaleString('en-IN')}</span>
+                        <div className="bg-gradient-to-r from-amber-500 to-amber-600 rounded-xl p-2 px-3 text-slate-950 flex flex-wrap items-center justify-between gap-1.5 font-extrabold text-xs">
+                          <span className="truncate">{deal.areaSize || '6100 SQYD'}</span>
+                          <span className="text-xs sm:text-sm font-black whitespace-nowrap">RATE: ₹{Number(deal.ratePerUnit || 18000).toLocaleString('en-IN')}</span>
                         </div>
                       </div>
 
                       {/* Pricing Comparison */}
-                      <div className="bg-neutral-950 border border-white/10 rounded-2xl p-3 flex items-center justify-between">
-                        <div>
+                      <div className="bg-neutral-950 border border-white/10 rounded-2xl p-3 flex items-center justify-between gap-2">
+                        <div className="min-w-0">
                           <span className="text-[10px] text-neutral-400 font-semibold uppercase block">Original Price</span>
-                          <span className="text-xs text-neutral-400 line-through font-bold">
+                          <span className="text-xs text-neutral-400 line-through font-bold truncate block">
                             {deal.originalPriceDisplay || 'N/A'}
                           </span>
                         </div>
-                        <div className="text-right">
-                          <span className="text-[10px] text-amber-400 font-bold uppercase block">🔥 Special Bulk Rate</span>
-                          <span className="text-base text-amber-400 font-extrabold">
+                        <div className="text-right min-w-0">
+                          <span className="text-[10px] text-amber-400 font-bold uppercase block whitespace-nowrap">🔥 Special Bulk Rate</span>
+                          <span className="text-xs sm:text-base text-amber-400 font-extrabold truncate block">
                             {deal.bulkPriceDisplay || 'Special Quote'}
                           </span>
                         </div>
