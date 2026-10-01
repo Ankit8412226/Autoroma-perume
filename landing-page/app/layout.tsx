@@ -56,12 +56,12 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className={`${cormorant.variable} ${inter.variable}`}>
+    <html lang="en" className={`scroll-smooth scroll-pt-32 sm:scroll-pt-36 ${cormorant.variable} ${inter.variable}`}>
       <body className="bg-bg-primary text-brand-charcoal font-inter antialiased selection:bg-brand-soft selection:text-brand-green">
         <QueryProvider>
           <ToastProvider>
             <Navbar />
-            <div className="min-h-screen pt-24 sm:pt-28">
+            <div className="min-h-screen pt-28 sm:pt-32">
               {children}
             </div>
             <Footer />

@@ -70,6 +70,15 @@ const config: Config = {
         md: '10px',
         lg: '14px',
       },
+      animation: {
+        'marquee-continuous': 'marquee-continuous 25s linear infinite',
+      },
+      keyframes: {
+        'marquee-continuous': {
+          '0%': { transform: 'translateX(0%)' },
+          '100%': { transform: 'translateX(-50%)' },
+        },
+      },
     },
   },
   plugins: [],

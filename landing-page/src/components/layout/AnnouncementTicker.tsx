@@ -44,7 +44,7 @@ export function AnnouncementTicker() {
 
       {/* Marquee scrolling container */}
       <div className="relative flex-1 overflow-hidden h-full flex items-center">
-        <div className="animate-marquee-continuous flex items-center whitespace-nowrap cursor-default">
+        <div className="animate-marquee-continuous flex items-center whitespace-nowrap w-max cursor-default">
           <span className="inline-flex items-center gap-6 px-4 text-xs font-bold text-[#171A18] tracking-wide">
             <span>{announcement}</span>
             <span className="text-[#063B2D] font-black">◆</span>

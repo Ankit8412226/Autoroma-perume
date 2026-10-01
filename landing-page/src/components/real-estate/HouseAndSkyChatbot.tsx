@@ -183,8 +183,7 @@ export function HouseAndSkyChatbot() {
 
   return (
     <>
-      {/* Floating Trigger Button with Glowing Tooltip Badge */}
-      <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3">
+      <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 flex items-center gap-3">
         {!isOpen && unreadBadge && (
           <div
             onClick={() => { setIsOpen(true); setUnreadBadge(false) }}
@@ -204,14 +203,14 @@ export function HouseAndSkyChatbot() {
         <button
           type="button"
           onClick={() => { setIsOpen(!isOpen); setUnreadBadge(false) }}
-          className="p-4 bg-gradient-to-r from-emerald-600 via-emerald-700 to-slate-900 text-white rounded-full shadow-2xl hover:scale-105 transition-all duration-300 flex items-center justify-center cursor-pointer group border-2 border-emerald-400/30"
+          className="p-3 sm:p-4 bg-gradient-to-r from-emerald-600 via-emerald-700 to-slate-900 text-white rounded-full shadow-2xl hover:scale-105 transition-all duration-300 flex items-center justify-center cursor-pointer group border-2 border-emerald-400/30"
           aria-label="Toggle House & Sky AI Concierge"
         >
           {isOpen ? (
-            <X className="w-6 h-6 text-white" />
+            <X className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
           ) : (
             <div className="flex items-center gap-2 px-1">
-              <Sparkles className="w-5 h-5 text-amber-300 animate-pulse" />
+              <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-amber-300 animate-pulse" />
               <span className="text-xs font-bold uppercase tracking-wider hidden sm:inline text-white">
                 AI Advisor
               </span>
