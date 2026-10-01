@@ -183,10 +183,13 @@ export default function GalleryPage() {
 
             {/* Image Preview Container */}
             <div className="relative flex-1 min-h-[300px] max-h-[70vh] bg-black flex items-center justify-center p-2">
-              <img
+              <Image
                 src={selectedItem.imageUrl || FALLBACK_IMAGE}
                 alt={selectedItem.title}
-                className="max-h-[68vh] w-auto max-w-full object-contain rounded-xl"
+                fill
+                className="object-contain p-2 rounded-xl"
+                sizes="100vw"
+                unoptimized
               />
             </div>
 

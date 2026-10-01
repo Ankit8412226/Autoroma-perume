@@ -98,7 +98,7 @@ export default function HomePage() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
             <div className="lg:col-span-7 space-y-5 sm:space-y-6 text-left">
               <div className="inline-flex items-center gap-3 px-4 py-2 bg-white/10 backdrop-blur-md border border-white/20 rounded-full shadow-lg">
-                <img src="/logo.png" alt="House & Sky Logo" className="w-7 h-7 sm:w-8 sm:h-8 rounded-full object-cover border-2 border-[#C9A96E]/70" />
+                <Image src="/logo.png" alt="House & Sky Logo" width={32} height={32} className="w-7 h-7 sm:w-8 sm:h-8 rounded-full object-cover border-2 border-[#C9A96E]/70" />
                 <span className="text-[10px] sm:text-xs font-bold uppercase tracking-[0.2em] text-[#C9A96E]">
                   BUILDING TRUST. DELIVERING VALUE.
                 </span>
@@ -183,6 +183,7 @@ export default function HomePage() {
                     src={proj.bannerImage || 'https://images.unsplash.com/photo-1582407947304-fd86f28f3fdc?w=800&q=80'}
                     alt={proj.name || 'Project'}
                     fill
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     className="object-cover group-hover:scale-105 transition-transform duration-700"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
@@ -299,6 +300,7 @@ export default function HomePage() {
                 src="https://images.unsplash.com/photo-1524813686514-a57563d77965?w=1000&q=80"
                 alt="House & Sky Land Plot Demarcation"
                 fill
+                sizes="(max-width: 1024px) 100vw, 50vw"
                 className="object-cover"
               />
             </div>

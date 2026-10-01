@@ -1,4 +1,5 @@
 import * as React from 'react'
+import Image from 'next/image'
 
 interface HouseAndSkyLogoProps {
   className?: string
@@ -25,10 +26,12 @@ export function HouseAndSkyLogo({
         className="relative shrink-0 rounded-full overflow-hidden shadow-md border-2 border-[#C9A96E] bg-[#0B241C]"
         style={{ width: logoDimension, height: logoDimension }}
       >
-        <img
+        <Image
           src="/logo.png"
           alt="House & Sky Logo"
-          className="w-full h-full object-cover transform hover:scale-105 transition-transform duration-300"
+          fill
+          sizes={`${logoDimension}px`}
+          className="object-cover transform hover:scale-105 transition-transform duration-300"
         />
       </div>
 
