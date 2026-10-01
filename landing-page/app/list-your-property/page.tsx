@@ -805,7 +805,7 @@ export default function ListPropertyPage() {
                       <div className="flex items-center justify-between mb-3">
                         <div>
                           <h3 className="text-sm font-bold text-brand-charcoal">Exact Map Coordinates</h3>
-                          <p className="text-[10px] text-brand-charcoal/60">Required for 'Nearby' search visibility.</p>
+                          <p className="text-[10px] text-brand-charcoal/60">Required for &apos;Nearby&apos; search visibility.</p>
                         </div>
                         <button
                           type="button"
