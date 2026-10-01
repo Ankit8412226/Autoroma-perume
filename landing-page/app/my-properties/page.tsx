@@ -196,7 +196,7 @@ export default function MyPropertiesPage() {
 
   if (!isAuthenticated) {
     return (
-      <div className="max-w-7xl mx-auto px-4 py-20 text-center">
+      <div className="max-w-[1440px] mx-auto px-4 py-20 text-center">
         <p className="text-xs text-brand-charcoal/50 font-mono">Redirecting to login…</p>
       </div>
     )

@@ -43,7 +43,7 @@ export default async function AgentDetailPage({ params }: AgentPageProps) {
   const agentProperties = PROPERTIES.filter((p) => p.agentId === agent.id)
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-16">
+    <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-16">
       {/* Breadcrumb Navigation */}
       <nav className="flex items-center space-x-2 text-xs text-white/50 font-mono">
         <Link href="/" className="hover:text-white">Home</Link>

@@ -58,7 +58,7 @@ export default async function LocationDetailPage({ params }: LocationPageProps) 
         />
         <div className="absolute inset-0 bg-gradient-to-t from-bg-primary via-black/60 to-black/30" />
 
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full space-y-4">
+        <div className="relative z-10 max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 w-full space-y-4">
           <nav className="flex items-center space-x-2 text-xs text-white/60 font-mono mb-2">
             <Link href="/" className="hover:text-white">Home</Link>
             <ChevronRight className="w-3 h-3 text-white/40" />
@@ -82,7 +82,7 @@ export default async function LocationDetailPage({ params }: LocationPageProps) 
       </section>
 
       {/* Market Stats Bar */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 p-8 bg-bg-surface border border-white/10 text-center">
           <div className="space-y-1">
             <span className="block text-[10px] uppercase tracking-widest text-gold-300 font-semibold">
@@ -115,7 +115,7 @@ export default async function LocationDetailPage({ params }: LocationPageProps) 
       </section>
 
       {/* Neighborhood Highlights & City Guide */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 bg-bg-secondary border border-white/10 p-8">
           <div className="lg:col-span-6 space-y-4">
             <h3 className="font-serif text-2xl text-white font-normal">Top Neighborhood Precincts</h3>
@@ -146,7 +146,7 @@ export default async function LocationDetailPage({ params }: LocationPageProps) 
       </section>
 
       {/* Available Properties in this Location */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
         <SectionHeading
           eyebrow={`${location.name} Portfolio`}
           title={`Featured Residences in ${location.name}`}

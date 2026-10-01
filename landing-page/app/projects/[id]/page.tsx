@@ -182,7 +182,7 @@ export default function ProjectDetailsPage() {
 
         {/* Hero text */}
         <div className="absolute bottom-0 left-0 right-0 p-6 sm:p-10 z-10">
-          <div className="max-w-7xl mx-auto">
+          <div className="max-w-[1440px] mx-auto">
             <div className="flex flex-wrap items-center gap-2.5 mb-3">
               <span className={`px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-widest ${
                 project.status === 'ACTIVE' ? 'bg-emerald-500 text-white' :
@@ -209,7 +209,7 @@ export default function ProjectDetailsPage() {
 
       {/* ═══ STATS RIBBON ═══ */}
       <div className="bg-brand-charcoal border-b border-white/10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-3 sm:grid-cols-6 divide-x divide-white/10">
             {[
               { label: 'Total Plots', value: project.totalPlots || 0, sub: 'Masterplan' },
@@ -230,7 +230,7 @@ export default function ProjectDetailsPage() {
       </div>
 
       {/* ═══ MAIN CONTENT ═══ */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
           {/* ─ LEFT: Main Content ─ */}

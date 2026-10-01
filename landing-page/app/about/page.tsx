@@ -48,7 +48,7 @@ const milestones = [
 export default function AboutPage() {
   return (
     <div className="min-h-screen bg-[#FAF9F6] py-12 space-y-16">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
 
         {/* ── Hero Vision ── */}
         <section className="bg-white p-8 sm:p-14 rounded-3xl border border-brand-green/15 shadow-sm space-y-6">

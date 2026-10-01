@@ -80,7 +80,7 @@ export default function HomePage() {
   return (
     <div className="space-y-20 sm:space-y-32 pb-24">
       {/* 1. HERO SECTION */}
-      <section className="relative min-h-[85vh] flex items-center justify-center overflow-hidden bg-brand-charcoal text-white pt-4">
+      <section className="relative min-h-[85svh] sm:min-h-[85vh] flex items-center justify-center overflow-hidden bg-brand-charcoal text-white pt-4">
         <div className="absolute inset-0 z-0">
           <video
             autoPlay
@@ -94,7 +94,7 @@ export default function HomePage() {
           <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-black/20" />
         </div>
 
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full py-16 sm:py-20">
+        <div className="relative z-10 max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 w-full py-16 sm:py-20">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
             <div className="lg:col-span-7 space-y-5 sm:space-y-6 text-left">
               <div className="inline-flex items-center gap-3 px-4 py-2 bg-white/10 backdrop-blur-md border border-white/20 rounded-full shadow-lg">
@@ -105,7 +105,7 @@ export default function HomePage() {
               </div>
 
               <div className="space-y-3 sm:space-y-4">
-                <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-normal leading-[1.15] text-white tracking-tight">
+                <h1 className="font-serif text-[28px] min-[375px]:text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-normal leading-[1.15] text-white tracking-tight">
                   Prime Real Estate Land Plots & Townships
                 </h1>
                 <p className="text-sm sm:text-base text-white/80 font-light leading-relaxed max-w-xl">
@@ -116,7 +116,7 @@ export default function HomePage() {
               <div className="pt-2 sm:pt-4 flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
                 <Link
                   href="/projects"
-                  className="w-full sm:w-auto px-6 py-3.5 bg-brand-green hover:bg-brand-dark text-white font-bold text-xs uppercase tracking-[0.16em] rounded-xl transition-all shadow-md flex items-center justify-center gap-2"
+                  className="w-full sm:w-auto px-6 py-4 sm:py-3.5 bg-brand-green hover:bg-brand-dark text-white font-bold text-xs uppercase tracking-[0.16em] rounded-xl transition-all shadow-md flex items-center justify-center gap-2 min-h-[44px]"
                 >
                   <span>Explore All Plot Projects</span>
                   <ArrowUpRight className="w-4 h-4 text-white" />
@@ -124,7 +124,7 @@ export default function HomePage() {
 
                 <Link
                   href="/contact"
-                  className="w-full sm:w-auto px-6 py-3.5 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/30 text-white font-bold text-xs text-center uppercase tracking-[0.16em] rounded-xl transition-all shadow-sm"
+                  className="w-full sm:w-auto px-6 py-4 sm:py-3.5 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/30 text-white font-bold text-xs text-center uppercase tracking-[0.16em] rounded-xl transition-all shadow-sm min-h-[44px] flex items-center justify-center"
                 >
                   Schedule Site Tour
                 </Link>
@@ -133,10 +133,10 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-20 -mt-20 mb-10">
+      <section className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 relative z-20 -mt-20 mb-10">
         <PropertySearch />
       </section>
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 bg-white border border-brand-green/15 rounded-2xl p-6 sm:p-8 shadow-sm">
           {stats.map((s) => (
             <div key={s.label} className="text-center space-y-1">
@@ -150,7 +150,7 @@ export default function HomePage() {
           ))}
         </div>
       </section>
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
           <SectionHeading
             eyebrow="TOWNSHIPS & MASTERPLANS"
@@ -245,7 +245,7 @@ export default function HomePage() {
       </section>
 
       {listings.length > 0 && (
-        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <section className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
           <SectionHeading
             eyebrow="PREMIUM PROPERTIES"
             title="Premium properties, separate from townships."
@@ -261,37 +261,37 @@ export default function HomePage() {
       )}
 
       {/* 4. DHOLERA SMART CITY ARRIVAL ANNOUNCEMENT SECTION */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
         <DholeraArrivedSection />
       </section>
 
       {/* 5. WHY INVEST IN LAND PLOTS */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
         <WhyInvestSection />
       </section>
 
       {/* 6. TRANSPARENT 4-STEP PLOT ACQUISITION JOURNEY */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
         <PlotBuyingProcess />
       </section>
 
       {/* 7. LAND INVESTMENT & ROI APPRECIATION CALCULATOR */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
         <LandInvestmentCalculator />
       </section>
 
       {/* 8. INDIA IS RUNNING - INFRASTRUCTURE GROWTH SUPERCYCLE BANNER */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
         <IndiaIsRunningBanner />
       </section>
 
       {/* 9. FLAGSHIP TOWNSHIP SHOWCASE */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
         <DevelopmentFeature />
       </section>
 
       {/* 10. PHILOSOPHY / TRUST */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
         <div className="bg-white border border-brand-green/15 rounded-2xl p-8 sm:p-12 shadow-sm">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
             <div className="lg:col-span-5 relative aspect-[4/3] rounded-xl overflow-hidden">
@@ -341,29 +341,29 @@ export default function HomePage() {
       </section>
 
       {/* 11. MARKET SNAPSHOT */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
         <MarketSnapshot />
       </section>
 
       {/* 12. FREQUENTLY ASKED QUESTIONS & LEGAL TITLE ACCORDION */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
         <LandPlotFAQ />
       </section>
 
       {/* 13. FAITH • ETHICS • VALUES (GUIDING DECISIONS & LASTING TRUST) */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
         <BrandValuesSection />
       </section>
 
       {/* 14. OUR TESTIMONIALS & COMMUNITY INSIGHTS */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
         <TestimonialsCommunityInsights />
       </section>
 
 
 
       {/* 16. DIRECT CONTACT US & VIP SITE TOUR FORM SECTION */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
         <HomepageContactSection />
       </section>
 

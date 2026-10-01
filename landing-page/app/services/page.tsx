@@ -41,7 +41,7 @@ export default function ServicesPage() {
 
   return (
     <div className="min-h-screen bg-[#FAF9F6] py-12">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
         {/* Header Hero */}
         <div className="bg-white p-8 sm:p-12 rounded-3xl border border-brand-green/15 shadow-sm text-center space-y-4">
           <div className="inline-flex items-center gap-2 px-3.5 py-1 bg-brand-soft border border-brand-green/20 rounded-full mx-auto">

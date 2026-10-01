@@ -23,7 +23,7 @@ export default function SavedPropertiesPage() {
 
   return (
     <div className="min-h-screen bg-[#FAF9F6] py-12">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
         {/* Page Header */}
         <div className="bg-white p-8 rounded-3xl border border-brand-green/15 shadow-sm flex flex-col sm:flex-row sm:items-end justify-between gap-6">
           <div className="space-y-2">

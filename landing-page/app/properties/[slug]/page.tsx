@@ -57,7 +57,7 @@ export default function PropertyDetailPage() {
   ].filter(Boolean)
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-10">
+    <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-10">
       <nav className="flex items-center space-x-2 text-xs text-brand-charcoal/60">
         <Link href="/" className="hover:text-brand-green">Home</Link>
         <ChevronRight className="w-3 h-3" />

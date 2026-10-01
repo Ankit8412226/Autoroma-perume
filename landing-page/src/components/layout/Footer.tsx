@@ -21,7 +21,7 @@ export function Footer() {
 
   return (
     <footer className="bg-brand-dark text-white border-t border-brand-green/20 pt-16 pb-12 overflow-hidden">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
         {/* Top Newsletter & Brand Highlight Banner */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 pb-16 border-b border-white/10 items-center">
           <div className="lg:col-span-6 space-y-3">
@@ -45,12 +45,12 @@ export function Footer() {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="Enter your email for private listings"
                   required
-                  className="w-full bg-white/10 border border-white/20 text-white placeholder-white/50 text-xs px-4 py-3 sm:py-3.5 rounded-md focus:outline-none focus:border-brand-sky transition-colors"
+                  className="w-full bg-white/10 border border-white/20 text-white placeholder-white/50 text-xs px-4 py-3 sm:py-3.5 rounded-md focus:outline-none focus:border-brand-sky transition-colors min-h-[44px]"
                 />
               </div>
               <button
                 type="submit"
-                className="w-full sm:w-auto px-6 py-3 sm:py-3.5 bg-brand-green hover:bg-white hover:text-brand-dark text-white text-xs uppercase tracking-[0.18em] font-bold rounded-md transition-all shadow-md cursor-pointer whitespace-nowrap"
+                className="w-full sm:w-auto px-6 py-3 sm:py-3.5 bg-brand-green hover:bg-white hover:text-brand-dark text-white text-xs uppercase tracking-[0.18em] font-bold rounded-md transition-all shadow-md cursor-pointer whitespace-nowrap min-h-[44px]"
               >
                 Subscribe
               </button>
@@ -98,21 +98,21 @@ export function Footer() {
             <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-white">
               Properties
             </h4>
-            <ul className="space-y-2.5 text-xs text-white/70 font-medium">
+            <ul className="space-y-1 sm:space-y-2.5 text-xs text-white/70 font-medium">
               <li>
-                <Link href="/" className="hover:text-brand-sky transition-colors">Home</Link>
+                <Link href="/" className="block py-2 sm:py-0 hover:text-brand-sky transition-colors">Home</Link>
               </li>
               <li>
-                <Link href="/projects" className="hover:text-brand-sky transition-colors">Projects</Link>
+                <Link href="/projects" className="block py-2 sm:py-0 hover:text-brand-sky transition-colors">Projects</Link>
               </li>
               <li>
-                <Link href="/properties" className="hover:text-brand-sky transition-colors">Properties</Link>
+                <Link href="/properties" className="block py-2 sm:py-0 hover:text-brand-sky transition-colors">Properties</Link>
               </li>
               <li>
-                <Link href="/gallery" className="hover:text-brand-sky transition-colors">Gallery</Link>
+                <Link href="/gallery" className="block py-2 sm:py-0 hover:text-brand-sky transition-colors">Gallery</Link>
               </li>
               <li>
-                <Link href="/contact" className="hover:text-brand-sky transition-colors">Get In Touch</Link>
+                <Link href="/contact" className="block py-2 sm:py-0 hover:text-brand-sky transition-colors">Get In Touch</Link>
               </li>
             </ul>
           </div>
@@ -122,29 +122,29 @@ export function Footer() {
             <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-white">
               Locations
             </h4>
-            <ul className="space-y-2.5 text-xs text-white/70 font-medium">
+            <ul className="space-y-1 sm:space-y-2.5 text-xs text-white/70 font-medium">
               <li>
-                <Link href="/locations/mumbai" className="hover:text-brand-sky transition-colors">
+                <Link href="/locations/mumbai" className="block py-2 sm:py-0 hover:text-brand-sky transition-colors">
                   Mumbai (Bandra & Worli)
                 </Link>
               </li>
               <li>
-                <Link href="/locations/goa" className="hover:text-brand-sky transition-colors">
+                <Link href="/locations/goa" className="block py-2 sm:py-0 hover:text-brand-sky transition-colors">
                   Goa (Assagao & Anjuna)
                 </Link>
               </li>
               <li>
-                <Link href="/locations/delhi-ncr" className="hover:text-brand-sky transition-colors">
+                <Link href="/locations/delhi-ncr" className="block py-2 sm:py-0 hover:text-brand-sky transition-colors">
                   Delhi NCR & Gurgaon
                 </Link>
               </li>
               <li>
-                <Link href="/locations/bangalore" className="hover:text-brand-sky transition-colors">
+                <Link href="/locations/bangalore" className="block py-2 sm:py-0 hover:text-brand-sky transition-colors">
                   Bangalore (Sadashivnagar)
                 </Link>
               </li>
               <li>
-                <Link href="/locations/hyderabad" className="hover:text-brand-sky transition-colors">
+                <Link href="/locations/hyderabad" className="block py-2 sm:py-0 hover:text-brand-sky transition-colors">
                   Hyderabad (Jubilee Hills)
                 </Link>
               </li>
@@ -156,29 +156,29 @@ export function Footer() {
             <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-white">
               House & Sky
             </h4>
-            <ul className="space-y-2.5 text-xs text-white/70 font-medium">
+            <ul className="space-y-1 sm:space-y-2.5 text-xs text-white/70 font-medium">
               <li>
-                <Link href="/about" className="hover:text-brand-sky transition-colors">
+                <Link href="/about" className="block py-2 sm:py-0 hover:text-brand-sky transition-colors">
                   Brand Story
                 </Link>
               </li>
               <li>
-                <Link href="/agents" className="hover:text-brand-sky transition-colors">
+                <Link href="/agents" className="block py-2 sm:py-0 hover:text-brand-sky transition-colors">
                   Advisors & Team
                 </Link>
               </li>
               <li>
-                <Link href="/services" className="hover:text-brand-sky transition-colors">
+                <Link href="/services" className="block py-2 sm:py-0 hover:text-brand-sky transition-colors">
                   Services
                 </Link>
               </li>
               <li>
-                <Link href="/saved" className="hover:text-brand-sky transition-colors">
+                <Link href="/saved" className="block py-2 sm:py-0 hover:text-brand-sky transition-colors">
                   Saved Vault
                 </Link>
               </li>
               <li>
-                <Link href="/contact" className="hover:text-brand-sky transition-colors">
+                <Link href="/contact" className="block py-2 sm:py-0 hover:text-brand-sky transition-colors">
                   Get In Touch
                 </Link>
               </li>

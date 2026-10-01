@@ -167,7 +167,7 @@ export function HomepageContactSection() {
                     value={formData.fullName}
                     onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
                     placeholder="e.g. Vikramaditya Sharma"
-                    className="w-full px-3.5 py-2.5 bg-brand-soft/50 border border-brand-green/20 rounded-xl text-xs text-brand-charcoal focus:outline-none focus:border-brand-green focus:bg-white transition-all"
+                    className="w-full px-3.5 py-2.5 bg-brand-soft/50 border border-brand-green/20 rounded-xl text-xs text-brand-charcoal focus:outline-none focus:border-brand-green focus:bg-white transition-all min-h-[44px]"
                   />
                 </div>
 
@@ -181,7 +181,7 @@ export function HomepageContactSection() {
                     value={formData.phone}
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                     placeholder="+91 98765 43210"
-                    className="w-full px-3.5 py-2.5 bg-brand-soft/50 border border-brand-green/20 rounded-xl text-xs text-brand-charcoal focus:outline-none focus:border-brand-green focus:bg-white transition-all"
+                    className="w-full px-3.5 py-2.5 bg-brand-soft/50 border border-brand-green/20 rounded-xl text-xs text-brand-charcoal focus:outline-none focus:border-brand-green focus:bg-white transition-all min-h-[44px]"
                   />
                 </div>
               </div>
@@ -196,7 +196,7 @@ export function HomepageContactSection() {
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     placeholder="vikram@example.com"
-                    className="w-full px-3.5 py-2.5 bg-brand-soft/50 border border-brand-green/20 rounded-xl text-xs text-brand-charcoal focus:outline-none focus:border-brand-green focus:bg-white transition-all"
+                    className="w-full px-3.5 py-2.5 bg-brand-soft/50 border border-brand-green/20 rounded-xl text-xs text-brand-charcoal focus:outline-none focus:border-brand-green focus:bg-white transition-all min-h-[44px]"
                   />
                 </div>
 
@@ -207,7 +207,7 @@ export function HomepageContactSection() {
                   <select
                     value={formData.projectOfInterest}
                     onChange={(e) => setFormData({ ...formData, projectOfInterest: e.target.value })}
-                    className="w-full px-3.5 py-2.5 bg-brand-soft/50 border border-brand-green/20 rounded-xl text-xs text-brand-charcoal focus:outline-none focus:border-brand-green focus:bg-white transition-all"
+                    className="w-full px-3.5 py-2.5 bg-brand-soft/50 border border-brand-green/20 rounded-xl text-xs text-brand-charcoal focus:outline-none focus:border-brand-green focus:bg-white transition-all min-h-[44px]"
                   >
                     <option value="Dholera SIR Smart City Enclave">Dholera SIR Smart City Enclave</option>
                     <option value="Royal Palms Executive City - Noida">Royal Palms Executive City - Noida</option>
@@ -226,7 +226,7 @@ export function HomepageContactSection() {
                     type="date"
                     value={formData.preferredDate}
                     onChange={(e) => setFormData({ ...formData, preferredDate: e.target.value })}
-                    className="w-full px-3.5 py-2.5 bg-brand-soft/50 border border-brand-green/20 rounded-xl text-xs text-brand-charcoal focus:outline-none focus:border-brand-green focus:bg-white transition-all"
+                    className="w-full px-3.5 py-2.5 bg-brand-soft/50 border border-brand-green/20 rounded-xl text-xs text-brand-charcoal focus:outline-none focus:border-brand-green focus:bg-white transition-all min-h-[44px]"
                   />
                 </div>
 
@@ -239,7 +239,7 @@ export function HomepageContactSection() {
                     value={formData.message}
                     onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                     placeholder="e.g. 200 sqyd, Corner plot, East facing"
-                    className="w-full px-3.5 py-2.5 bg-brand-soft/50 border border-brand-green/20 rounded-xl text-xs text-brand-charcoal focus:outline-none focus:border-brand-green focus:bg-white transition-all"
+                    className="w-full px-3.5 py-2.5 bg-brand-soft/50 border border-brand-green/20 rounded-xl text-xs text-brand-charcoal focus:outline-none focus:border-brand-green focus:bg-white transition-all min-h-[44px]"
                   />
                 </div>
               </div>

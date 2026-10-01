@@ -84,7 +84,7 @@ function ProjectsInner() {
             className="absolute inset-0 z-0 opacity-30"
             style={{ backgroundImage: 'radial-gradient(circle at 10% 50%, #f59e0b 0%, transparent 55%), radial-gradient(circle at 90% 10%, #0B4F3C 0%, transparent 50%)' }}
           />
-          <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 sm:py-20 space-y-10">
+          <div className="relative z-10 max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-14 sm:py-20 space-y-10">
             <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.25em] text-amber-400">
               <Star className="w-3.5 h-3.5 fill-amber-400" />
               Special Investment Region · Gujarat, India
@@ -145,7 +145,7 @@ function ProjectsInner() {
             className="absolute inset-0 z-0 opacity-20"
             style={{ backgroundImage: 'radial-gradient(circle at 20% 50%, #0B4F3C 0%, transparent 60%), radial-gradient(circle at 80% 20%, #C9A96E 0%, transparent 50%)' }}
           />
-          <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 sm:py-20">
+          <div className="relative z-10 max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-14 sm:py-20">
             <div className="flex items-center gap-2 mb-4">
               <span className="text-[10px] font-bold uppercase tracking-[0.25em] text-[#C9A96E]">Real Estate Investments</span>
             </div>
@@ -171,7 +171,7 @@ function ProjectsInner() {
       )}
 
       {/* ── FILTER TABS & CONTENT ── */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <div className="flex flex-wrap items-center justify-between gap-4 mb-10">
           <div className="flex flex-wrap items-center gap-2">
             {/* Dholera / All toggle */}

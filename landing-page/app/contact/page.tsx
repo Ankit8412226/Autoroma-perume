@@ -11,7 +11,7 @@ export const metadata = {
 
 export default function ContactPage() {
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-12 bg-bg-primary">
+    <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-12 bg-bg-primary">
       <SectionHeading
         eyebrow="ADVISORY & INQUIRIES"
         title="Schedule a Private Consultation"

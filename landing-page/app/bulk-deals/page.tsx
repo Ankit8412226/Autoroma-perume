@@ -249,7 +249,7 @@ export default function BulkDealsPage() {
     <div className="min-h-screen bg-neutral-950 text-white pt-20 pb-16">
       {/* Hero Header */}
       <div className="relative overflow-hidden bg-gradient-to-b from-emerald-950/40 via-neutral-950 to-neutral-950 border-b border-white/10 py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="max-w-4xl space-y-4">
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-400 text-xs font-bold uppercase tracking-wider">
               <Flame className="w-4 h-4 fill-amber-400" /> Exclusive Wholesale & Syndicate Deals
@@ -434,7 +434,7 @@ export default function BulkDealsPage() {
       </div>
 
       {/* Main Container */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
         {/* Category Filter Tabs */}
         {!isLoading && deals.length > 0 && (
           <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">

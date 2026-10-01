@@ -87,7 +87,7 @@ export function PropertySearch({
                 key={tab}
                 type="button"
                 onClick={() => setActiveTab(tab)}
-                className={`relative pb-3 text-sm font-semibold whitespace-nowrap transition-colors cursor-pointer flex items-center gap-1 ${
+                className={`relative py-3 sm:py-0 sm:pb-3 text-sm font-semibold whitespace-nowrap transition-colors cursor-pointer flex items-center gap-1 min-h-[44px] sm:min-h-0 ${
                   isActive ? 'text-brand-charcoal' : 'text-gray-500 hover:text-brand-charcoal'
                 }`}
               >
@@ -103,7 +103,7 @@ export function PropertySearch({
           })}
         </div>
         <div className="hidden md:block pb-3">
-          <button type="button" className="text-sm font-semibold text-gray-700 hover:text-brand-charcoal flex items-center gap-1 cursor-pointer">
+          <button type="button" className="text-sm font-semibold text-gray-700 hover:text-brand-charcoal flex items-center gap-1 cursor-pointer py-3 sm:py-0 min-h-[44px] sm:min-h-0">
             Post Property
             <span className="bg-emerald-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider ml-1">
               Free
@@ -123,7 +123,7 @@ export function PropertySearch({
             <select
               value={propertyType}
               onChange={(e) => setPropertyType(e.target.value)}
-              className="appearance-none bg-transparent text-sm font-medium text-gray-700 focus:outline-none pr-5 w-full cursor-pointer"
+              className="appearance-none bg-transparent text-sm font-medium text-gray-700 focus:outline-none pr-5 w-full cursor-pointer min-h-[44px] sm:min-h-0"
             >
               <option>All Residential</option>
               <option>Apartments</option>
@@ -141,7 +141,7 @@ export function PropertySearch({
               placeholder='Search "Hyderabad"'
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-transparent text-sm text-brand-charcoal focus:outline-none font-medium placeholder-gray-400"
+              className="w-full bg-transparent text-sm text-brand-charcoal focus:outline-none font-medium placeholder-gray-400 min-h-[44px] sm:min-h-0"
             />
           </div>
 
@@ -149,7 +149,7 @@ export function PropertySearch({
           <div className="flex items-center gap-1 sm:gap-2 px-2 w-full sm:w-auto shrink-0 justify-end sm:justify-start">
             <button
               type="button"
-              className="p-2 text-brand-green hover:bg-brand-green/10 rounded-full transition-colors cursor-pointer"
+              className="p-3 sm:p-2 text-brand-green hover:bg-brand-green/10 rounded-full transition-colors cursor-pointer min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 flex items-center justify-center"
               title="Use current location"
             >
               <Crosshair className="w-4 h-4" />
@@ -157,14 +157,14 @@ export function PropertySearch({
             <button
               type="button"
               onClick={handleMicClick}
-              className={`p-2 rounded-full transition-colors cursor-pointer ${isListening ? 'text-red-500 bg-red-100 animate-pulse' : 'text-brand-green hover:bg-brand-green/10'}`}
+              className={`p-3 sm:p-2 rounded-full transition-colors cursor-pointer min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 flex items-center justify-center ${isListening ? 'text-red-500 bg-red-100 animate-pulse' : 'text-brand-green hover:bg-brand-green/10'}`}
               title="Voice Search"
             >
               <Mic className="w-4 h-4" />
             </button>
             <button
               type="submit"
-              className="px-6 py-2.5 bg-brand-green text-white text-sm font-bold rounded-lg hover:bg-brand-dark transition-colors cursor-pointer ml-1 shadow-sm"
+              className="px-6 py-3 sm:py-2.5 bg-brand-green text-white text-sm font-bold rounded-lg hover:bg-brand-dark transition-colors cursor-pointer ml-1 shadow-sm min-h-[44px] sm:min-h-0"
             >
               Search
             </button>

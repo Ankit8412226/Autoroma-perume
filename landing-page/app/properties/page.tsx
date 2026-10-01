@@ -261,7 +261,7 @@ const DEFAULT_MAJOR_INDIAN_CITIES = [
       <div className="bg-gradient-to-r from-[#051711] via-[#0A2E23] to-[#0B4F3C] text-white pt-10 pb-12 px-4 sm:px-6 lg:px-8 border-b border-emerald-500/20 shadow-xl relative overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(16,185,129,0.15),transparent_50%)]" />
 
-        <div className="max-w-7xl mx-auto relative z-10 space-y-6">
+        <div className="max-w-[1440px] mx-auto relative z-10 space-y-6">
           <div className="text-center max-w-3xl mx-auto space-y-2">
             <span className="px-3 py-1 bg-emerald-500/20 text-emerald-300 rounded-full text-xs font-extrabold uppercase tracking-widest border border-emerald-500/30 inline-flex items-center gap-1.5 shadow-sm">
               <Sparkles className="w-3.5 h-3.5 text-emerald-400" /> Smart Dynamic Real Estate Finder
@@ -440,7 +440,7 @@ const DEFAULT_MAJOR_INDIAN_CITIES = [
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
         {/* Dynamic Popular Cities Horizontal Selector (99acres Location Bar) */}
         <div className="space-y-3">
           <div className="flex items-center justify-between">
@@ -699,7 +699,7 @@ const DEFAULT_MAJOR_INDIAN_CITIES = [
 
 export default function PropertiesPage() {
   return (
-    <Suspense fallback={<div className="max-w-7xl mx-auto px-4 py-20 text-center text-xs font-mono">Loading property finder…</div>}>
+    <Suspense fallback={<div className="max-w-[1440px] mx-auto px-4 py-20 text-center text-xs font-mono">Loading property finder…</div>}>
       <PropertiesContent />
     </Suspense>
   )
