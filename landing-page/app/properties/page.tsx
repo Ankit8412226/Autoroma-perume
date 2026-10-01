@@ -89,9 +89,13 @@ function PropertiesContent() {
   const intentParam = searchParams.get('intent')
   let initialListingType = 'ALL'
   if (intentParam) {
-    if (intentParam.toLowerCase() === 'buy' || intentParam.toLowerCase() === 'new launch' || intentParam.toLowerCase() === 'projects') initialListingType = 'SALE'
-    else if (intentParam.toLowerCase() === 'rent') initialListingType = 'RENT'
-    else if (intentParam.toLowerCase() === 'commercial' || intentParam.toLowerCase() === 'plots/land') initialListingType = 'SALE'
+    const intentLower = intentParam.toLowerCase()
+    if (['buy', 'new launch', 'projects', 'commercial', 'plots/land'].includes(intentLower)) {
+      initialListingType = 'SALE'
+      if (intentLower === 'commercial' && initialType === 'ALL') initialType = 'COMMERCIAL'
+      if (intentLower === 'plots/land' && initialType === 'ALL') initialType = 'RESIDENTIAL_PLOT'
+    }
+    else if (intentLower === 'rent') initialListingType = 'RENT'
   }
 
   // Filter & Search States
@@ -105,7 +109,8 @@ function PropertiesContent() {
   const [viewMode, setViewMode] = React.useState<'grid' | 'list'>('grid')
 
   React.useEffect(() => {
-    let loc = searchParams.get('location') || ''
+    const isNearby = searchParams.get('nearby') === 'true'
+    let loc = searchParams.get('location') || (isNearby ? 'Nearby Locations' : '')
     let city = searchParams.get('city') || 'All Cities'
     if (loc && city === 'All Cities') {
       const exactMatch = DEFAULT_MAJOR_INDIAN_CITIES.find(
@@ -129,9 +134,12 @@ function PropertiesContent() {
 
     const intent = searchParams.get('intent')
     if (intent) {
-      if (['buy', 'new launch', 'projects', 'commercial', 'plots/land'].includes(intent.toLowerCase())) {
+      const intentLower = intent.toLowerCase()
+      if (['buy', 'new launch', 'projects', 'commercial', 'plots/land'].includes(intentLower)) {
         setSelectedListingType('SALE')
-      } else if (intent.toLowerCase() === 'rent') {
+        if (intentLower === 'commercial' && !t) setSelectedType('COMMERCIAL')
+        if (intentLower === 'plots/land' && !t) setSelectedType('RESIDENTIAL_PLOT')
+      } else if (intentLower === 'rent') {
         setSelectedListingType('RENT')
       }
     }

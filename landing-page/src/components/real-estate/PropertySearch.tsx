@@ -45,6 +45,7 @@ export function PropertySearch({
     recognition.onresult = (event: any) => {
       const transcript = event.results[0][0].transcript
       setSearchQuery(transcript)
+      submitSearch(transcript)
     }
 
     recognition.onerror = (event: any) => {
@@ -90,16 +91,19 @@ export function PropertySearch({
     )
   }
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault()
+  const submitSearch = (query: string = searchQuery) => {
     const params = new URLSearchParams()
-    if (searchQuery) params.set('location', searchQuery)
+    if (query) params.set('location', query)
     params.set('intent', activeTab.toLowerCase())
     if (propertyType !== 'All Residential') {
       params.set('type', propertyType)
     }
-
     router.push(`/properties?${params.toString()}`)
+  }
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault()
+    submitSearch()
   }
 
   return (

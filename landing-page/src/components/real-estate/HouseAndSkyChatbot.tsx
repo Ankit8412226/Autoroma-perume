@@ -211,7 +211,7 @@ export function HouseAndSkyChatbot() {
           ) : (
             <div className="flex items-center gap-2 px-1">
               <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-amber-300 animate-pulse" />
-              <span className="text-xs font-bold uppercase tracking-wider hidden sm:inline text-white">
+              <span className="text-xs font-bold uppercase tracking-wider hidden group-hover:inline text-white">
                 AI Advisor
               </span>
             </div>
