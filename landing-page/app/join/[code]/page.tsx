@@ -96,25 +96,25 @@ export default function JoinAgentLandingPage() {
         ) : success ? (
           <p className="text-sm font-semibold text-emerald-800">{success}</p>
         ) : (
-          <form onSubmit={handleSubmit} className="space-y-3 text-xs">
-            <label className="block space-y-1">
-              <span className="font-bold text-brand-charcoal/70">Full name</span>
-              <input required value={fullName} onChange={(e) => setFullName(e.target.value)} className="w-full bg-[#FAF9F6] border border-brand-green/20 rounded-xl px-3 py-2 font-semibold focus:outline-none focus:border-brand-green" />
-            </label>
-            <label className="block space-y-1">
-              <span className="font-bold text-brand-charcoal/70">Email</span>
-              <input required type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full bg-[#FAF9F6] border border-brand-green/20 rounded-xl px-3 py-2 font-semibold focus:outline-none focus:border-brand-green" />
-            </label>
-            <label className="block space-y-1">
-              <span className="font-bold text-brand-charcoal/70">Phone</span>
-              <input required type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} className="w-full bg-[#FAF9F6] border border-brand-green/20 rounded-xl px-3 py-2 font-semibold focus:outline-none focus:border-brand-green" />
-            </label>
-            <label className="block space-y-1">
-              <span className="font-bold text-brand-charcoal/70">Password</span>
-              <input required type="password" minLength={MIN_PASSWORD_LENGTH} value={password} onChange={(e) => setPassword(e.target.value)} className="w-full bg-[#FAF9F6] border border-brand-green/20 rounded-xl px-3 py-2 font-semibold focus:outline-none focus:border-brand-green" />
-            </label>
-            {error ? <p className="text-red-600 font-semibold">{error}</p> : null}
-            <button type="submit" disabled={isSubmitting} className="w-full py-3 rounded-xl bg-brand-green text-white font-bold flex items-center justify-center gap-2 disabled:opacity-60">
+          <form onSubmit={handleSubmit} noValidate className="space-y-4">
+            <div className="space-y-1.5">
+              <label htmlFor="join-name" className="hs-label">Full name <span className="hs-required">*</span></label>
+              <input id="join-name" required value={fullName} onChange={(e) => setFullName(e.target.value)} className="input-base" />
+            </div>
+            <div className="space-y-1.5">
+              <label htmlFor="join-email" className="hs-label">Email <span className="hs-required">*</span></label>
+              <input id="join-email" required type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="input-base" />
+            </div>
+            <div className="space-y-1.5">
+              <label htmlFor="join-phone" className="hs-label">Phone <span className="hs-required">*</span></label>
+              <input id="join-phone" required type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} className="input-base" />
+            </div>
+            <div className="space-y-1.5">
+              <label htmlFor="join-password" className="hs-label">Password <span className="hs-required">*</span></label>
+              <input id="join-password" required type="password" minLength={MIN_PASSWORD_LENGTH} value={password} onChange={(e) => setPassword(e.target.value)} className="input-base" />
+            </div>
+            {error ? <p className="hs-field-error">{error}</p> : null}
+            <button type="submit" disabled={isSubmitting} className="hs-btn-primary w-full">
               <UserPlus className="w-4 h-4" />
               {isSubmitting ? 'Creating account…' : 'Create agent account'}
             </button>

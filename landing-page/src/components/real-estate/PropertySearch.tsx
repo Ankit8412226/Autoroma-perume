@@ -148,6 +148,7 @@ export function PropertySearch({
       <div className="p-3 sm:p-4">
         <form
           onSubmit={handleSearch}
+          noValidate
           className="flex flex-col sm:flex-row items-center bg-gray-50/80 border border-gray-200 rounded-xl p-1.5 focus-within:ring-2 focus-within:ring-brand-green/20 focus-within:border-brand-green transition-all"
         >
           {/* Dropdown */}
@@ -205,7 +206,7 @@ export function PropertySearch({
             </button>
             <button
               type="submit"
-              className="px-6 py-3 sm:py-2.5 bg-brand-green text-white text-sm font-bold rounded-lg hover:bg-brand-dark transition-colors cursor-pointer ml-1 shadow-sm min-h-[44px] sm:min-h-0"
+              className="hs-btn-primary ml-1 px-6 min-h-[44px] sm:min-h-0"
             >
               Search
             </button>

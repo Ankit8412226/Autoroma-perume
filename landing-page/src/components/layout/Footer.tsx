@@ -36,20 +36,22 @@ export function Footer() {
           </div>
 
           <div className="lg:col-span-6">
-            <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row gap-3">
+            <form onSubmit={handleSubscribe} noValidate className="flex flex-col sm:flex-row gap-3">
               <div className="relative flex-1">
+                <label htmlFor="newsletter-email" className="sr-only">Enter your email</label>
                 <input
+                  id="newsletter-email"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="Enter your email for private listings"
                   required
-                  className="w-full bg-white/10 border border-white/20 text-white placeholder-white/50 text-xs px-4 py-3 sm:py-3.5 rounded-md focus:outline-none focus:border-brand-sky transition-colors min-h-[44px]"
+                  className="input-base bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-brand-sky focus:bg-white/20 min-h-[48px]"
                 />
               </div>
               <button
                 type="submit"
-                className="w-full sm:w-auto px-6 py-3 sm:py-3.5 bg-brand-green hover:bg-white hover:text-brand-dark text-white text-xs uppercase tracking-[0.18em] font-bold rounded-md transition-all shadow-md cursor-pointer whitespace-nowrap min-h-[44px]"
+                className="hs-btn-primary bg-brand-green hover:bg-white hover:text-brand-dark sm:w-auto uppercase tracking-[0.18em] min-h-[48px]"
               >
                 Subscribe
               </button>

@@ -100,7 +100,7 @@ export function InquiryForm({
   }
 
   return (
-    <div className={`bg-white border border-brand-green/15 rounded-2xl p-6 sm:p-8 space-y-6 shadow-sm ${className}`}>
+    <div className={`hs-form-card space-y-6 ${className}`}>
       <div className="space-y-1 pb-4 border-b border-brand-green/10">
         <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-brand-green block">
           INQUIRY
@@ -109,80 +109,78 @@ export function InquiryForm({
           Schedule a Private Tour
         </h4>
         {propertyTitle && (
-          <p className="text-xs text-brand-charcoal/70 font-light">
+          <p className="text-xs text-brand-charcoal/60 font-medium">
             Residence: <span className="text-brand-charcoal font-semibold">{propertyTitle}</span>
           </p>
         )}
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} noValidate className="space-y-5">
         {/* Full Name */}
-        <div className="space-y-1">
-          <label className="text-[10px] uppercase tracking-wider text-brand-charcoal/80 font-bold block">
-            Full Name *
-          </label>
+        <div className="space-y-1.5">
+          <label htmlFor="hs-inquiry-name" className="hs-label">Full Name <span className="hs-required">*</span></label>
           <input
+            id="hs-inquiry-name"
             type="text"
             required
+            autoComplete="name"
             value={formData.fullName}
             onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-            placeholder="e.g. Vikramaditya Singhania"
-            className="w-full bg-brand-soft border border-brand-green/20 text-brand-charcoal placeholder-brand-charcoal/50 text-xs px-3.5 py-3 rounded-xl focus:outline-none focus:border-brand-green transition-colors font-bold"
+            placeholder="Enter your full name"
+            className="input-base"
           />
         </div>
 
         {/* Email & Phone */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="space-y-1">
-            <label className="text-[10px] uppercase tracking-wider text-brand-charcoal/80 font-bold block">
-              Email Address *
-            </label>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          <div className="space-y-1.5">
+            <label htmlFor="hs-inquiry-email" className="hs-label">Email Address <span className="hs-required">*</span></label>
             <input
+              id="hs-inquiry-email"
               type="email"
               required
+              autoComplete="email"
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              placeholder="v.singhania@domain.com"
-              className="w-full bg-brand-soft border border-brand-green/20 text-brand-charcoal placeholder-brand-charcoal/50 text-xs px-3.5 py-3 rounded-xl focus:outline-none focus:border-brand-green transition-colors font-bold"
+              placeholder="Enter your email address"
+              className="input-base"
             />
           </div>
 
-          <div className="space-y-1">
-            <label className="text-[10px] uppercase tracking-wider text-brand-charcoal/80 font-bold block">
-              Phone Number *
-            </label>
+          <div className="space-y-1.5">
+            <label htmlFor="hs-inquiry-phone" className="hs-label">Phone Number <span className="hs-required">*</span></label>
             <input
+              id="hs-inquiry-phone"
               type="tel"
               required
+              autoComplete="tel"
               value={formData.phone}
               onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-              placeholder="+91 98200 00000"
-              className="w-full bg-brand-soft border border-brand-green/20 text-brand-charcoal placeholder-brand-charcoal/50 text-xs px-3.5 py-3 rounded-xl focus:outline-none focus:border-brand-green transition-colors font-bold"
+              placeholder="+91 98765 43210"
+              className="input-base"
             />
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <label className="text-[10px] uppercase tracking-wider text-brand-charcoal/80 font-bold block">
-                Preferred Date
-              </label>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <div className="space-y-1.5">
+              <label htmlFor="hs-inquiry-date" className="hs-label">Preferred Date</label>
               <input
+                id="hs-inquiry-date"
                 type="date"
                 value={formData.preferredDate}
                 onChange={(e) => setFormData({ ...formData, preferredDate: e.target.value })}
-                className="w-full bg-brand-soft border border-brand-green/20 text-brand-charcoal text-xs px-3.5 py-3 rounded-xl focus:outline-none focus:border-brand-green transition-colors font-bold"
+                className="input-base"
               />
             </div>
 
-            <div className="space-y-1">
-              <label className="text-[10px] uppercase tracking-wider text-brand-charcoal/80 font-bold block">
-                Preferred Window
-              </label>
+            <div className="space-y-1.5">
+              <label htmlFor="hs-inquiry-time" className="hs-label">Preferred Window</label>
               <select
+                id="hs-inquiry-time"
                 value={formData.preferredTime}
                 onChange={(e) => setFormData({ ...formData, preferredTime: e.target.value })}
-                className="w-full bg-brand-soft border border-brand-green/20 text-brand-charcoal text-xs px-3.5 py-3 rounded-xl focus:outline-none focus:border-brand-green transition-colors font-bold"
+                className="input-base appearance-none cursor-pointer pr-10"
               >
                 <option value="Morning (10 AM - 1 PM)">Morning (10 AM - 1 PM)</option>
                 <option value="Afternoon (1 PM - 4 PM)">Afternoon (1 PM - 4 PM)</option>
@@ -192,23 +190,22 @@ export function InquiryForm({
           </div>
 
         {/* Additional Notes */}
-        <div className="space-y-1">
-          <label className="text-[10px] uppercase tracking-wider text-brand-charcoal/80 font-bold block">
-            Specific Requirements / Notes
-          </label>
+        <div className="space-y-1.5">
+          <label htmlFor="hs-inquiry-notes" className="hs-label">Specific Requirements / Notes</label>
           <textarea
+            id="hs-inquiry-notes"
             rows={3}
             value={formData.message}
             onChange={(e) => setFormData({ ...formData, message: e.target.value })}
             placeholder="Mention any specific timing preferences or questions..."
-            className="w-full bg-brand-soft border border-brand-green/20 text-brand-charcoal placeholder-brand-charcoal/50 text-xs px-3.5 py-3 rounded-xl focus:outline-none focus:border-brand-green transition-colors resize-none font-bold"
+            className="input-base min-h-[120px] resize-y"
           />
         </div>
 
         <button
           type="submit"
           disabled={isSubmitting}
-          className="w-full py-4 bg-brand-green text-white text-xs font-bold uppercase tracking-[0.18em] rounded-xl hover:bg-brand-dark transition-all duration-200 shadow-md cursor-pointer border border-brand-green flex items-center justify-center gap-2"
+          className="hs-btn-primary w-full"
         >
           {isSubmitting ? (
             <>
@@ -220,7 +217,7 @@ export function InquiryForm({
           )}
         </button>
 
-        <p className="text-[10px] text-brand-charcoal/60 text-center font-light flex items-center justify-center gap-1">
+        <p className="text-[10px] text-brand-charcoal/60 text-center font-medium flex items-center justify-center gap-1">
           <ShieldCheck className="w-3.5 h-3.5 text-brand-green" />
           Client Privacy Protocol Guaranteed
         </p>

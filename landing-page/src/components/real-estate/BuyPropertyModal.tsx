@@ -279,78 +279,94 @@ export function BuyPropertyModal({
               </button>
             </div>
           ) : (
-            <form onSubmit={handleSubmit} className="space-y-3">
-              {formState === 'error' && (
-                <div className="flex items-start gap-2 bg-red-50 border border-red-200 rounded-2xl p-3 text-xs text-red-700 font-semibold">
-                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-                  <span>{errorMsg}</span>
-                </div>
-              )}
+              <form onSubmit={handleSubmit} noValidate className="space-y-4">
+                {formState === 'error' && (
+                  <div className="hs-error-message">
+                    <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                    <span>{errorMsg}</span>
+                  </div>
+                )}
 
               {/* Name */}
-              <div className="relative">
-                <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                <input
-                  type="text"
-                  required
-                  placeholder="Your Full Name *"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-semibold text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:bg-white transition-colors"
-                />
+              <div className="space-y-1.5">
+                <label htmlFor="modal-name" className="hs-label sr-only">Your Full Name <span className="hs-required">*</span></label>
+                <div className="relative">
+                  <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <input
+                    id="modal-name"
+                    type="text"
+                    required
+                    placeholder="Your Full Name *"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="input-base pl-10"
+                  />
+                </div>
               </div>
 
               {/* Phone */}
-              <div className="relative">
-                <Phone className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                <input
-                  type="tel"
-                  required
-                  placeholder="Phone Number * (for callback)"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-semibold text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:bg-white transition-colors"
-                />
+              <div className="space-y-1.5">
+                <label htmlFor="modal-phone" className="hs-label sr-only">Phone Number <span className="hs-required">*</span></label>
+                <div className="relative">
+                  <Phone className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <input
+                    id="modal-phone"
+                    type="tel"
+                    required
+                    placeholder="Phone Number * (for callback)"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    className="input-base pl-10"
+                  />
+                </div>
               </div>
 
               {/* Email */}
-              <div className="relative">
-                <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                <input
-                  type="email"
-                  placeholder="Email (optional)"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-semibold text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:bg-white transition-colors"
-                />
+              <div className="space-y-1.5">
+                <label htmlFor="modal-email" className="hs-label sr-only">Email (optional)</label>
+                <div className="relative">
+                  <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <input
+                    id="modal-email"
+                    type="email"
+                    placeholder="Email (optional)"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="input-base pl-10"
+                  />
+                </div>
               </div>
 
               {/* Budget / Rent Range — changes per intent */}
-              <div className="relative">
-                <IndianRupee className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                <select
-                  value={budget}
-                  onChange={(e) => setBudget(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-semibold text-slate-900 focus:outline-none focus:border-emerald-500 focus:bg-white transition-colors cursor-pointer appearance-none"
-                >
-                  <option value="">
-                    {intent === 'BUY' ? 'Select Budget (optional)' : intent === 'RENT' ? 'Select Monthly Rent Range (optional)' : 'Select Budget / Range (optional)'}
-                  </option>
-                  {(intent === 'RENT' ? RENT_BUDGET_OPTIONS : BUY_BUDGET_OPTIONS).map((opt) => (
-                    <option key={opt} value={opt}>{opt}</option>
-                  ))}
-                </select>
+              <div className="space-y-1.5">
+                <label htmlFor="modal-budget" className="hs-label sr-only">Budget</label>
+                <div className="relative">
+                  <IndianRupee className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <select
+                    id="modal-budget"
+                    value={budget}
+                    onChange={(e) => setBudget(e.target.value)}
+                    className="input-base pl-10 pr-4 appearance-none cursor-pointer"
+                  >
+                    <option value="">
+                      {intent === 'BUY' ? 'Select Budget (optional)' : intent === 'RENT' ? 'Select Monthly Rent Range (optional)' : 'Select Budget / Range (optional)'}
+                    </option>
+                    {(intent === 'RENT' ? RENT_BUDGET_OPTIONS : BUY_BUDGET_OPTIONS).map((opt) => (
+                      <option key={opt} value={opt}>{opt}</option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
               {/* Lease Duration — only for LEASE */}
               {intent === 'LEASE' && (
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-2 gap-3">
                   <div className="relative">
                     <FileText className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                     <select
                       value={duration}
                       onChange={(e) => setDuration(e.target.value)}
-                      className="w-full pl-10 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-semibold text-slate-900 focus:outline-none focus:border-violet-500 focus:bg-white transition-colors cursor-pointer appearance-none"
+                      className="input-base pl-10 pr-3 appearance-none cursor-pointer"
                     >
                       <option value="">Lease Duration</option>
                       {LEASE_DURATION_OPTIONS.map((opt) => (
@@ -365,7 +381,7 @@ export function BuyPropertyModal({
                       value={moveIn}
                       onChange={(e) => setMoveIn(e.target.value)}
                       placeholder="Move-in Date"
-                      className="w-full pl-10 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-semibold text-slate-900 focus:outline-none focus:border-violet-500 focus:bg-white transition-colors cursor-pointer"
+                      className="input-base pl-10 pr-3 cursor-pointer"
                     />
                   </div>
                 </div>
@@ -379,26 +395,30 @@ export function BuyPropertyModal({
                     type="date"
                     value={moveIn}
                     onChange={(e) => setMoveIn(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-semibold text-slate-900 focus:outline-none focus:border-sky-500 focus:bg-white transition-colors cursor-pointer"
+                    className="input-base pl-10 pr-4 cursor-pointer"
                   />
                   <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 font-semibold pointer-events-none">Move-in</span>
                 </div>
               )}
 
               {/* Message */}
-              <div className="relative">
-                <MessageCircle className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5 pointer-events-none" />
-                <textarea
-                  rows={2}
-                  placeholder={
-                    intent === 'BUY' ? 'Any requirements? (optional)'
-                    : intent === 'RENT' ? 'Preferred location, furnishing, etc. (optional)'
-                    : 'Company name, lease terms, usage (optional)'
-                  }
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-semibold text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:bg-white transition-colors resize-none"
-                />
+              <div className="space-y-1.5">
+                <label htmlFor="modal-message" className="hs-label sr-only">Message</label>
+                <div className="relative">
+                  <MessageCircle className="w-4 h-4 text-slate-400 absolute left-3.5 top-4 pointer-events-none" />
+                  <textarea
+                    id="modal-message"
+                    rows={2}
+                    placeholder={
+                      intent === 'BUY' ? 'Any requirements? (optional)'
+                      : intent === 'RENT' ? 'Preferred location, furnishing, etc. (optional)'
+                      : 'Company name, lease terms, usage (optional)'
+                    }
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    className="input-base pl-10 pr-4 min-h-[80px] resize-y"
+                  />
+                </div>
               </div>
 
               {/* Submit */}

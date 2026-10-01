@@ -311,54 +311,70 @@ export function HouseAndSkyChatbot() {
                       </p>
 
                       <form onSubmit={handleDirectLeadSubmit} className="space-y-2 pt-1">
-                        <div className="grid grid-cols-2 gap-1.5">
-                          <input
-                            type="text"
-                            placeholder="Your Name (Optional)"
-                            value={leadForm.name}
-                            onChange={(e) => setLeadForm((prev) => ({ ...prev, name: e.target.value }))}
-                            className="w-full bg-white border border-slate-200 text-slate-800 text-[11px] px-2.5 py-1.5 rounded-lg focus:outline-none focus:border-emerald-500"
-                          />
-                          <input
-                            type="tel"
-                            required
-                            placeholder="Phone Number *"
-                            value={leadForm.phone}
-                            onChange={(e) => setLeadForm((prev) => ({ ...prev, phone: e.target.value }))}
-                            className="w-full bg-white border border-slate-200 text-slate-900 font-bold text-[11px] px-2.5 py-1.5 rounded-lg focus:outline-none focus:border-emerald-500"
-                          />
+                        <div className="grid grid-cols-1 gap-2.5">
+                          <div className="space-y-1">
+                            <label htmlFor="bot-lead-name" className="hs-label sr-only">Your Name (Optional)</label>
+                            <input
+                              id="bot-lead-name"
+                              type="text"
+                              placeholder="Your Name (Optional)"
+                              value={leadForm.name}
+                              onChange={(e) => setLeadForm((prev) => ({ ...prev, name: e.target.value }))}
+                              className="input-base"
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <label htmlFor="bot-lead-phone" className="hs-label sr-only">Phone Number <span className="hs-required">*</span></label>
+                            <input
+                              id="bot-lead-phone"
+                              type="tel"
+                              required
+                              placeholder="Phone Number *"
+                              value={leadForm.phone}
+                              onChange={(e) => setLeadForm((prev) => ({ ...prev, phone: e.target.value }))}
+                              className="input-base"
+                            />
+                          </div>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-1.5">
-                          <select
-                            value={leadForm.interest}
-                            onChange={(e) => setLeadForm((prev) => ({ ...prev, interest: e.target.value }))}
-                            className="w-full bg-white border border-slate-200 text-slate-700 text-[10px] font-semibold px-2 py-1.5 rounded-lg focus:outline-none focus:border-emerald-500"
-                          >
-                            <option value="Request Callback">📞 Call Me Back</option>
-                            <option value="Book Site Visit Cab">🚗 Book Site Visit</option>
-                            <option value="WhatsApp Price Brochure">📄 WhatsApp Brochure</option>
-                            <option value="Best Price Quote">💰 Best Price Quote</option>
-                            <option value="Wholesale Bulk Deal">🔥 Bulk Deal Inquiry</option>
-                          </select>
+                        <div className="grid grid-cols-1 gap-2.5">
+                          <div className="space-y-1">
+                            <label htmlFor="bot-lead-interest" className="hs-label sr-only">Interest</label>
+                            <select
+                              id="bot-lead-interest"
+                              value={leadForm.interest}
+                              onChange={(e) => setLeadForm((prev) => ({ ...prev, interest: e.target.value }))}
+                              className="input-base appearance-none pr-8 cursor-pointer"
+                            >
+                              <option value="Request Callback">📞 Call Me Back</option>
+                              <option value="Book Site Visit Cab">🚗 Book Site Visit</option>
+                              <option value="WhatsApp Price Brochure">📄 WhatsApp Brochure</option>
+                              <option value="Best Price Quote">💰 Best Price Quote</option>
+                              <option value="Wholesale Bulk Deal">🔥 Bulk Deal Inquiry</option>
+                            </select>
+                          </div>
 
-                          <select
-                            value={leadForm.city}
-                            onChange={(e) => setLeadForm((prev) => ({ ...prev, city: e.target.value }))}
-                            className="w-full bg-white border border-slate-200 text-slate-700 text-[10px] font-semibold px-2 py-1.5 rounded-lg focus:outline-none focus:border-emerald-500"
-                          >
-                            <option value="Dholera SIR">Dholera SIR</option>
-                            <option value="Noida Smart City">Noida / NCR</option>
-                            <option value="Mumbai">Mumbai</option>
-                            <option value="Goa">Goa</option>
-                            <option value="Gurgaon">Gurgaon</option>
-                          </select>
+                          <div className="space-y-1">
+                            <label htmlFor="bot-lead-city" className="hs-label sr-only">City</label>
+                            <select
+                              id="bot-lead-city"
+                              value={leadForm.city}
+                              onChange={(e) => setLeadForm((prev) => ({ ...prev, city: e.target.value }))}
+                              className="input-base appearance-none pr-8 cursor-pointer"
+                            >
+                              <option value="Dholera SIR">Dholera SIR</option>
+                              <option value="Noida Smart City">Noida / NCR</option>
+                              <option value="Mumbai">Mumbai</option>
+                              <option value="Goa">Goa</option>
+                              <option value="Gurgaon">Gurgaon</option>
+                            </select>
+                          </div>
                         </div>
 
                         <button
                           type="submit"
                           disabled={isSubmittingLead}
-                          className="w-full py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[11px] uppercase tracking-wider rounded-lg shadow-sm transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                          className="hs-btn-primary w-full text-[11px] py-2"
                         >
                           {isSubmittingLead ? (
                             <>
@@ -430,7 +446,7 @@ export function HouseAndSkyChatbot() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Ask about properties or type mobile number..."
-              className="flex-1 bg-slate-100 border border-slate-200 text-slate-900 placeholder-slate-400 text-xs px-3.5 py-2.5 rounded-xl focus:outline-none focus:border-emerald-500 font-medium"
+              className="flex-1 input-base"
             />
             <button
               type="submit"

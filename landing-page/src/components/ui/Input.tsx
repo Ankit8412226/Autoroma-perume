@@ -5,37 +5,56 @@ export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> 
   label?: string
   error?: string
   helperText?: string
+  required?: boolean
+  leftIcon?: React.ReactNode
+  rightIcon?: React.ReactNode
 }
 
 export const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, type = 'text', label, error, helperText, id, ...props }, ref) => {
-    const inputId = id || (label ? label.toLowerCase().replace(/\s+/g, '-') : undefined)
+  ({ className, type = 'text', label, error, helperText, required, leftIcon, rightIcon, id, ...props }, ref) => {
+    const inputId = id || (label ? `hs-${label.toLowerCase().replace(/\s+/g, '-')}` : undefined)
+    const errorId = error && inputId ? `${inputId}-error` : undefined
+    const helperId = helperText && inputId ? `${inputId}-helper` : undefined
 
     return (
-      <div className="w-full flex flex-col gap-1.5">
+      <div className="w-full space-y-1.5">
         {label && (
-          <label
-            htmlFor={inputId}
-            className="text-label uppercase tracking-widest text-white-300 font-inter"
-          >
+          <label htmlFor={inputId} className="hs-label">
             {label}
+            {required && <span className="hs-required">*</span>}
           </label>
         )}
-        <input
-          id={inputId}
-          type={type}
-          ref={ref}
-          className={cn(
-            'input-base w-full',
-            error && 'border-error focus:border-error',
-            className
+        <div className="relative">
+          {leftIcon && (
+            <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-brand-charcoal/40 pointer-events-none">
+              {leftIcon}
+            </div>
           )}
-          {...props}
-        />
+          <input
+            id={inputId}
+            type={type}
+            ref={ref}
+            aria-invalid={error ? 'true' : undefined}
+            aria-describedby={errorId || helperId || undefined}
+            className={cn(
+              'input-base',
+              leftIcon && 'pl-10',
+              rightIcon && 'pr-10',
+              error && 'hs-input-error',
+              className
+            )}
+            {...props}
+          />
+          {rightIcon && (
+            <div className="absolute right-3.5 top-1/2 -translate-y-1/2 text-brand-charcoal/40 pointer-events-none">
+              {rightIcon}
+            </div>
+          )}
+        </div>
         {error ? (
-          <span className="text-xs text-error font-inter mt-0.5">{error}</span>
+          <p id={errorId} className="hs-field-error" role="alert">{error}</p>
         ) : helperText ? (
-          <span className="text-xs text-white-400 font-inter mt-0.5">{helperText}</span>
+          <p id={helperId} className="hs-helper-text">{helperText}</p>
         ) : null}
       </div>
     )

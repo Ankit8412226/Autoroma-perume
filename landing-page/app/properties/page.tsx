@@ -29,7 +29,8 @@ import {
   Flame,
   Home,
   Layers,
-  Phone
+  Phone,
+  Mic
 } from 'lucide-react'
 
 const PROPERTY_TYPE_OPTIONS = [
@@ -103,12 +104,79 @@ function PropertiesContent() {
   const [sortBy, setSortBy] = React.useState('FEATURED')
   const [viewMode, setViewMode] = React.useState<'grid' | 'list'>('grid')
 
+  React.useEffect(() => {
+    let loc = searchParams.get('location') || ''
+    let city = searchParams.get('city') || 'All Cities'
+    if (loc && city === 'All Cities') {
+      const exactMatch = DEFAULT_MAJOR_INDIAN_CITIES.find(
+        (c) => c.toLowerCase() === loc.toLowerCase().trim()
+      )
+      if (exactMatch) {
+        city = exactMatch
+        // Do not clear loc, let it stay in the input box so the user sees their search
+      }
+    }
+    setSearchQuery(loc)
+    setSelectedCity(city)
+
+    const t = searchParams.get('type')
+    if (t) {
+      if (t === 'Apartments') setSelectedType('APARTMENT')
+      else if (t === 'Villas') setSelectedType('VILLA')
+      else if (t === 'Plots') setSelectedType('RESIDENTIAL_PLOT')
+      else setSelectedType(t)
+    }
+
+    const intent = searchParams.get('intent')
+    if (intent) {
+      if (['buy', 'new launch', 'projects', 'commercial', 'plots/land'].includes(intent.toLowerCase())) {
+        setSelectedListingType('SALE')
+      } else if (intent.toLowerCase() === 'rent') {
+        setSelectedListingType('RENT')
+      }
+    }
+  }, [searchParams])
+
   const [allProperties, setAllProperties] = React.useState<Property[]>([])
   const [dbCities, setDbCities] = React.useState<string[]>([])
   const [dbLocations, setDbLocations] = React.useState<string[]>([])
   const [showLocationDropdown, setShowLocationDropdown] = React.useState(false)
   const [isLoading, setIsLoading] = React.useState(true)
   const [isBulkBuyOpen, setIsBulkBuyOpen] = React.useState(false)
+  const [isListening, setIsListening] = React.useState(false)
+
+  const handleVoiceSearch = () => {
+    if (typeof window === 'undefined') return
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+    if (!SpeechRecognition) {
+      alert('Voice search is not supported in this browser.')
+      return
+    }
+
+    const recognition = new SpeechRecognition()
+    recognition.lang = 'en-IN'
+    recognition.interimResults = false
+    recognition.maxAlternatives = 1
+
+    recognition.onstart = () => setIsListening(true)
+    
+    recognition.onresult = (event: any) => {
+      const transcript = event.results[0][0].transcript
+      setSearchQuery(transcript)
+      setShowLocationDropdown(true)
+    }
+
+    recognition.onerror = (event: any) => {
+      console.error('Speech recognition error', event.error)
+      if (event.error !== 'no-speech') {
+        alert('Error with voice search. Please try again.')
+      }
+    }
+
+    recognition.onend = () => setIsListening(false)
+
+    recognition.start()
+  }
 
   // Fetch unique location options dynamically from database API
   React.useEffect(() => {
@@ -313,18 +381,32 @@ function PropertiesContent() {
                   placeholder="City, locality, landmark, project..."
                   className="w-full pl-10 pr-7 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-semibold focus:outline-none focus:border-emerald-600 focus:bg-white text-slate-900"
                 />
-                {searchQuery && (
+                <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                  {searchQuery && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSearchQuery('')
+                        setShowLocationDropdown(false)
+                      }}
+                      className="text-slate-400 hover:text-slate-600 p-1"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  )}
                   <button
                     type="button"
-                    onClick={() => {
-                      setSearchQuery('')
-                      setShowLocationDropdown(false)
-                    }}
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                    onClick={handleVoiceSearch}
+                    className={`p-1.5 rounded-full transition-all cursor-pointer border ${
+                      isListening 
+                        ? 'text-red-500 bg-red-100 animate-pulse border-red-500' 
+                        : 'text-emerald-600 bg-emerald-50 hover:bg-emerald-600 hover:text-white border-emerald-200'
+                    }`}
+                    title="Voice Search"
                   >
-                    <X className="w-3.5 h-3.5" />
+                    <Mic className="w-3.5 h-3.5" />
                   </button>
-                )}
+                </div>
 
                 {/* Location Suggestions Popup */}
                 {showLocationDropdown && locationSuggestions.length > 0 && (

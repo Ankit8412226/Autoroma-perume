@@ -115,20 +115,20 @@ export default function AdminStatsPanel() {
                 <Loader2 className="w-8 h-8 animate-spin" />
               </div>
             ) : (
-              <form onSubmit={handleSave} className="space-y-6">
+              <form onSubmit={handleSave} noValidate className="space-y-6">
                 
                 {/* Stat 1 */}
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-brand-charcoal uppercase tracking-wider flex items-center gap-2">
                     <Building2 className="w-4 h-4 text-brand-green" /> Township Developments
                   </label>
-                  <p className="text-[11px] text-gray-400">Default fallback: '6 Projects' (auto-counts if empty)</p>
+                  <p className="text-[11px] text-gray-400">Default fallback: &apos;6 Projects&apos; (auto-counts if empty)</p>
                   <input
                     type="text"
                     value={stats.projectsCount}
                     onChange={e => setStats({...stats, projectsCount: e.target.value})}
                     placeholder="e.g. 12 Projects"
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-brand-green focus:ring-2 focus:ring-brand-green/10 text-sm font-bold text-brand-charcoal"
+                    className="input-base"
                   />
                 </div>
 
@@ -137,13 +137,13 @@ export default function AdminStatsPanel() {
                   <label className="text-xs font-bold text-brand-charcoal uppercase tracking-wider flex items-center gap-2">
                     <Users className="w-4 h-4 text-brand-green" /> Community Advisors
                   </label>
-                  <p className="text-[11px] text-gray-400">Default fallback: '45+ Team'</p>
+                  <p className="text-[11px] text-gray-400">Default fallback: &apos;45+ Team&apos;</p>
                   <input
                     type="text"
                     value={stats.advisorsCount}
                     onChange={e => setStats({...stats, advisorsCount: e.target.value})}
                     placeholder="e.g. 50+ Team"
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-brand-green focus:ring-2 focus:ring-brand-green/10 text-sm font-bold text-brand-charcoal"
+                    className="input-base"
                   />
                 </div>
 
@@ -152,13 +152,13 @@ export default function AdminStatsPanel() {
                   <label className="text-xs font-bold text-brand-charcoal uppercase tracking-wider flex items-center gap-2">
                     <MapPin className="w-4 h-4 text-brand-green" /> Prime Locations
                   </label>
-                  <p className="text-[11px] text-gray-400">Default fallback: '6 Enclaves'</p>
+                  <p className="text-[11px] text-gray-400">Default fallback: &apos;6 Enclaves&apos;</p>
                   <input
                     type="text"
                     value={stats.locationsCount}
                     onChange={e => setStats({...stats, locationsCount: e.target.value})}
                     placeholder="e.g. 8 Enclaves"
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-brand-green focus:ring-2 focus:ring-brand-green/10 text-sm font-bold text-brand-charcoal"
+                    className="input-base"
                   />
                 </div>
 
@@ -167,13 +167,13 @@ export default function AdminStatsPanel() {
                   <label className="text-xs font-bold text-brand-charcoal uppercase tracking-wider flex items-center gap-2">
                     <IndianRupee className="w-4 h-4 text-brand-green" /> Demarcated Land Manifest
                   </label>
-                  <p className="text-[11px] text-gray-400">Default fallback: '₹1,200 Cr+'</p>
+                  <p className="text-[11px] text-gray-400">Default fallback: &apos;₹1,200 Cr+&apos;</p>
                   <input
                     type="text"
                     value={stats.revenue}
                     onChange={e => setStats({...stats, revenue: e.target.value})}
                     placeholder="e.g. ₹1,500 Cr+"
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-brand-green focus:ring-2 focus:ring-brand-green/10 text-sm font-bold text-brand-charcoal"
+                    className="input-base"
                   />
                 </div>
 
@@ -181,7 +181,7 @@ export default function AdminStatsPanel() {
                   <button 
                     type="submit"
                     disabled={isSaving}
-                    className="w-full sm:w-auto px-8 py-3 bg-brand-green hover:bg-brand-dark text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-all shadow-md flex items-center justify-center gap-2 disabled:opacity-50"
+                    className="hs-btn-primary"
                   >
                     {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                     Save Changes

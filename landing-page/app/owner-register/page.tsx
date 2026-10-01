@@ -94,11 +94,7 @@ function RegisterContent() {
   }
 
   const inputClass = (field: string) =>
-    `w-full bg-[#FAF9F6] border text-brand-charcoal text-xs py-3 rounded-xl focus:outline-none focus:ring-2 transition-all ${
-      fieldErrors[field]
-        ? 'border-red-400 focus:border-red-500 focus:ring-red-100'
-        : 'border-brand-green/20 focus:border-brand-green focus:ring-brand-green/10'
-    }`
+    `input-base ${fieldErrors[field] ? 'hs-input-error' : ''}`
 
   return (
     <div className="min-h-[80vh] flex items-center justify-center px-4 py-16 bg-bg-primary">
@@ -110,7 +106,7 @@ function RegisterContent() {
           </Link>
         </div>
 
-        <div className="bg-white rounded-3xl border border-brand-green/15 shadow-sm p-8 space-y-6">
+        <div className="hs-form-card space-y-6">
           {isRegisteredSuccess ? (
             <div className="py-6 space-y-4 text-center">
               <div className="w-16 h-16 bg-emerald-50 rounded-full flex items-center justify-center mx-auto text-emerald-600 border border-emerald-200">
@@ -146,18 +142,19 @@ function RegisterContent() {
               </div>
 
               {error && (
-                <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3">
-                  <p className="text-xs font-semibold text-red-700">{error}</p>
+                <div className="hs-error-message">
+                  <p>{error}</p>
                 </div>
               )}
 
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form onSubmit={handleSubmit} noValidate className="space-y-5">
                 {/* Full Name */}
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-brand-charcoal/70 block">Full Name</label>
+                  <label htmlFor="hs-reg-name" className="hs-label">Full Name <span className="hs-required">*</span></label>
                   <div className="relative">
-                    <User className="w-4 h-4 text-brand-charcoal/30 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                    <User className="w-4 h-4 text-brand-charcoal/40 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                     <input
+                      id="hs-reg-name"
                       type="text"
                       required
                       autoComplete="name"
@@ -167,15 +164,16 @@ function RegisterContent() {
                       className={`${inputClass('fullName')} pl-10 pr-4`}
                     />
                   </div>
-                  {fieldErrors.fullName && <p className="text-[11px] text-red-600 font-medium">{fieldErrors.fullName}</p>}
+                  {fieldErrors.fullName && <p className="hs-field-error">{fieldErrors.fullName}</p>}
                 </div>
 
                 {/* Email */}
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-brand-charcoal/70 block">Email Address</label>
+                  <label htmlFor="hs-reg-email" className="hs-label">Email Address <span className="hs-required">*</span></label>
                   <div className="relative">
-                    <Mail className="w-4 h-4 text-brand-charcoal/30 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                    <Mail className="w-4 h-4 text-brand-charcoal/40 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                     <input
+                      id="hs-reg-email"
                       type="email"
                       required
                       autoComplete="email"
@@ -185,15 +183,16 @@ function RegisterContent() {
                       className={`${inputClass('email')} pl-10 pr-4`}
                     />
                   </div>
-                  {fieldErrors.email && <p className="text-[11px] text-red-600 font-medium">{fieldErrors.email}</p>}
+                  {fieldErrors.email && <p className="hs-field-error">{fieldErrors.email}</p>}
                 </div>
 
                 {/* Phone */}
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-brand-charcoal/70 block">Mobile Number</label>
+                  <label htmlFor="hs-reg-phone" className="hs-label">Mobile Number <span className="hs-required">*</span></label>
                   <div className="relative">
-                    <Phone className="w-4 h-4 text-brand-charcoal/30 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                    <Phone className="w-4 h-4 text-brand-charcoal/40 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                     <input
+                      id="hs-reg-phone"
                       type="tel"
                       required
                       autoComplete="tel"
@@ -203,15 +202,16 @@ function RegisterContent() {
                       className={`${inputClass('phone')} pl-10 pr-4`}
                     />
                   </div>
-                  {fieldErrors.phone && <p className="text-[11px] text-red-600 font-medium">{fieldErrors.phone}</p>}
+                  {fieldErrors.phone && <p className="hs-field-error">{fieldErrors.phone}</p>}
                 </div>
 
                 {/* Password */}
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-brand-charcoal/70 block">Password</label>
+                  <label htmlFor="hs-reg-password" className="hs-label">Password <span className="hs-required">*</span></label>
                   <div className="relative">
-                    <Lock className="w-4 h-4 text-brand-charcoal/30 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                    <Lock className="w-4 h-4 text-brand-charcoal/40 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                     <input
+                      id="hs-reg-password"
                       type={showPassword ? 'text' : 'password'}
                       required
                       autoComplete="new-password"
@@ -230,15 +230,16 @@ function RegisterContent() {
                       {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
                   </div>
-                  {fieldErrors.password && <p className="text-[11px] text-red-600 font-medium">{fieldErrors.password}</p>}
+                  {fieldErrors.password && <p className="hs-field-error">{fieldErrors.password}</p>}
                 </div>
 
                 {/* Confirm Password */}
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-brand-charcoal/70 block">Confirm Password</label>
+                  <label htmlFor="hs-reg-confirm" className="hs-label">Confirm Password <span className="hs-required">*</span></label>
                   <div className="relative">
-                    <Lock className="w-4 h-4 text-brand-charcoal/30 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                    <Lock className="w-4 h-4 text-brand-charcoal/40 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                     <input
+                      id="hs-reg-confirm"
                       type={showConfirm ? 'text' : 'password'}
                       required
                       autoComplete="new-password"
@@ -256,13 +257,13 @@ function RegisterContent() {
                       {showConfirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
                   </div>
-                  {fieldErrors.confirmPassword && <p className="text-[11px] text-red-600 font-medium">{fieldErrors.confirmPassword}</p>}
+                  {fieldErrors.confirmPassword && <p className="hs-field-error">{fieldErrors.confirmPassword}</p>}
                 </div>
 
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full py-3 rounded-xl bg-brand-green text-white text-xs font-bold flex items-center justify-center gap-2 hover:bg-brand-dark transition-colors disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
+                  className="hs-btn-primary w-full"
                 >
                   <UserPlus className="w-4 h-4" />
                   {isSubmitting ? 'Creating account…' : 'Create Account'}

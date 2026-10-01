@@ -464,24 +464,36 @@ export default function ProjectDetailsPage() {
                     <p className="text-xs text-white/60">Our team will call you within 24 hours.</p>
                   </div>
                 ) : (
-                  <form onSubmit={handleInquiry} className="space-y-3 mt-4">
-                    <input required type="text" placeholder="Your Full Name" value={formData.name}
-                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      className="w-full px-4 py-2.5 bg-white/10 border border-white/15 rounded-xl text-sm text-white placeholder-white/40 focus:outline-none focus:border-[#C9A96E]/60" />
-                    <input required type="tel" placeholder="Phone Number" value={formData.phone}
-                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                      className="w-full px-4 py-2.5 bg-white/10 border border-white/15 rounded-xl text-sm text-white placeholder-white/40 focus:outline-none focus:border-[#C9A96E]/60" />
-                    <input type="email" placeholder="Email (optional)" value={formData.email}
-                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      className="w-full px-4 py-2.5 bg-white/10 border border-white/15 rounded-xl text-sm text-white placeholder-white/40 focus:outline-none focus:border-[#C9A96E]/60" />
-                    <textarea rows={2} placeholder="Message or preferred visit date…" value={formData.message}
-                      onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                      className="w-full px-4 py-2.5 bg-white/10 border border-white/15 rounded-xl text-sm text-white placeholder-white/40 focus:outline-none focus:border-[#C9A96E]/60 resize-none" />
+                  <form onSubmit={handleInquiry} noValidate className="space-y-4 mt-4">
+                    <div className="space-y-1.5">
+                      <label htmlFor="sidebar-name" className="hs-label sr-only">Your Full Name <span className="hs-required">*</span></label>
+                      <input id="sidebar-name" required type="text" placeholder="Your Full Name" value={formData.name}
+                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                        className="input-base bg-white/10 border-white/15 text-white placeholder:text-white/40 focus:border-[#C9A96E]/60 focus:bg-white/20" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label htmlFor="sidebar-phone" className="hs-label sr-only">Phone Number <span className="hs-required">*</span></label>
+                      <input id="sidebar-phone" required type="tel" placeholder="Phone Number" value={formData.phone}
+                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                        className="input-base bg-white/10 border-white/15 text-white placeholder:text-white/40 focus:border-[#C9A96E]/60 focus:bg-white/20" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label htmlFor="sidebar-email" className="hs-label sr-only">Email (optional)</label>
+                      <input id="sidebar-email" type="email" placeholder="Email (optional)" value={formData.email}
+                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                        className="input-base bg-white/10 border-white/15 text-white placeholder:text-white/40 focus:border-[#C9A96E]/60 focus:bg-white/20" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label htmlFor="sidebar-message" className="hs-label sr-only">Message</label>
+                      <textarea id="sidebar-message" rows={2} placeholder="Message or preferred visit date…" value={formData.message}
+                        onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                        className="input-base bg-white/10 border-white/15 text-white placeholder:text-white/40 focus:border-[#C9A96E]/60 focus:bg-white/20 resize-none min-h-[80px]" />
+                    </div>
                     <button type="submit" disabled={formStatus === 'submitting'}
-                      className="w-full py-3 bg-brand-green hover:bg-emerald-600 text-white font-bold text-sm rounded-xl transition-all shadow-md cursor-pointer disabled:opacity-60">
+                      className="hs-btn-primary w-full bg-brand-green hover:bg-emerald-600 border-none">
                       {formStatus === 'submitting' ? 'Sending…' : '📞 Request Callback'}
                     </button>
-                    {formStatus === 'error' && <p className="text-red-400 text-xs text-center">Failed. Please try again.</p>}
+                    {formStatus === 'error' && <p className="hs-field-error text-center justify-center text-red-400">Failed. Please try again.</p>}
                   </form>
                 )}
               </div>
@@ -602,14 +614,26 @@ export default function ProjectDetailsPage() {
             <div className="bg-white rounded-3xl border border-brand-green/10 p-6">
               <h3 className="font-serif text-2xl text-brand-charcoal mb-2">Send us your inquiry</h3>
               <p className="text-xs text-brand-charcoal/60 mb-4">Ask about a plot number, site visit or pricing.</p>
-              <form onSubmit={handleInquiry} className="space-y-3">
-                <input required type="text" placeholder="Full name" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="w-full px-4 py-2.5 border border-brand-green/20 rounded-xl text-sm" />
-                <div className="grid grid-cols-2 gap-3">
-                  <input required type="email" placeholder="Email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} className="w-full px-4 py-2.5 border border-brand-green/20 rounded-xl text-sm" />
-                  <input required type="tel" placeholder="Phone" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} className="w-full px-4 py-2.5 border border-brand-green/20 rounded-xl text-sm" />
+              <form onSubmit={handleInquiry} noValidate className="space-y-4">
+                <div className="space-y-1.5">
+                  <label htmlFor="bottom-name" className="hs-label sr-only">Full name <span className="hs-required">*</span></label>
+                  <input id="bottom-name" required type="text" placeholder="Full name" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="input-base" />
                 </div>
-                <textarea rows={3} placeholder="Message" value={formData.message} onChange={(e) => setFormData({ ...formData, message: e.target.value })} className="w-full px-4 py-2.5 border border-brand-green/20 rounded-xl text-sm" />
-                <button type="submit" disabled={formStatus === 'submitting'} className="px-5 py-2.5 bg-brand-green text-white text-xs font-bold rounded-xl">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label htmlFor="bottom-email" className="hs-label sr-only">Email <span className="hs-required">*</span></label>
+                    <input id="bottom-email" required type="email" placeholder="Email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} className="input-base" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label htmlFor="bottom-phone" className="hs-label sr-only">Phone <span className="hs-required">*</span></label>
+                    <input id="bottom-phone" required type="tel" placeholder="Phone" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} className="input-base" />
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <label htmlFor="bottom-message" className="hs-label sr-only">Message</label>
+                  <textarea id="bottom-message" rows={3} placeholder="Message" value={formData.message} onChange={(e) => setFormData({ ...formData, message: e.target.value })} className="input-base min-h-[100px] resize-y" />
+                </div>
+                <button type="submit" disabled={formStatus === 'submitting'} className="hs-btn-primary px-8">
                   {formStatus === 'success' ? 'Sent' : 'Send Inquiry'}
                 </button>
               </form>

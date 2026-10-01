@@ -55,26 +55,240 @@ html, body {
   background: #0B4F3C;
 }
 
-/* Input Fields Base */
+/* =====================================================================
+   HOUSE & SKY — GLOBAL FORM DESIGN SYSTEM
+   All inputs, selects, textareas, labels, buttons, and form cards
+   share a single design language defined here.
+   ===================================================================== */
+
+/* ── Input / Select / Textarea Base ──────────────────────────────────── */
 .input-base {
   background: #FFFFFF;
   border: 1px solid #D5DDD8;
   color: #171A18;
   padding: 0.75rem 1rem;
   font-family: var(--font-inter), sans-serif;
-  font-size: 0.9375rem;
-  transition: border-color 150ms ease, box-shadow 150ms ease;
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.5;
+  min-height: 48px;
+  transition: border-color 200ms ease, box-shadow 200ms ease, background-color 200ms ease;
   outline: none;
-  border-radius: 8px;
+  border-radius: 12px;
+  width: 100%;
+}
+
+@media (min-width: 640px) {
+  .input-base {
+    min-height: 50px;
+    font-size: 0.875rem;
+  }
 }
 
 .input-base::placeholder {
-  color: #8C948F;
+  color: #9CA3A0;
+  font-weight: 400;
 }
 
+/* ── Focus State ─────────────────────────────────────────────────────── */
 .input-base:focus {
   border-color: #0B4F3C;
-  box-shadow: 0 0 0 3px rgba(11, 79, 60, 0.12);
+  box-shadow: 0 0 0 3px rgba(11, 79, 60, 0.10);
+  background-color: #FFFFFF;
+}
+
+/* ── Error State ─────────────────────────────────────────────────────── */
+.input-base.hs-input-error,
+.input-base[aria-invalid="true"] {
+  border-color: #DC2626;
+  background-color: #FEF2F2;
+}
+
+.input-base.hs-input-error:focus,
+.input-base[aria-invalid="true"]:focus {
+  border-color: #DC2626;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.10);
+}
+
+/* ── Disabled State ──────────────────────────────────────────────────── */
+.input-base:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background-color: #F4F3EE;
+}
+
+/* ── Autofill Normalization (Chrome / Safari) ────────────────────────── */
+.input-base:-webkit-autofill,
+.input-base:-webkit-autofill:hover,
+.input-base:-webkit-autofill:focus,
+.input-base:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px #FFFFFF inset !important;
+  -webkit-text-fill-color: #171A18 !important;
+  transition: background-color 5000s ease-in-out 0s;
+  font-family: var(--font-inter), sans-serif !important;
+}
+
+/* ── Label Base ──────────────────────────────────────────────────────── */
+.hs-label {
+  display: block;
+  font-family: var(--font-inter), sans-serif;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #171A18;
+  margin-bottom: 6px;
+  line-height: 1.4;
+}
+
+.hs-label .hs-required {
+  color: #DC2626;
+  margin-left: 2px;
+  font-weight: 700;
+}
+
+/* ── Error Message ───────────────────────────────────────────────────── */
+.hs-field-error {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-inter), sans-serif;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: #DC2626;
+  margin-top: 4px;
+  line-height: 1.4;
+}
+
+/* ── Helper Text ─────────────────────────────────────────────────────── */
+.hs-helper-text {
+  font-family: var(--font-inter), sans-serif;
+  font-size: 0.6875rem;
+  font-weight: 400;
+  color: #6D746F;
+  margin-top: 4px;
+  line-height: 1.4;
+}
+
+/* ── Form Card Container ─────────────────────────────────────────────── */
+.hs-form-card {
+  background: #FFFFFF;
+  border: 1px solid rgba(11, 79, 60, 0.08);
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 4px 16px rgba(0, 0, 0, 0.02);
+}
+
+@media (min-width: 640px) {
+  .hs-form-card {
+    padding: 32px;
+    border-radius: 24px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .hs-form-card {
+    padding: 40px;
+  }
+}
+
+/* ── Primary CTA Button ──────────────────────────────────────────────── */
+.hs-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 12px 28px;
+  background-color: #0B4F3C;
+  color: #FFFFFF;
+  font-family: var(--font-inter), sans-serif;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 200ms ease;
+  box-shadow: 0 1px 3px rgba(11, 79, 60, 0.15);
+  white-space: nowrap;
+}
+
+.hs-btn-primary:hover {
+  background-color: #063B2D;
+  box-shadow: 0 2px 8px rgba(11, 79, 60, 0.25);
+}
+
+.hs-btn-primary:active {
+  transform: scale(0.98);
+}
+
+.hs-btn-primary:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(11, 79, 60, 0.25);
+}
+
+.hs-btn-primary:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+}
+
+@media (max-width: 639px) {
+  .hs-btn-primary {
+    width: 100%;
+    min-height: 52px;
+  }
+}
+
+/* ── Success Toast ───────────────────────────────────────────────────── */
+.hs-success-message {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: #ECFDF5;
+  border: 1px solid #A7F3D0;
+  border-radius: 12px;
+  font-family: var(--font-inter), sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #065F46;
+}
+
+/* ── Error Toast ─────────────────────────────────────────────────────── */
+.hs-error-message {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: #FEF2F2;
+  border: 1px solid #FECACA;
+  border-radius: 12px;
+  font-family: var(--font-inter), sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #991B1B;
+}
+
+/* ── Select Arrow Fix ────────────────────────────────────────────────── */
+.input-base[data-hs-select],
+select.input-base {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236D746F' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px;
+  padding-right: 40px;
+}
+
+/* ── Textarea Specifics ──────────────────────────────────────────────── */
+textarea.input-base {
+  min-height: 120px;
+  resize: vertical;
+  line-height: 1.6;
 }
 
 .tabular-nums {

@@ -146,68 +146,65 @@ export function HomepageContactSection() {
               </button>
             </div>
           ) : (
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-1">
+            <form onSubmit={handleSubmit} noValidate className="space-y-5">
+              <div className="space-y-1.5 pb-2 border-b border-brand-green/10">
                 <h3 className="font-serif text-xl sm:text-2xl font-bold text-brand-charcoal">
                   Book Site Visit & Plot Consultation
                 </h3>
-                <p className="text-xs text-brand-charcoal/70">
+                <p className="text-xs text-brand-charcoal/60 font-medium">
                   Fill in your details below for instant callback & brochure dispatch.
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-                <div className="space-y-1">
-                  <label className="text-[10px] font-bold uppercase tracking-wider text-brand-charcoal/80">
-                    Full Name *
-                  </label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div className="space-y-1.5">
+                  <label htmlFor="hs-contact-name" className="hs-label">Full Name <span className="hs-required">*</span></label>
                   <input
+                    id="hs-contact-name"
                     type="text"
                     required
+                    autoComplete="name"
                     value={formData.fullName}
                     onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                    placeholder="e.g. Vikramaditya Sharma"
-                    className="w-full px-3.5 py-2.5 bg-brand-soft/50 border border-brand-green/20 rounded-xl text-xs text-brand-charcoal focus:outline-none focus:border-brand-green focus:bg-white transition-all min-h-[44px]"
+                    placeholder="Enter your full name"
+                    className="input-base"
                   />
                 </div>
-
-                <div className="space-y-1">
-                  <label className="text-[10px] font-bold uppercase tracking-wider text-brand-charcoal/80">
-                    Mobile Number *
-                  </label>
+                <div className="space-y-1.5">
+                  <label htmlFor="hs-contact-phone" className="hs-label">Mobile Number <span className="hs-required">*</span></label>
                   <input
+                    id="hs-contact-phone"
                     type="tel"
                     required
+                    autoComplete="tel"
                     value={formData.phone}
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                     placeholder="+91 98765 43210"
-                    className="w-full px-3.5 py-2.5 bg-brand-soft/50 border border-brand-green/20 rounded-xl text-xs text-brand-charcoal focus:outline-none focus:border-brand-green focus:bg-white transition-all min-h-[44px]"
+                    className="input-base"
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label className="text-[10px] font-bold uppercase tracking-wider text-brand-charcoal/80">
-                    Email Address
-                  </label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div className="space-y-1.5">
+                  <label htmlFor="hs-contact-email" className="hs-label">Email Address</label>
                   <input
+                    id="hs-contact-email"
                     type="email"
+                    autoComplete="email"
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    placeholder="vikram@example.com"
-                    className="w-full px-3.5 py-2.5 bg-brand-soft/50 border border-brand-green/20 rounded-xl text-xs text-brand-charcoal focus:outline-none focus:border-brand-green focus:bg-white transition-all min-h-[44px]"
+                    placeholder="Enter your email address"
+                    className="input-base"
                   />
                 </div>
-
-                <div className="space-y-1">
-                  <label className="text-[10px] font-bold uppercase tracking-wider text-brand-charcoal/80">
-                    Target Project *
-                  </label>
+                <div className="space-y-1.5">
+                  <label htmlFor="hs-contact-project" className="hs-label">Target Project <span className="hs-required">*</span></label>
                   <select
+                    id="hs-contact-project"
                     value={formData.projectOfInterest}
                     onChange={(e) => setFormData({ ...formData, projectOfInterest: e.target.value })}
-                    className="w-full px-3.5 py-2.5 bg-brand-soft/50 border border-brand-green/20 rounded-xl text-xs text-brand-charcoal focus:outline-none focus:border-brand-green focus:bg-white transition-all min-h-[44px]"
+                    className="input-base appearance-none cursor-pointer pr-10"
                   >
                     <option value="Dholera SIR Smart City Enclave">Dholera SIR Smart City Enclave</option>
                     <option value="Royal Palms Executive City - Noida">Royal Palms Executive City - Noida</option>
@@ -217,47 +214,42 @@ export function HomepageContactSection() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label className="text-[10px] font-bold uppercase tracking-wider text-brand-charcoal/80">
-                    Preferred Site Visit Date
-                  </label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div className="space-y-1.5">
+                  <label htmlFor="hs-contact-date" className="hs-label">Preferred Site Visit Date</label>
                   <input
+                    id="hs-contact-date"
                     type="date"
                     value={formData.preferredDate}
                     onChange={(e) => setFormData({ ...formData, preferredDate: e.target.value })}
-                    className="w-full px-3.5 py-2.5 bg-brand-soft/50 border border-brand-green/20 rounded-xl text-xs text-brand-charcoal focus:outline-none focus:border-brand-green focus:bg-white transition-all min-h-[44px]"
+                    className="input-base"
                   />
                 </div>
-
-                <div className="space-y-1">
-                  <label className="text-[10px] font-bold uppercase tracking-wider text-brand-charcoal/80">
-                    Specific Plot Preferences
-                  </label>
+                <div className="space-y-1.5">
+                  <label htmlFor="hs-contact-prefs" className="hs-label">Specific Plot Preferences</label>
                   <input
+                    id="hs-contact-prefs"
                     type="text"
                     value={formData.message}
                     onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                     placeholder="e.g. 200 sqyd, Corner plot, East facing"
-                    className="w-full px-3.5 py-2.5 bg-brand-soft/50 border border-brand-green/20 rounded-xl text-xs text-brand-charcoal focus:outline-none focus:border-brand-green focus:bg-white transition-all min-h-[44px]"
+                    className="input-base"
                   />
                 </div>
               </div>
 
-              <div className="pt-2">
+              <div className="pt-1">
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full py-3.5 px-4 bg-brand-green hover:bg-brand-dark active:scale-[0.98] text-white font-extrabold text-[11px] sm:text-xs uppercase tracking-wider sm:tracking-[0.15em] rounded-xl transition-all shadow-md flex items-center justify-center text-center gap-2.5 cursor-pointer disabled:opacity-50"
+                  className="hs-btn-primary w-full"
                 >
-                  <Send className="w-4 h-4 text-white shrink-0" />
-                  <span className="text-center leading-snug">
-                    {isSubmitting ? 'Submitting Request...' : 'Confirm VIP Site Visit Request'}
-                  </span>
+                  <Send className="w-4 h-4 shrink-0" />
+                  {isSubmitting ? 'Submitting Request...' : 'Confirm VIP Site Visit Request'}
                 </button>
               </div>
 
-              <div className="flex items-center gap-2 text-[10px] text-brand-charcoal/60 justify-center pt-1">
+              <div className="flex items-center gap-2 text-[10px] text-brand-charcoal/60 justify-center">
                 <ShieldCheck className="w-3.5 h-3.5 text-brand-green" />
                 <span>Your information is 100% confidential. No spam guaranteed.</span>
               </div>

@@ -102,23 +102,24 @@ function ResetPasswordContent() {
                 </div>
               )}
 
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form onSubmit={handleSubmit} noValidate className="space-y-4">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-brand-charcoal/70 block">New Password</label>
+                  <label htmlFor="reset-new" className="hs-label">New Password <span className="hs-required">*</span></label>
                   <div className="relative">
                     <Lock className="w-4 h-4 text-brand-charcoal/30 absolute left-3.5 top-1/2 -translate-y-1/2" />
                     <input
+                      id="reset-new"
                       type={showPassword ? 'text' : 'password'}
                       required
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
                       placeholder="Minimum 6 characters"
-                      className="w-full bg-[#FAF9F6] border border-brand-green/20 text-brand-charcoal text-xs pl-10 pr-10 py-3 rounded-xl focus:outline-none focus:border-brand-green focus:ring-2 focus:ring-brand-green/10 transition-all"
+                      className="input-base pl-10 pr-10"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-brand-charcoal/30 hover:text-brand-charcoal/60 transition-colors"
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-brand-charcoal/30 hover:text-brand-charcoal/60 transition-colors cursor-pointer"
                     >
                       {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
@@ -126,16 +127,17 @@ function ResetPasswordContent() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-brand-charcoal/70 block">Confirm New Password</label>
+                  <label htmlFor="reset-confirm" className="hs-label">Confirm New Password <span className="hs-required">*</span></label>
                   <div className="relative">
                     <Lock className="w-4 h-4 text-brand-charcoal/30 absolute left-3.5 top-1/2 -translate-y-1/2" />
                     <input
+                      id="reset-confirm"
                       type={showPassword ? 'text' : 'password'}
                       required
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       placeholder="Re-enter new password"
-                      className="w-full bg-[#FAF9F6] border border-brand-green/20 text-brand-charcoal text-xs pl-10 pr-10 py-3 rounded-xl focus:outline-none focus:border-brand-green focus:ring-2 focus:ring-brand-green/10 transition-all"
+                      className="input-base pl-10 pr-10"
                     />
                   </div>
                 </div>
@@ -143,7 +145,7 @@ function ResetPasswordContent() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full py-3 rounded-xl bg-brand-green text-white text-xs font-bold flex items-center justify-center gap-2 hover:bg-brand-dark transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                  className="hs-btn-primary w-full mt-2"
                 >
                   {isSubmitting ? 'Updating Password…' : 'Reset Password'}
                 </button>

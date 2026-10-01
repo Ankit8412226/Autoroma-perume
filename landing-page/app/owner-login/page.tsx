@@ -151,7 +151,7 @@ function LoginContent() {
           </Link>
         </div>
 
-        <div className="bg-white rounded-3xl border border-brand-green/15 shadow-sm p-8 space-y-6">
+        <div className="hs-form-card space-y-6">
           {/* Header */}
           <div className="space-y-1">
             <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-brand-green">Property Owner Portal</p>
@@ -161,52 +161,53 @@ function LoginContent() {
 
           {/* Error */}
           {error && (
-            <div className="bg-red-50 border border-red-200 rounded-xl p-4 space-y-2">
-              <div className="flex items-start gap-2">
-                <AlertCircle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
-                <p className="text-xs font-semibold text-red-700">{error}</p>
+            <div className="hs-error-message">
+              <AlertCircle className="w-4 h-4 shrink-0" />
+              <div className="space-y-2 flex-1">
+                <p>{error}</p>
+                {unverifiedEmail && (
+                  <div className="pt-2 border-t border-red-200">
+                    <button
+                      type="button"
+                      onClick={handleResendVerification}
+                      disabled={isResending}
+                      className="w-full py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-bold transition-colors shadow-xs cursor-pointer disabled:opacity-60"
+                    >
+                      {isResending ? 'Sending Verification Link…' : 'Resend Verification Email'}
+                    </button>
+                    {resendMsg && (
+                      <p className="mt-2 text-[11px] font-bold text-brand-green text-center bg-white p-2 rounded-lg border border-brand-green/20">
+                        {resendMsg}
+                      </p>
+                    )}
+                  </div>
+                )}
               </div>
-              {unverifiedEmail && (
-                <div className="pt-2 border-t border-red-200">
-                  <button
-                    type="button"
-                    onClick={handleResendVerification}
-                    disabled={isResending}
-                    className="w-full py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-bold transition-colors shadow-xs cursor-pointer disabled:opacity-60"
-                  >
-                    {isResending ? 'Sending Verification Link…' : 'Resend Verification Email'}
-                  </button>
-                  {resendMsg && (
-                    <p className="mt-2 text-[11px] font-bold text-brand-green text-center bg-white p-2 rounded-lg border border-brand-green/20">
-                      {resendMsg}
-                    </p>
-                  )}
-                </div>
-              )}
             </div>
           )}
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} noValidate className="space-y-5">
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-brand-charcoal/70 block">Email Address</label>
+              <label htmlFor="hs-login-email" className="hs-label">Email Address <span className="hs-required">*</span></label>
               <div className="relative">
-                <Mail className="w-4 h-4 text-brand-charcoal/30 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <Mail className="w-4 h-4 text-brand-charcoal/40 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                 <input
+                  id="hs-login-email"
                   type="email"
                   required
                   autoComplete="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="you@example.com"
-                  className="w-full bg-[#FAF9F6] border border-brand-green/20 text-brand-charcoal text-xs pl-10 pr-4 py-3 rounded-xl focus:outline-none focus:border-brand-green focus:ring-2 focus:ring-brand-green/10 transition-all"
+                  className="input-base pl-10"
                 />
               </div>
             </div>
 
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
-                <label className="text-xs font-bold text-brand-charcoal/70 block">Password</label>
+                <label htmlFor="hs-login-password" className="hs-label">Password <span className="hs-required">*</span></label>
                 <button
                   type="button"
                   onClick={() => {
@@ -220,20 +221,21 @@ function LoginContent() {
                 </button>
               </div>
               <div className="relative">
-                <Lock className="w-4 h-4 text-brand-charcoal/30 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <Lock className="w-4 h-4 text-brand-charcoal/40 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                 <input
+                  id="hs-login-password"
                   type={showPassword ? 'text' : 'password'}
                   required
                   autoComplete="current-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Your password"
-                  className="w-full bg-[#FAF9F6] border border-brand-green/20 text-brand-charcoal text-xs pl-10 pr-10 py-3 rounded-xl focus:outline-none focus:border-brand-green focus:ring-2 focus:ring-brand-green/10 transition-all"
+                  className="input-base pl-10 pr-10"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-brand-charcoal/30 hover:text-brand-charcoal/60 transition-colors"
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-brand-charcoal/30 hover:text-brand-charcoal/60 transition-colors cursor-pointer"
                   tabIndex={-1}
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -244,7 +246,7 @@ function LoginContent() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full py-3 rounded-xl bg-brand-green text-white text-xs font-bold flex items-center justify-center gap-2 hover:bg-brand-dark transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+              className="hs-btn-primary w-full"
             >
               <LogIn className="w-4 h-4" />
               {isSubmitting ? 'Logging in…' : 'Login to my account'}
@@ -314,18 +316,20 @@ function LoginContent() {
                   </div>
                 )}
 
-                <form onSubmit={handleForgotPasswordSubmit} className="space-y-4">
-                  <div>
-                    <label className="text-xs font-bold text-brand-charcoal/70 block mb-1">Email Address</label>
+                <form onSubmit={handleForgotPasswordSubmit} noValidate className="space-y-4">
+                  <div className="space-y-1.5">
+                    <label htmlFor="hs-forgot-email" className="hs-label">Email Address <span className="hs-required">*</span></label>
                     <div className="relative">
-                      <Mail className="w-4 h-4 text-brand-charcoal/30 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                      <Mail className="w-4 h-4 text-brand-charcoal/40 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                       <input
+                        id="hs-forgot-email"
                         type="email"
                         required
+                        autoComplete="email"
                         placeholder="you@example.com"
                         value={forgotEmail}
                         onChange={(e) => setForgotEmail(e.target.value)}
-                        className="w-full bg-[#FAF9F6] border border-brand-green/20 text-brand-charcoal text-xs pl-10 pr-4 py-2.5 rounded-xl focus:outline-none focus:border-brand-green"
+                        className="input-base pl-10"
                       />
                     </div>
                   </div>

@@ -157,54 +157,59 @@ export function BulkBuyModal({ isOpen, onClose, context }: BulkBuyModalProps) {
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-3 text-xs">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <label className="block space-y-1">
-                <span className="font-bold text-brand-charcoal/70">Full name</span>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <label htmlFor="bulk-buy-name" className="block space-y-1.5">
+                <span className="hs-label">Full name <span className="hs-required">*</span></span>
                 <input
+                  id="bulk-buy-name"
                   required
                   value={form.name}
                   onChange={(e) => patch('name', e.target.value)}
-                  className="w-full bg-[#FAF9F6] border border-brand-green/20 rounded-xl px-3 py-2 font-semibold text-brand-charcoal focus:outline-none focus:border-brand-green"
+                  className="input-base"
                 />
               </label>
-              <label className="block space-y-1">
-                <span className="font-bold text-brand-charcoal/70">Phone</span>
+              <label htmlFor="bulk-buy-phone" className="block space-y-1.5">
+                <span className="hs-label">Phone <span className="hs-required">*</span></span>
                 <input
+                  id="bulk-buy-phone"
                   required
                   type="tel"
                   value={form.phone}
                   onChange={(e) => patch('phone', e.target.value)}
-                  className="w-full bg-[#FAF9F6] border border-brand-green/20 rounded-xl px-3 py-2 font-semibold text-brand-charcoal focus:outline-none focus:border-brand-green"
+                  className="input-base"
                 />
               </label>
             </div>
-            <label className="block space-y-1">
-              <span className="font-bold text-brand-charcoal/70">Email (optional)</span>
+            <label htmlFor="bulk-buy-email" className="block space-y-1.5">
+              <span className="hs-label">Email (optional)</span>
               <input
+                id="bulk-buy-email"
                 type="email"
                 value={form.email}
                 onChange={(e) => patch('email', e.target.value)}
-                className="w-full bg-[#FAF9F6] border border-brand-green/20 rounded-xl px-3 py-2 font-semibold text-brand-charcoal focus:outline-none focus:border-brand-green"
+                className="input-base"
               />
             </label>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <label className="block space-y-1">
-                <span className="font-bold text-brand-charcoal/70">Units to buy</span>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <label htmlFor="bulk-buy-units" className="block space-y-1.5">
+                <span className="hs-label">Units to buy <span className="hs-required">*</span></span>
                 <input
+                  id="bulk-buy-units"
                   required
                   type="number"
                   min={MIN_BULK_UNITS}
                   value={form.unitCount}
                   onChange={(e) => patch('unitCount', e.target.value)}
-                  className="w-full bg-[#FAF9F6] border border-brand-green/20 rounded-xl px-3 py-2 font-semibold text-brand-charcoal focus:outline-none focus:border-brand-green"
+                  className="input-base"
                 />
               </label>
-              <label className="block space-y-1">
-                <span className="font-bold text-brand-charcoal/70">Budget</span>
+              <label htmlFor="bulk-buy-budget" className="block space-y-1.5">
+                <span className="hs-label">Budget</span>
                 <select
+                  id="bulk-buy-budget"
                   value={form.budgetRange}
                   onChange={(e) => patch('budgetRange', e.target.value)}
-                  className="w-full bg-[#FAF9F6] border border-brand-green/20 rounded-xl px-3 py-2 font-semibold text-brand-charcoal focus:outline-none focus:border-brand-green"
+                  className="input-base appearance-none cursor-pointer pr-10"
                 >
                   {BUDGET_OPTIONS.map((option) => (
                     <option key={option.value || 'any'} value={option.value}>{option.label}</option>
@@ -212,44 +217,49 @@ export function BulkBuyModal({ isOpen, onClose, context }: BulkBuyModalProps) {
                 </select>
               </label>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <label className="block space-y-1">
-                <span className="font-bold text-brand-charcoal/70">Property type</span>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <label htmlFor="bulk-buy-type" className="block space-y-1.5">
+                <span className="hs-label">Property type</span>
                 <select
+                  id="bulk-buy-type"
                   value={form.propertyType}
                   onChange={(e) => patch('propertyType', e.target.value)}
-                  className="w-full bg-[#FAF9F6] border border-brand-green/20 rounded-xl px-3 py-2 font-semibold text-brand-charcoal focus:outline-none focus:border-brand-green"
+                  className="input-base appearance-none cursor-pointer pr-10"
                 >
                   {PROPERTY_TYPE_OPTIONS.map((option) => (
                     <option key={option.value || 'any'} value={option.value}>{option.label}</option>
                   ))}
                 </select>
               </label>
-              <label className="block space-y-1">
-                <span className="font-bold text-brand-charcoal/70">Preferred city</span>
+              <label htmlFor="bulk-buy-city" className="block space-y-1.5">
+                <span className="hs-label">Preferred city</span>
                 <input
+                  id="bulk-buy-city"
                   value={form.city}
                   onChange={(e) => patch('city', e.target.value)}
-                  className="w-full bg-[#FAF9F6] border border-brand-green/20 rounded-xl px-3 py-2 font-semibold text-brand-charcoal focus:outline-none focus:border-brand-green"
+                  className="input-base"
                 />
               </label>
             </div>
-            <label className="block space-y-1">
-              <span className="font-bold text-brand-charcoal/70">Message</span>
+            <label htmlFor="bulk-buy-message" className="block space-y-1.5">
+              <span className="hs-label">Message</span>
               <textarea
+                id="bulk-buy-message"
                 rows={3}
                 value={form.message}
                 onChange={(e) => patch('message', e.target.value)}
-                className="w-full bg-[#FAF9F6] border border-brand-green/20 rounded-xl px-3 py-2 font-semibold text-brand-charcoal focus:outline-none focus:border-brand-green resize-none"
+                className="input-base min-h-[100px] resize-y"
               />
             </label>
             {status === 'error' && errorMessage ? (
-              <p className="text-red-600 font-semibold">{errorMessage}</p>
+              <div className="hs-error-message">
+                <p>{errorMessage}</p>
+              </div>
             ) : null}
             <button
               type="submit"
               disabled={status === 'submitting'}
-              className="w-full py-3 rounded-xl bg-brand-green text-white font-bold flex items-center justify-center gap-2 disabled:opacity-60"
+              className="hs-btn-primary w-full"
             >
               <Building2 className="w-4 h-4" />
               {status === 'submitting' ? 'Sending…' : 'Request a callback'}

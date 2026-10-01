@@ -1,6 +1,5 @@
 import * as React from 'react'
 import { cn } from '@/utils/cn'
-import { ChevronDown } from 'lucide-react'
 
 export interface SelectOption {
   value: string
@@ -11,42 +10,56 @@ export interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElemen
   label?: string
   options: SelectOption[]
   error?: string
+  helperText?: string
+  required?: boolean
+  placeholder?: string
 }
 
 export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
-  ({ className, label, options, error, id, ...props }, ref) => {
-    const selectId = id || (label ? label.toLowerCase().replace(/\s+/g, '-') : undefined)
+  ({ className, label, options, error, helperText, required, placeholder, id, ...props }, ref) => {
+    const selectId = id || (label ? `hs-${label.toLowerCase().replace(/\s+/g, '-')}` : undefined)
+    const errorId = error && selectId ? `${selectId}-error` : undefined
 
     return (
-      <div className="w-full flex flex-col gap-1.5 relative">
+      <div className="w-full space-y-1.5">
         {label && (
-          <label
-            htmlFor={selectId}
-            className="text-label uppercase tracking-widest text-white-300 font-inter"
-          >
+          <label htmlFor={selectId} className="hs-label">
             {label}
+            {required && <span className="hs-required">*</span>}
           </label>
         )}
         <div className="relative w-full">
           <select
             id={selectId}
             ref={ref}
+            aria-invalid={error ? 'true' : undefined}
+            aria-describedby={errorId || undefined}
+            data-hs-select
             className={cn(
-              'input-base w-full appearance-none pr-10 cursor-pointer bg-bg-surface text-white-100',
-              error && 'border-error focus:border-error',
+              'input-base appearance-none cursor-pointer pr-10',
+              'bg-no-repeat bg-[length:16px] bg-[position:right_12px_center]',
+              error && 'hs-input-error',
               className
             )}
             {...props}
           >
+            {placeholder && (
+              <option value="" disabled>
+                {placeholder}
+              </option>
+            )}
             {options.map((opt) => (
-              <option key={opt.value} value={opt.value} className="bg-bg-elevated text-white-100 py-2">
+              <option key={opt.value} value={opt.value}>
                 {opt.label}
               </option>
             ))}
           </select>
-          <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gold-300 pointer-events-none" />
         </div>
-        {error && <span className="text-xs text-error font-inter mt-0.5">{error}</span>}
+        {error ? (
+          <p id={errorId} className="hs-field-error" role="alert">{error}</p>
+        ) : helperText ? (
+          <p className="hs-helper-text">{helperText}</p>
+        ) : null}
       </div>
     )
   }

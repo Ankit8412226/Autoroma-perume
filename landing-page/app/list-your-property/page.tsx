@@ -311,7 +311,7 @@ function SingleDocUploader({
 
   return (
     <div className="space-y-1.5">
-      <label className="text-xs font-bold text-brand-charcoal/80 block">
+      <label className="hs-label">
         {label} <span className="text-red-500">*</span>
       </label>
       <div
@@ -628,7 +628,7 @@ export default function ListPropertyPage() {
 
                     {/* Listing Type cards */}
                     <div className="space-y-2">
-                      <label className="text-xs font-bold text-brand-charcoal/80 block">Listing Purpose <span className="text-red-500">*</span></label>
+                      <label className="hs-label">Listing Purpose <span className="text-red-500">*</span></label>
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                         {LISTING_TYPE_OPTIONS.map((opt) => (
                           <div
@@ -652,7 +652,7 @@ export default function ListPropertyPage() {
 
                     {/* Property Type Grid */}
                     <div className="space-y-2 pt-2">
-                      <label className="text-xs font-bold text-brand-charcoal/80 block">Property Category <span className="text-red-500">*</span></label>
+                      <label className="hs-label">Property Category <span className="text-red-500">*</span></label>
                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                         {PROPERTY_TYPE_OPTIONS.map((opt) => (
                           <div
@@ -681,15 +681,15 @@ export default function ListPropertyPage() {
                     {/* Title & Description */}
                     <div className="space-y-4 pt-2 border-t border-brand-green/10">
                       <div className="space-y-1.5">
-                        <label className="text-xs font-bold text-brand-charcoal/80 block">
+                        <label className="hs-label">
                           Property Listing Title <span className="text-red-500">*</span>
                         </label>
                         <input
                           type="text"
-                          className={`w-full bg-[#FAF9F6] border text-brand-charcoal text-xs px-4 py-3 rounded-xl focus:outline-none focus:ring-2 ${
+                          className={`input-base ${
                             fieldErrors.title 
-                              ? 'border-red-500 focus:border-red-500 focus:ring-red-100' 
-                              : 'border-brand-green/20 focus:border-brand-green focus:ring-brand-green/10'
+                              ? 'hs-input-error' 
+                              : ''
                           }`}
                           value={form.title}
                           onChange={(e) => update('title', e.target.value)}
@@ -700,10 +700,10 @@ export default function ListPropertyPage() {
                       </div>
 
                       <div className="space-y-1.5">
-                        <label className="text-xs font-bold text-brand-charcoal/80 block">Tagline / Short Highlight</label>
+                        <label className="hs-label">Tagline / Short Highlight</label>
                         <input
                           type="text"
-                          className="w-full bg-[#FAF9F6] border border-brand-green/20 text-brand-charcoal text-xs px-4 py-3 rounded-xl focus:outline-none focus:border-brand-green"
+                          className="input-base"
                           value={form.tagline}
                           onChange={(e) => update('tagline', e.target.value)}
                           placeholder="e.g. Corner plot facing lush green garden, 100% Vastu compliant"
@@ -711,10 +711,10 @@ export default function ListPropertyPage() {
                       </div>
 
                       <div className="space-y-1.5">
-                        <label className="text-xs font-bold text-brand-charcoal/80 block">Detailed Property Description</label>
+                        <label className="hs-label">Detailed Property Description</label>
                         <textarea
                           rows={4}
-                          className="w-full bg-[#FAF9F6] border border-brand-green/20 text-brand-charcoal text-xs p-4 rounded-xl focus:outline-none focus:border-brand-green resize-none"
+                          className="input-base"
                           value={form.description}
                           onChange={(e) => update('description', e.target.value)}
                           placeholder="Provide details about natural lighting, connectivity, nearby schools, hospitals, security features..."
@@ -736,10 +736,10 @@ export default function ListPropertyPage() {
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="space-y-1.5">
-                        <label className="text-xs font-bold text-brand-charcoal/80 block">State</label>
+                        <label className="hs-label">State</label>
                         <input
                           type="text"
-                          className="w-full bg-[#FAF9F6] border border-brand-green/20 text-brand-charcoal text-xs px-4 py-3 rounded-xl focus:outline-none focus:border-brand-green"
+                          className="input-base"
                           value={form.state}
                           onChange={(e) => update('state', e.target.value)}
                           placeholder="e.g. Maharashtra"
@@ -747,13 +747,13 @@ export default function ListPropertyPage() {
                       </div>
 
                       <div className="space-y-1.5">
-                        <label className="text-xs font-bold text-brand-charcoal/80 block">City <span className="text-red-500">*</span></label>
+                        <label className="hs-label">City <span className="text-red-500">*</span></label>
                         <input
                           type="text"
-                          className={`w-full bg-[#FAF9F6] border text-brand-charcoal text-xs px-4 py-3 rounded-xl focus:outline-none focus:ring-2 ${
+                          className={`input-base ${
                             fieldErrors.city 
-                              ? 'border-red-500 focus:border-red-500 focus:ring-red-100' 
-                              : 'border-brand-green/20 focus:border-brand-green focus:ring-brand-green/10'
+                              ? 'hs-input-error' 
+                              : ''
                           }`}
                           value={form.city}
                           onChange={(e) => update('city', e.target.value)}
@@ -763,13 +763,13 @@ export default function ListPropertyPage() {
                       </div>
 
                       <div className="space-y-1.5">
-                        <label className="text-xs font-bold text-brand-charcoal/80 block">Locality / Area <span className="text-red-500">*</span></label>
+                        <label className="hs-label">Locality / Area <span className="text-red-500">*</span></label>
                         <input
                           type="text"
-                          className={`w-full bg-[#FAF9F6] border text-brand-charcoal text-xs px-4 py-3 rounded-xl focus:outline-none focus:ring-2 ${
+                          className={`input-base ${
                             fieldErrors.area 
-                              ? 'border-red-500 focus:border-red-500 focus:ring-red-100' 
-                              : 'border-brand-green/20 focus:border-brand-green focus:ring-brand-green/10'
+                              ? 'hs-input-error' 
+                              : ''
                           }`}
                           value={form.area}
                           onChange={(e) => update('area', e.target.value)}
@@ -779,10 +779,10 @@ export default function ListPropertyPage() {
                       </div>
 
                       <div className="space-y-1.5">
-                        <label className="text-xs font-bold text-brand-charcoal/80 block">Pincode</label>
+                        <label className="hs-label">Pincode</label>
                         <input
                           type="text"
-                          className="w-full bg-[#FAF9F6] border border-brand-green/20 text-brand-charcoal text-xs px-4 py-3 rounded-xl focus:outline-none focus:border-brand-green"
+                          className="input-base"
                           value={form.pincode}
                           onChange={(e) => update('pincode', e.target.value)}
                           placeholder="e.g. 400050"
@@ -792,10 +792,10 @@ export default function ListPropertyPage() {
                     </div>
 
                     <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-brand-charcoal/80 block">Full Property Address</label>
+                      <label className="hs-label">Full Property Address</label>
                       <textarea
                         rows={2}
-                        className="w-full bg-[#FAF9F6] border border-brand-green/20 text-brand-charcoal text-xs p-4 rounded-xl focus:outline-none focus:border-brand-green resize-none"
+                        className="input-base"
                         value={form.address}
                         onChange={(e) => update('address', e.target.value)}
                         placeholder="Building name, Flat/Plot number, Road name, Landmark..."
@@ -803,10 +803,10 @@ export default function ListPropertyPage() {
                     </div>
 
                     <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-brand-charcoal/80 block">Google Maps Location URL (optional)</label>
+                      <label className="hs-label">Google Maps Location URL (optional)</label>
                       <input
                         type="url"
-                        className="w-full bg-[#FAF9F6] border border-brand-green/20 text-brand-charcoal text-xs px-4 py-3 rounded-xl focus:outline-none focus:border-brand-green"
+                        className="input-base"
                         value={form.googleMapsUrl}
                         onChange={(e) => update('googleMapsUrl', e.target.value)}
                         placeholder="https://maps.google.com/..."
@@ -846,7 +846,7 @@ export default function ListPropertyPage() {
                           <input
                             type="number"
                             step="any"
-                            className="w-full bg-[#FAF9F6] border border-brand-green/20 text-brand-charcoal text-xs px-4 py-3 rounded-xl focus:outline-none focus:border-brand-green"
+                            className="input-base"
                             value={form.latitude}
                             onChange={(e) => update('latitude', e.target.value)}
                             placeholder="e.g. 28.6139"
@@ -857,7 +857,7 @@ export default function ListPropertyPage() {
                           <input
                             type="number"
                             step="any"
-                            className="w-full bg-[#FAF9F6] border border-brand-green/20 text-brand-charcoal text-xs px-4 py-3 rounded-xl focus:outline-none focus:border-brand-green"
+                            className="input-base"
                             value={form.longitude}
                             onChange={(e) => update('longitude', e.target.value)}
                             placeholder="e.g. 77.2090"
@@ -878,14 +878,14 @@ export default function ListPropertyPage() {
 
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                       <div className="space-y-1.5 col-span-2 sm:col-span-1">
-                        <label className="text-xs font-bold text-brand-charcoal/80 block">Super Area (sq. ft.) <span className="text-red-500">*</span></label>
+                        <label className="hs-label">Super Area (sq. ft.) <span className="text-red-500">*</span></label>
                         <input
                           type="number"
                           min="1"
-                          className={`w-full bg-[#FAF9F6] border text-brand-charcoal text-xs px-4 py-3 rounded-xl focus:outline-none focus:ring-2 font-bold ${
+                          className={`input-base ${
                             fieldErrors.areaSqft 
-                              ? 'border-red-500 focus:border-red-500 focus:ring-red-100' 
-                              : 'border-brand-green/20 focus:border-brand-green focus:ring-brand-green/10'
+                              ? 'hs-input-error' 
+                              : ''
                           }`}
                           value={form.areaSqft}
                           onChange={(e) => update('areaSqft', e.target.value)}
@@ -897,14 +897,14 @@ export default function ListPropertyPage() {
                       {showBedBath && (
                         <>
                           <div className="space-y-1.5">
-                            <label className="text-xs font-bold text-brand-charcoal/80 block">Bedrooms</label>
+                            <label className="hs-label">Bedrooms</label>
                             <div className="relative">
                               <BedDouble className="w-4 h-4 text-brand-charcoal/40 absolute left-3.5 top-1/2 -translate-y-1/2" />
                               <input
                                 type="number"
                                 min="0"
                                 max="20"
-                                className="w-full bg-[#FAF9F6] border border-brand-green/20 text-brand-charcoal text-xs pl-10 pr-4 py-3 rounded-xl focus:outline-none focus:border-brand-green font-bold"
+                                className="input-base"
                                 value={form.bedrooms}
                                 onChange={(e) => update('bedrooms', e.target.value)}
                               />
@@ -912,14 +912,14 @@ export default function ListPropertyPage() {
                           </div>
 
                           <div className="space-y-1.5">
-                            <label className="text-xs font-bold text-brand-charcoal/80 block">Bathrooms</label>
+                            <label className="hs-label">Bathrooms</label>
                             <div className="relative">
                               <Bath className="w-4 h-4 text-brand-charcoal/40 absolute left-3.5 top-1/2 -translate-y-1/2" />
                               <input
                                 type="number"
                                 min="0"
                                 max="20"
-                                className="w-full bg-[#FAF9F6] border border-brand-green/20 text-brand-charcoal text-xs pl-10 pr-4 py-3 rounded-xl focus:outline-none focus:border-brand-green font-bold"
+                                className="input-base"
                                 value={form.bathrooms}
                                 onChange={(e) => update('bathrooms', e.target.value)}
                               />
@@ -929,14 +929,14 @@ export default function ListPropertyPage() {
                       )}
 
                       <div className="space-y-1.5">
-                        <label className="text-xs font-bold text-brand-charcoal/80 block">Parking Spaces</label>
+                        <label className="hs-label">Parking Spaces</label>
                         <div className="relative">
                           <Car className="w-4 h-4 text-brand-charcoal/40 absolute left-3.5 top-1/2 -translate-y-1/2" />
                           <input
                             type="number"
                             min="0"
                             max="10"
-                            className="w-full bg-[#FAF9F6] border border-brand-green/20 text-brand-charcoal text-xs pl-10 pr-4 py-3 rounded-xl focus:outline-none focus:border-brand-green font-bold"
+                            className="input-base"
                             value={form.parkingSpaces}
                             onChange={(e) => update('parkingSpaces', e.target.value)}
                           />
@@ -946,22 +946,22 @@ export default function ListPropertyPage() {
                       {showFloor && (
                         <>
                           <div className="space-y-1.5">
-                            <label className="text-xs font-bold text-brand-charcoal/80 block">Floor Number</label>
+                            <label className="hs-label">Floor Number</label>
                             <input
                               type="number"
                               min="0"
-                              className="w-full bg-[#FAF9F6] border border-brand-green/20 text-brand-charcoal text-xs px-4 py-3 rounded-xl focus:outline-none focus:border-brand-green"
+                              className="input-base"
                               value={form.floor}
                               onChange={(e) => update('floor', e.target.value)}
                               placeholder="e.g. 5"
                             />
                           </div>
                           <div className="space-y-1.5">
-                            <label className="text-xs font-bold text-brand-charcoal/80 block">Total Floors</label>
+                            <label className="hs-label">Total Floors</label>
                             <input
                               type="number"
                               min="1"
-                              className="w-full bg-[#FAF9F6] border border-brand-green/20 text-brand-charcoal text-xs px-4 py-3 rounded-xl focus:outline-none focus:border-brand-green"
+                              className="input-base"
                               value={form.totalFloors}
                               onChange={(e) => update('totalFloors', e.target.value)}
                               placeholder="e.g. 14"
@@ -971,9 +971,9 @@ export default function ListPropertyPage() {
                       )}
 
                       <div className="space-y-1.5">
-                        <label className="text-xs font-bold text-brand-charcoal/80 block">Facing Direction</label>
+                        <label className="hs-label">Facing Direction</label>
                         <select
-                          className="w-full bg-[#FAF9F6] border border-brand-green/20 text-brand-charcoal text-xs px-4 py-3 rounded-xl focus:outline-none focus:border-brand-green cursor-pointer font-medium"
+                          className="input-base"
                           value={form.facing}
                           onChange={(e) => update('facing', e.target.value)}
                         >
@@ -984,9 +984,9 @@ export default function ListPropertyPage() {
 
                       {showBedBath && (
                         <div className="space-y-1.5">
-                          <label className="text-xs font-bold text-brand-charcoal/80 block">Furnishing Status</label>
+                          <label className="hs-label">Furnishing Status</label>
                           <select
-                            className="w-full bg-[#FAF9F6] border border-brand-green/20 text-brand-charcoal text-xs px-4 py-3 rounded-xl focus:outline-none focus:border-brand-green cursor-pointer font-medium"
+                            className="input-base"
                             value={form.furnishing}
                             onChange={(e) => update('furnishing', e.target.value)}
                           >
@@ -998,7 +998,7 @@ export default function ListPropertyPage() {
 
                     {/* Amenities multi-select */}
                     <div className="space-y-3 pt-4 border-t border-brand-green/10">
-                      <label className="text-xs font-bold text-brand-charcoal/80 block">Key Amenities & Society Features</label>
+                      <label className="hs-label">Key Amenities & Society Features</label>
                       <div className="flex flex-wrap gap-2">
                         {COMMON_AMENITIES.map((item) => {
                           const active = form.amenities.includes(item)
@@ -1033,16 +1033,16 @@ export default function ListPropertyPage() {
                     {isRent ? (
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="space-y-1.5">
-                          <label className="text-xs font-bold text-brand-charcoal/80 block">Expected Monthly Rent (₹) <span className="text-red-500">*</span></label>
+                          <label className="hs-label">Expected Monthly Rent (₹) <span className="text-red-500">*</span></label>
                           <div className="relative">
                             <IndianRupee className="w-4 h-4 text-brand-charcoal/40 absolute left-3.5 top-1/2 -translate-y-1/2" />
                             <input
                               type="number"
                               min="0"
-                              className={`w-full bg-[#FAF9F6] border text-brand-charcoal text-sm font-extrabold pl-10 pr-4 py-3 rounded-xl focus:outline-none focus:ring-2 ${
+                              className={`input-base ${
                                 fieldErrors.monthlyRent 
-                                  ? 'border-red-500 focus:border-red-500 focus:ring-red-100' 
-                                  : 'border-brand-green/20 focus:border-brand-green focus:ring-brand-green/10'
+                                  ? 'hs-input-error' 
+                                  : ''
                               }`}
                               value={form.monthlyRent}
                               onChange={(e) => update('monthlyRent', e.target.value)}
@@ -1053,13 +1053,13 @@ export default function ListPropertyPage() {
                         </div>
 
                         <div className="space-y-1.5">
-                          <label className="text-xs font-bold text-brand-charcoal/80 block">Security Deposit (₹)</label>
+                          <label className="hs-label">Security Deposit (₹)</label>
                           <div className="relative">
                             <IndianRupee className="w-4 h-4 text-brand-charcoal/40 absolute left-3.5 top-1/2 -translate-y-1/2" />
                             <input
                               type="number"
                               min="0"
-                              className="w-full bg-[#FAF9F6] border border-brand-green/20 text-brand-charcoal text-sm font-extrabold pl-10 pr-4 py-3 rounded-xl focus:outline-none focus:border-brand-green"
+                              className="input-base"
                               value={form.securityDeposit}
                               onChange={(e) => update('securityDeposit', e.target.value)}
                               placeholder="e.g. 100000"
@@ -1070,16 +1070,16 @@ export default function ListPropertyPage() {
                     ) : (
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="space-y-1.5">
-                          <label className="text-xs font-bold text-brand-charcoal/80 block">Expected Sale Price (₹) <span className="text-red-500">*</span></label>
+                          <label className="hs-label">Expected Sale Price (₹) <span className="text-red-500">*</span></label>
                           <div className="relative">
                             <IndianRupee className="w-4 h-4 text-brand-charcoal/40 absolute left-3.5 top-1/2 -translate-y-1/2" />
                             <input
                               type="number"
                               min="0"
-                              className={`w-full bg-[#FAF9F6] border text-brand-charcoal text-sm font-extrabold pl-10 pr-4 py-3 rounded-xl focus:outline-none focus:ring-2 ${
+                              className={`input-base ${
                                 fieldErrors.price 
-                                  ? 'border-red-500 focus:border-red-500 focus:ring-red-100' 
-                                  : 'border-brand-green/20 focus:border-brand-green focus:ring-brand-green/10'
+                                  ? 'hs-input-error' 
+                                  : ''
                               }`}
                               value={form.price}
                               onChange={(e) => update('price', e.target.value)}
@@ -1090,10 +1090,10 @@ export default function ListPropertyPage() {
                         </div>
 
                         <div className="space-y-1.5">
-                          <label className="text-xs font-bold text-brand-charcoal/80 block">Display Price Label (optional)</label>
+                          <label className="hs-label">Display Price Label (optional)</label>
                           <input
                             type="text"
-                            className="w-full bg-[#FAF9F6] border border-brand-green/20 text-brand-charcoal text-xs px-4 py-3 rounded-xl focus:outline-none focus:border-brand-green"
+                            className="input-base"
                             value={form.priceRange}
                             onChange={(e) => update('priceRange', e.target.value)}
                             placeholder="e.g. ₹1.25 Crore"
@@ -1118,15 +1118,15 @@ export default function ListPropertyPage() {
                       <h3 className="text-xs font-extrabold uppercase tracking-wider text-brand-green">Direct Contact Info</h3>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="space-y-1.5">
-                          <label className="text-xs font-bold text-brand-charcoal/80 block">Contact Mobile Number <span className="text-red-500">*</span></label>
+                          <label className="hs-label">Contact Mobile Number <span className="text-red-500">*</span></label>
                           <div className="relative">
                             <Phone className="w-4 h-4 text-brand-charcoal/40 absolute left-3.5 top-1/2 -translate-y-1/2" />
                             <input
                               type="tel"
-                              className={`w-full bg-[#FAF9F6] border text-brand-charcoal text-xs pl-10 pr-4 py-3 rounded-xl focus:outline-none focus:ring-2 font-bold ${
+                              className={`input-base ${
                                 fieldErrors.contactPhone 
-                                  ? 'border-red-500 focus:border-red-500 focus:ring-red-100' 
-                                  : 'border-brand-green/20 focus:border-brand-green focus:ring-brand-green/10'
+                                  ? 'hs-input-error' 
+                                  : ''
                               }`}
                               value={form.contactPhone}
                               onChange={(e) => update('contactPhone', e.target.value)}
@@ -1137,12 +1137,12 @@ export default function ListPropertyPage() {
                         </div>
 
                         <div className="space-y-1.5">
-                          <label className="text-xs font-bold text-brand-charcoal/80 block">Contact Email</label>
+                          <label className="hs-label">Contact Email</label>
                           <div className="relative">
                             <Mail className="w-4 h-4 text-brand-charcoal/40 absolute left-3.5 top-1/2 -translate-y-1/2" />
                             <input
                               type="email"
-                              className="w-full bg-[#FAF9F6] border border-brand-green/20 text-brand-charcoal text-xs pl-10 pr-4 py-3 rounded-xl focus:outline-none focus:border-brand-green"
+                              className="input-base"
                               value={form.contactEmail}
                               onChange={(e) => update('contactEmail', e.target.value)}
                               placeholder="your@email.com"
@@ -1243,15 +1243,15 @@ export default function ListPropertyPage() {
 
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="space-y-1.5">
-                          <label className="text-xs font-bold text-brand-charcoal/80 block">
+                          <label className="hs-label">
                             Full Legal Name (as per ID) <span className="text-red-500">*</span>
                           </label>
                           <input
                             type="text"
-                            className={`w-full bg-[#FAF9F6] border text-brand-charcoal text-xs px-4 py-3 rounded-xl focus:outline-none focus:ring-2 font-semibold ${
+                            className={`input-base ${
                               fieldErrors['kyc.fullName'] 
-                                ? 'border-red-500 focus:border-red-500 focus:ring-red-100' 
-                                : 'border-brand-green/20 focus:border-brand-green focus:ring-brand-green/10'
+                                ? 'hs-input-error' 
+                                : ''
                             }`}
                             value={form.kyc.fullName}
                             onChange={(e) => updateKyc('fullName', e.target.value)}
@@ -1261,9 +1261,9 @@ export default function ListPropertyPage() {
                         </div>
 
                         <div className="space-y-1.5">
-                          <label className="text-xs font-bold text-brand-charcoal/80 block">Identity Document Type <span className="text-red-500">*</span></label>
+                          <label className="hs-label">Identity Document Type <span className="text-red-500">*</span></label>
                           <select
-                            className="w-full bg-[#FAF9F6] border border-brand-green/20 text-brand-charcoal text-xs px-4 py-3 rounded-xl focus:outline-none focus:border-brand-green font-medium cursor-pointer"
+                            className="input-base"
                             value={form.kyc.idType}
                             onChange={(e) => updateKyc('idType', e.target.value)}
                           >
@@ -1275,15 +1275,15 @@ export default function ListPropertyPage() {
                       </div>
 
                       <div className="space-y-1.5">
-                        <label className="text-xs font-bold text-brand-charcoal/80 block">
+                        <label className="hs-label">
                           Government ID Number ({form.kyc.idType}) <span className="text-red-500">*</span>
                         </label>
                         <input
                           type="text"
-                          className={`w-full bg-[#FAF9F6] border text-brand-charcoal text-xs px-4 py-3 rounded-xl focus:outline-none focus:ring-2 uppercase font-mono font-bold tracking-wider ${
+                          className={`input-base ${
                             fieldErrors['kyc.idNumber'] 
-                              ? 'border-red-500 focus:border-red-500 focus:ring-red-100' 
-                              : 'border-brand-green/20 focus:border-brand-green focus:ring-brand-green/10'
+                              ? 'hs-input-error' 
+                              : ''
                           }`}
                           value={form.kyc.idNumber}
                           onChange={(e) => updateKyc('idNumber', e.target.value)}
@@ -1311,9 +1311,9 @@ export default function ListPropertyPage() {
 
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="space-y-1.5">
-                          <label className="text-xs font-bold text-brand-charcoal/80 block">Ownership Status <span className="text-red-500">*</span></label>
+                          <label className="hs-label">Ownership Status <span className="text-red-500">*</span></label>
                           <select
-                            className="w-full bg-[#FAF9F6] border border-brand-green/20 text-brand-charcoal text-xs px-4 py-3 rounded-xl focus:outline-none focus:border-brand-green font-medium cursor-pointer"
+                            className="input-base"
                             value={form.kyc.ownershipType}
                             onChange={(e) => updateKyc('ownershipType', e.target.value)}
                           >
@@ -1324,10 +1324,10 @@ export default function ListPropertyPage() {
                         </div>
 
                         <div className="space-y-1.5">
-                          <label className="text-xs font-bold text-brand-charcoal/80 block">Property Tax / Khata / Survey Number (optional)</label>
+                          <label className="hs-label">Property Tax / Khata / Survey Number (optional)</label>
                           <input
                             type="text"
-                            className="w-full bg-[#FAF9F6] border border-brand-green/20 text-brand-charcoal text-xs px-4 py-3 rounded-xl focus:outline-none focus:border-brand-green font-mono"
+                            className="input-base"
                             value={form.kyc.propertyTaxId}
                             onChange={(e) => updateKyc('propertyTaxId', e.target.value)}
                             placeholder="e.g. TAX-2026-88910"
@@ -1378,7 +1378,7 @@ export default function ListPropertyPage() {
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-                      <div className="bg-[#FAF9F6] border border-brand-green/15 rounded-2xl p-4 space-y-2">
+                      <div className="bg-white border border-brand-green/20 rounded-2xl p-4 space-y-2">
                         <span className="text-[10px] uppercase font-bold text-brand-green">Overview</span>
                         <p className="font-bold text-brand-charcoal text-sm">{form.title}</p>
                         <p className="text-brand-charcoal/70">{form.displayType} · {form.listingType}</p>
@@ -1387,7 +1387,7 @@ export default function ListPropertyPage() {
                         </p>
                       </div>
 
-                      <div className="bg-[#FAF9F6] border border-brand-green/15 rounded-2xl p-4 space-y-2">
+                      <div className="bg-white border border-brand-green/20 rounded-2xl p-4 space-y-2">
                         <span className="text-[10px] uppercase font-bold text-brand-green">Location & Contact</span>
                         <p className="font-bold text-brand-charcoal">{form.area}, {form.city}</p>
                         <p className="text-brand-charcoal/70">{form.address || 'Address provided'}</p>

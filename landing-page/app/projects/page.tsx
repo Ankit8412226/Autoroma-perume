@@ -128,12 +128,14 @@ function ProjectsInner() {
             {/* Search */}
             <div className="max-w-md relative">
               <Search className="absolute left-4 top-3.5 w-4 h-4 text-white/50" />
+              <label htmlFor="search-dholera" className="sr-only">Search Dholera projects</label>
               <input
+                id="search-dholera"
                 type="text"
                 placeholder="Search Dholera projects…"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-11 pr-4 py-3 bg-white/10 border border-amber-400/30 rounded-xl text-sm text-white placeholder-white/40 focus:outline-none focus:border-amber-400/60 backdrop-blur-sm"
+                className="input-base pl-11 bg-white/10 border-amber-400/30 text-white placeholder:text-white/40 focus:border-amber-400/60 focus:bg-white/20 backdrop-blur-sm"
               />
             </div>
           </div>
@@ -158,12 +160,14 @@ function ProjectsInner() {
             </p>
             <div className="mt-8 max-w-md relative">
               <Search className="absolute left-4 top-3.5 w-4 h-4 text-white/50" />
+              <label htmlFor="search-projects" className="sr-only">Search projects</label>
               <input
+                id="search-projects"
                 type="text"
                 placeholder="Search by project name, location…"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-11 pr-4 py-3 bg-white/10 border border-white/20 rounded-xl text-sm text-white placeholder-white/40 focus:outline-none focus:border-[#C9A96E]/60 backdrop-blur-sm"
+                className="input-base pl-11 bg-white/10 border-white/20 text-white placeholder:text-white/40 focus:border-[#C9A96E]/60 focus:bg-white/20 backdrop-blur-sm"
               />
             </div>
           </div>
