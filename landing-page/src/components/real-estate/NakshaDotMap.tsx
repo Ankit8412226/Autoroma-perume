@@ -116,7 +116,7 @@ export function NakshaDotMap({ imageUrl, imageAlt, plots, onSelectPlot }: Naksha
 
       {hovered && (
         <div
-          className="absolute z-40 w-56 pointer-events-none bg-white text-left rounded-xl shadow-2xl border border-brand-green/20 p-3"
+          className="absolute z-40 w-48 pointer-events-none bg-white/95 backdrop-blur-md text-left rounded-2xl shadow-2xl border border-white/50 p-3"
           style={{
             left: `${hoverX}%`,
             top: cardBelow ? `${hoverY}%` : undefined,
@@ -126,19 +126,21 @@ export function NakshaDotMap({ imageUrl, imageAlt, plots, onSelectPlot }: Naksha
             marginBottom: cardBelow ? undefined : '12px'
           }}
         >
-          <p className="text-[10px] font-extrabold uppercase tracking-wider text-brand-green mb-2">Plot details</p>
-          <dl className="space-y-1 text-[11px] text-brand-charcoal">
-            <Row label="Plot Number" value={hovered.plotNo} />
-            <Row label="Plot Type" value={derivePlotType(hovered)} />
-            <Row label="Facing" value={deriveFacing(hovered)} />
-            <Row label="Area Sq Ft" value={hovered.sizeSqft || '—'} />
-            <Row label="Super Built Up" value={hovered.superBuiltUpSqft || hovered.sizeSqft || '—'} />
-            <Row label="Dimension" value={hovered.dimensions || '—'} />
-            <Row label="PLC" value={hovered.totalPlc ? `${hovered.totalPlc}` : '0'} />
-            <Row label="Status" value={hovered.status} />
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-[9px] font-extrabold uppercase tracking-wider text-brand-green bg-brand-green/10 px-1.5 py-0.5 rounded">Plot {hovered.plotNo}</span>
+            <span className={`text-[9px] font-extrabold uppercase tracking-wider px-1.5 py-0.5 rounded ${hovered.status === 'AVAILABLE' ? 'text-emerald-700 bg-emerald-100' : 'text-red-700 bg-red-100'}`}>{hovered.status}</span>
+          </div>
+          
+          <dl className="space-y-1 text-[10px] text-brand-charcoal">
+            {derivePlotType(hovered) !== 'Simple' && <Row label="Type" value={derivePlotType(hovered)} />}
+            {deriveFacing(hovered) !== 'Standard' && <Row label="Facing" value={deriveFacing(hovered)} />}
+            {hovered.sizeSqft && <Row label="Area (Sq Ft)" value={hovered.sizeSqft} />}
+            {hovered.dimensions && <Row label="Dimension" value={hovered.dimensions} />}
           </dl>
           {hovered.status === 'AVAILABLE' && (
-            <p className="mt-2 text-[10px] font-bold text-brand-green">Inquiry / Book now</p>
+            <p className="mt-2 pt-2 border-t border-brand-green/10 text-[9px] font-bold text-brand-green flex items-center gap-1">
+              <span className="w-1.5 h-1.5 bg-brand-green rounded-full animate-pulse" /> Click to Book
+            </p>
           )}
         </div>
       )}
