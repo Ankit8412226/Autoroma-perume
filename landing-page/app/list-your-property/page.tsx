@@ -81,6 +81,8 @@ interface FormState {
   address: string
   pincode: string
   googleMapsUrl: string
+  latitude: string
+  longitude: string
   areaSqft: string
   bedrooms: string
   bathrooms: string
@@ -115,6 +117,8 @@ const EMPTY_FORM: FormState = {
   address: '',
   pincode: '',
   googleMapsUrl: '',
+  latitude: '',
+  longitude: '',
   areaSqft: '',
   bedrooms: '2',
   bathrooms: '2',
@@ -476,6 +480,8 @@ export default function ListPropertyPage() {
         address: form.address.trim(),
         pincode: form.pincode.trim(),
         googleMapsUrl: form.googleMapsUrl.trim(),
+        latitude: form.latitude ? Number(form.latitude) : null,
+        longitude: form.longitude ? Number(form.longitude) : null,
         areaSqft: Number(form.areaSqft) || 0,
         bedrooms: Number(form.bedrooms) || 0,
         bathrooms: Number(form.bathrooms) || 0,
@@ -793,6 +799,59 @@ export default function ListPropertyPage() {
                         onChange={(e) => update('googleMapsUrl', e.target.value)}
                         placeholder="https://maps.google.com/..."
                       />
+                    </div>
+
+                    <div className="pt-2 border-t border-brand-green/10">
+                      <div className="flex items-center justify-between mb-3">
+                        <div>
+                          <h3 className="text-sm font-bold text-brand-charcoal">Exact Map Coordinates</h3>
+                          <p className="text-[10px] text-brand-charcoal/60">Required for 'Nearby' search visibility.</p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (!('geolocation' in navigator)) {
+                              alert('Geolocation is not supported by your browser.')
+                              return
+                            }
+                            navigator.geolocation.getCurrentPosition(
+                              (pos) => {
+                                update('latitude', pos.coords.latitude.toString())
+                                update('longitude', pos.coords.longitude.toString())
+                              },
+                              () => alert('Could not get your location. Please check browser permissions.')
+                            )
+                          }}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-brand-soft hover:bg-brand-green/20 border border-brand-green/20 text-brand-green text-[10px] font-bold uppercase tracking-wider rounded-lg transition-colors cursor-pointer"
+                        >
+                          <MapPin className="w-3.5 h-3.5" /> Auto-Detect
+                        </button>
+                      </div>
+                      
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                          <label className="text-[11px] font-bold text-brand-charcoal/80 block">Latitude</label>
+                          <input
+                            type="number"
+                            step="any"
+                            className="w-full bg-[#FAF9F6] border border-brand-green/20 text-brand-charcoal text-xs px-4 py-3 rounded-xl focus:outline-none focus:border-brand-green"
+                            value={form.latitude}
+                            onChange={(e) => update('latitude', e.target.value)}
+                            placeholder="e.g. 28.6139"
+                          />
+                        </div>
+                        <div className="space-y-1.5">
+                          <label className="text-[11px] font-bold text-brand-charcoal/80 block">Longitude</label>
+                          <input
+                            type="number"
+                            step="any"
+                            className="w-full bg-[#FAF9F6] border border-brand-green/20 text-brand-charcoal text-xs px-4 py-3 rounded-xl focus:outline-none focus:border-brand-green"
+                            value={form.longitude}
+                            onChange={(e) => update('longitude', e.target.value)}
+                            placeholder="e.g. 77.2090"
+                          />
+                        </div>
+                      </div>
                     </div>
                   </div>
                 )}

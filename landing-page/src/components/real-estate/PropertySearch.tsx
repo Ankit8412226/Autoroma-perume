@@ -2,7 +2,7 @@
 
 import * as React from 'react'
 import { useRouter } from 'next/navigation'
-import { Search, MapPin, Mic, Crosshair, ChevronDown } from 'lucide-react'
+import { Search, MapPin, Navigation, Crosshair, ChevronDown } from 'lucide-react'
 
 interface PropertySearchProps {
   initialLocation?: string
@@ -24,38 +24,37 @@ export function PropertySearch({
   const [activeTab, setActiveTab] = React.useState('Buy')
   const [searchQuery, setSearchQuery] = React.useState(initialLocation)
   const [propertyType, setPropertyType] = React.useState('All Residential')
-  const [isListening, setIsListening] = React.useState(false)
+  const [isLocating, setIsLocating] = React.useState(false)
 
-  const handleMicClick = () => {
-    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-      alert('Speech recognition is not supported in this browser.');
-      return;
+  const handleNearbyClick = () => {
+    if (!('geolocation' in navigator)) {
+      alert('Geolocation is not supported in this browser.')
+      return
     }
     
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    const recognition = new SpeechRecognition();
-    recognition.continuous = false;
-    recognition.interimResults = false;
-    
-    recognition.onstart = () => {
-      setIsListening(true);
-    };
-    
-    recognition.onresult = (event: any) => {
-      const transcript = event.results[0][0].transcript;
-      setSearchQuery(transcript);
-    };
-    
-    recognition.onerror = (event: any) => {
-      console.error('Speech recognition error', event.error);
-      setIsListening(false);
-    };
-    
-    recognition.onend = () => {
-      setIsListening(false);
-    };
-    
-    recognition.start();
+    setIsLocating(true)
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setIsLocating(false)
+        const { latitude, longitude } = position.coords
+        
+        const params = new URLSearchParams()
+        params.set('intent', activeTab.toLowerCase())
+        if (propertyType !== 'All Residential') {
+          params.set('type', propertyType)
+        }
+        params.set('lat', latitude.toString())
+        params.set('lng', longitude.toString())
+        params.set('nearby', 'true')
+        
+        router.push(`/properties?${params.toString()}`)
+      },
+      (error) => {
+        console.error('Geolocation error:', error)
+        setIsLocating(false)
+        alert('Could not get your location. Please check your permissions.')
+      }
+    )
   }
 
   const handleSearch = (e: React.FormEvent) => {
@@ -156,11 +155,11 @@ export function PropertySearch({
             </button>
             <button
               type="button"
-              onClick={handleMicClick}
-              className={`p-3 sm:p-2 rounded-full transition-colors cursor-pointer min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 flex items-center justify-center ${isListening ? 'text-red-500 bg-red-100 animate-pulse' : 'text-brand-green hover:bg-brand-green/10'}`}
-              title="Voice Search"
+              onClick={handleNearbyClick}
+              className={`p-3 sm:p-2 rounded-full transition-colors cursor-pointer min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 flex items-center justify-center ${isLocating ? 'text-brand-green bg-brand-green/20 animate-pulse' : 'text-brand-green hover:bg-brand-green/10'}`}
+              title="Search Nearby Properties"
             >
-              <Mic className="w-4 h-4" />
+              <Navigation className="w-4 h-4" />
             </button>
             <button
               type="submit"
