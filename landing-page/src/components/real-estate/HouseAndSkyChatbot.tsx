@@ -221,7 +221,7 @@ export function HouseAndSkyChatbot() {
 
       {/* Floating Chat Drawer */}
       {isOpen && (
-        <div className="fixed bottom-24 right-4 sm:right-6 z-50 w-[calc(100vw-2rem)] sm:w-96 bg-white border border-slate-200 rounded-3xl shadow-2xl overflow-hidden flex flex-col h-[560px] animate-in fade-in slide-in-from-bottom-4 duration-200">
+        <div className="fixed bottom-24 right-4 sm:right-6 z-50 w-[calc(100vw-2rem)] sm:w-96 bg-white border border-slate-200 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[75vh] sm:max-h-none sm:h-[560px] animate-in fade-in slide-in-from-bottom-4 duration-200">
           {/* Header Bar */}
           <div className="bg-gradient-to-r from-[#061913] via-[#0A2E23] to-[#0B4F3C] text-white p-4 flex items-center justify-between border-b border-emerald-500/20">
             <div className="flex items-center gap-3">
