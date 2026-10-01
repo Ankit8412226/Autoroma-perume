@@ -54,14 +54,32 @@ const BUDGET_OPTIONS = [
 
 function PropertiesContent() {
   const searchParams = useSearchParams()
-  const initialType = searchParams.get('type') || 'ALL'
+  
+  const typeParam = searchParams.get('type')
+  let initialType = 'ALL'
+  if (typeParam) {
+    if (typeParam === 'Apartments') initialType = 'APARTMENT'
+    else if (typeParam === 'Villas') initialType = 'VILLA'
+    else if (typeParam === 'Plots') initialType = 'RESIDENTIAL_PLOT'
+    else initialType = typeParam
+  }
+
   const initialCity = searchParams.get('city') || 'All Cities'
+  const initialLocation = searchParams.get('location') || ''
+  
+  const intentParam = searchParams.get('intent')
+  let initialListingType = 'ALL'
+  if (intentParam) {
+    if (intentParam.toLowerCase() === 'buy' || intentParam.toLowerCase() === 'new launch' || intentParam.toLowerCase() === 'projects') initialListingType = 'SALE'
+    else if (intentParam.toLowerCase() === 'rent') initialListingType = 'RENT'
+    else if (intentParam.toLowerCase() === 'commercial' || intentParam.toLowerCase() === 'plots/land') initialListingType = 'SALE'
+  }
 
   // Filter & Search States
-  const [searchQuery, setSearchQuery] = React.useState('')
+  const [searchQuery, setSearchQuery] = React.useState(initialLocation)
   const [selectedCity, setSelectedCity] = React.useState(initialCity)
   const [selectedType, setSelectedType] = React.useState(initialType)
-  const [selectedListingType, setSelectedListingType] = React.useState('ALL')
+  const [selectedListingType, setSelectedListingType] = React.useState(initialListingType)
   const [selectedBudget, setSelectedBudget] = React.useState('ALL')
   const [onlyVerified, setOnlyVerified] = React.useState(false)
   const [sortBy, setSortBy] = React.useState('FEATURED')
