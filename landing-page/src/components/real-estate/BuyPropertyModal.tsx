@@ -360,7 +360,7 @@ export function BuyPropertyModal({
 
               {/* Lease Duration — only for LEASE */}
               {intent === 'LEASE' && (
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="relative">
                     <FileText className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                     <select
