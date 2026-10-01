@@ -686,7 +686,11 @@ export default function ListPropertyPage() {
                         </label>
                         <input
                           type="text"
-                          className="w-full bg-[#FAF9F6] border border-brand-green/20 text-brand-charcoal text-xs px-4 py-3 rounded-xl focus:outline-none focus:border-brand-green focus:ring-2 focus:ring-brand-green/10"
+                          className={`w-full bg-[#FAF9F6] border text-brand-charcoal text-xs px-4 py-3 rounded-xl focus:outline-none focus:ring-2 ${
+                            fieldErrors.title 
+                              ? 'border-red-500 focus:border-red-500 focus:ring-red-100' 
+                              : 'border-brand-green/20 focus:border-brand-green focus:ring-brand-green/10'
+                          }`}
                           value={form.title}
                           onChange={(e) => update('title', e.target.value)}
                           placeholder="e.g. Luxurious 3BHK Apartment in Bandra West with Sea View"
@@ -746,7 +750,11 @@ export default function ListPropertyPage() {
                         <label className="text-xs font-bold text-brand-charcoal/80 block">City <span className="text-red-500">*</span></label>
                         <input
                           type="text"
-                          className="w-full bg-[#FAF9F6] border border-brand-green/20 text-brand-charcoal text-xs px-4 py-3 rounded-xl focus:outline-none focus:border-brand-green"
+                          className={`w-full bg-[#FAF9F6] border text-brand-charcoal text-xs px-4 py-3 rounded-xl focus:outline-none focus:ring-2 ${
+                            fieldErrors.city 
+                              ? 'border-red-500 focus:border-red-500 focus:ring-red-100' 
+                              : 'border-brand-green/20 focus:border-brand-green focus:ring-brand-green/10'
+                          }`}
                           value={form.city}
                           onChange={(e) => update('city', e.target.value)}
                           placeholder="e.g. Mumbai"
@@ -758,7 +766,11 @@ export default function ListPropertyPage() {
                         <label className="text-xs font-bold text-brand-charcoal/80 block">Locality / Area <span className="text-red-500">*</span></label>
                         <input
                           type="text"
-                          className="w-full bg-[#FAF9F6] border border-brand-green/20 text-brand-charcoal text-xs px-4 py-3 rounded-xl focus:outline-none focus:border-brand-green"
+                          className={`w-full bg-[#FAF9F6] border text-brand-charcoal text-xs px-4 py-3 rounded-xl focus:outline-none focus:ring-2 ${
+                            fieldErrors.area 
+                              ? 'border-red-500 focus:border-red-500 focus:ring-red-100' 
+                              : 'border-brand-green/20 focus:border-brand-green focus:ring-brand-green/10'
+                          }`}
                           value={form.area}
                           onChange={(e) => update('area', e.target.value)}
                           placeholder="e.g. Bandra West"
@@ -870,7 +882,11 @@ export default function ListPropertyPage() {
                         <input
                           type="number"
                           min="1"
-                          className="w-full bg-[#FAF9F6] border border-brand-green/20 text-brand-charcoal text-xs px-4 py-3 rounded-xl focus:outline-none focus:border-brand-green font-bold"
+                          className={`w-full bg-[#FAF9F6] border text-brand-charcoal text-xs px-4 py-3 rounded-xl focus:outline-none focus:ring-2 font-bold ${
+                            fieldErrors.areaSqft 
+                              ? 'border-red-500 focus:border-red-500 focus:ring-red-100' 
+                              : 'border-brand-green/20 focus:border-brand-green focus:ring-brand-green/10'
+                          }`}
                           value={form.areaSqft}
                           onChange={(e) => update('areaSqft', e.target.value)}
                           placeholder="e.g. 1450"
@@ -1023,7 +1039,11 @@ export default function ListPropertyPage() {
                             <input
                               type="number"
                               min="0"
-                              className="w-full bg-[#FAF9F6] border border-brand-green/20 text-brand-charcoal text-sm font-extrabold pl-10 pr-4 py-3 rounded-xl focus:outline-none focus:border-brand-green"
+                              className={`w-full bg-[#FAF9F6] border text-brand-charcoal text-sm font-extrabold pl-10 pr-4 py-3 rounded-xl focus:outline-none focus:ring-2 ${
+                                fieldErrors.monthlyRent 
+                                  ? 'border-red-500 focus:border-red-500 focus:ring-red-100' 
+                                  : 'border-brand-green/20 focus:border-brand-green focus:ring-brand-green/10'
+                              }`}
                               value={form.monthlyRent}
                               onChange={(e) => update('monthlyRent', e.target.value)}
                               placeholder="e.g. 35000"
@@ -1056,7 +1076,11 @@ export default function ListPropertyPage() {
                             <input
                               type="number"
                               min="0"
-                              className="w-full bg-[#FAF9F6] border border-brand-green/20 text-brand-charcoal text-sm font-extrabold pl-10 pr-4 py-3 rounded-xl focus:outline-none focus:border-brand-green"
+                              className={`w-full bg-[#FAF9F6] border text-brand-charcoal text-sm font-extrabold pl-10 pr-4 py-3 rounded-xl focus:outline-none focus:ring-2 ${
+                                fieldErrors.price 
+                                  ? 'border-red-500 focus:border-red-500 focus:ring-red-100' 
+                                  : 'border-brand-green/20 focus:border-brand-green focus:ring-brand-green/10'
+                              }`}
                               value={form.price}
                               onChange={(e) => update('price', e.target.value)}
                               placeholder="e.g. 12500000"
@@ -1099,7 +1123,11 @@ export default function ListPropertyPage() {
                             <Phone className="w-4 h-4 text-brand-charcoal/40 absolute left-3.5 top-1/2 -translate-y-1/2" />
                             <input
                               type="tel"
-                              className="w-full bg-[#FAF9F6] border border-brand-green/20 text-brand-charcoal text-xs pl-10 pr-4 py-3 rounded-xl focus:outline-none focus:border-brand-green font-bold"
+                              className={`w-full bg-[#FAF9F6] border text-brand-charcoal text-xs pl-10 pr-4 py-3 rounded-xl focus:outline-none focus:ring-2 font-bold ${
+                                fieldErrors.contactPhone 
+                                  ? 'border-red-500 focus:border-red-500 focus:ring-red-100' 
+                                  : 'border-brand-green/20 focus:border-brand-green focus:ring-brand-green/10'
+                              }`}
                               value={form.contactPhone}
                               onChange={(e) => update('contactPhone', e.target.value)}
                               placeholder="10-digit mobile"
@@ -1220,7 +1248,11 @@ export default function ListPropertyPage() {
                           </label>
                           <input
                             type="text"
-                            className="w-full bg-[#FAF9F6] border border-brand-green/20 text-brand-charcoal text-xs px-4 py-3 rounded-xl focus:outline-none focus:border-brand-green font-semibold"
+                            className={`w-full bg-[#FAF9F6] border text-brand-charcoal text-xs px-4 py-3 rounded-xl focus:outline-none focus:ring-2 font-semibold ${
+                              fieldErrors['kyc.fullName'] 
+                                ? 'border-red-500 focus:border-red-500 focus:ring-red-100' 
+                                : 'border-brand-green/20 focus:border-brand-green focus:ring-brand-green/10'
+                            }`}
                             value={form.kyc.fullName}
                             onChange={(e) => updateKyc('fullName', e.target.value)}
                             placeholder="e.g. Ankit Kumar"
@@ -1248,7 +1280,11 @@ export default function ListPropertyPage() {
                         </label>
                         <input
                           type="text"
-                          className="w-full bg-[#FAF9F6] border border-brand-green/20 text-brand-charcoal text-xs px-4 py-3 rounded-xl focus:outline-none focus:border-brand-green uppercase font-mono font-bold tracking-wider"
+                          className={`w-full bg-[#FAF9F6] border text-brand-charcoal text-xs px-4 py-3 rounded-xl focus:outline-none focus:ring-2 uppercase font-mono font-bold tracking-wider ${
+                            fieldErrors['kyc.idNumber'] 
+                              ? 'border-red-500 focus:border-red-500 focus:ring-red-100' 
+                              : 'border-brand-green/20 focus:border-brand-green focus:ring-brand-green/10'
+                          }`}
                           value={form.kyc.idNumber}
                           onChange={(e) => updateKyc('idNumber', e.target.value)}
                           placeholder="e.g. ABCDE1234F"

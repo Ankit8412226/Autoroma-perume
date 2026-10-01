@@ -440,7 +440,10 @@ const DEFAULT_MAJOR_INDIAN_CITIES = [
               </div>
 
               <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-xl border border-emerald-200">
+                <span 
+                  className="text-xs font-bold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-xl border border-emerald-200 cursor-help transition-all hover:bg-emerald-100"
+                  title={`Showing ${filteredProperties.length} properties out of ${allProperties.length} total. \nFilters: City: ${selectedCity}, Type: ${selectedType}, Budget: ${selectedBudget}`}
+                >
                   {filteredProperties.length} Properties Found
                 </span>
                 {(searchQuery || selectedCity !== 'All Cities' || selectedType !== 'ALL' || selectedBudget !== 'ALL' || onlyVerified) && (
@@ -602,7 +605,10 @@ const DEFAULT_MAJOR_INDIAN_CITIES = [
             <h2 className="font-serif text-lg font-bold text-slate-900">
               {selectedCity === 'All Cities' ? 'All Verified Properties' : `Properties in ${selectedCity}`}
             </h2>
-            <span className="text-xs font-bold text-emerald-800 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+            <span 
+              className="text-xs font-bold text-emerald-800 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200 cursor-help transition-all hover:bg-emerald-100"
+              title={`Showing ${filteredProperties.length} properties out of ${allProperties.length} total. \nFilters: City: ${selectedCity}, Type: ${selectedType}, Budget: ${selectedBudget}`}
+            >
               {filteredProperties.length} Available
             </span>
           </div>
