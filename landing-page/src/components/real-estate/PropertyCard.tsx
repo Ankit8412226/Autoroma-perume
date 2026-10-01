@@ -391,7 +391,7 @@ export function PropertyCard({
               {renderSpecsSummary(property.specs)}
             </div>
 
-            <div className="flex items-center justify-between gap-2 pt-1 border-t border-brand-green/5 text-xs">
+            <div className="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-brand-green/5 text-xs">
               <button
                 type="button"
                 onClick={handleBuyClick}

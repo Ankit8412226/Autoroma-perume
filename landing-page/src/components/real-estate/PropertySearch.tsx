@@ -183,7 +183,7 @@ export function PropertySearch({
           </div>
 
           {/* Action Icons & Button */}
-          <div className="flex items-center gap-1 sm:gap-2 px-2 w-full sm:w-auto shrink-0 justify-end sm:justify-start">
+          <div className="flex flex-wrap items-center justify-between sm:justify-start gap-2 px-2 py-1 w-full sm:w-auto shrink-0 mt-2 sm:mt-0 border-t sm:border-t-0 border-gray-100 sm:border-none pt-2 sm:pt-0">
             <button
               type="button"
               onClick={handleVoiceSearch}
@@ -210,7 +210,7 @@ export function PropertySearch({
             </button>
             <button
               type="submit"
-              className="hs-btn-primary ml-1 px-6 min-h-[44px] sm:min-h-0"
+              className="hs-btn-primary ml-1 px-6 min-h-[44px] sm:min-h-0 flex-1 sm:flex-none"
             >
               Search
             </button>
