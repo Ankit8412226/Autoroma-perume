@@ -22,7 +22,6 @@ export function Footer() {
   return (
     <footer className="bg-brand-dark text-white border-t border-brand-green/20 pt-16 pb-12 overflow-hidden">
       <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Top Newsletter & Brand Highlight Banner */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 pb-16 border-b border-white/10 items-center">
           <div className="lg:col-span-6 space-y-3">
             <span className="text-[10px] uppercase tracking-[0.25em] text-brand-sky font-bold block">

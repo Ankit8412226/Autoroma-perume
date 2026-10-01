@@ -2,7 +2,7 @@
 
 import * as React from 'react'
 import { useRouter } from 'next/navigation'
-import { Search, MapPin, Navigation, Crosshair, ChevronDown } from 'lucide-react'
+import { Search, MapPin, Navigation, Crosshair, ChevronDown, Mic } from 'lucide-react'
 
 interface PropertySearchProps {
   initialLocation?: string
@@ -25,6 +25,39 @@ export function PropertySearch({
   const [searchQuery, setSearchQuery] = React.useState(initialLocation)
   const [propertyType, setPropertyType] = React.useState('All Residential')
   const [isLocating, setIsLocating] = React.useState(false)
+  const [isListening, setIsListening] = React.useState(false)
+
+  const handleVoiceSearch = () => {
+    if (typeof window === 'undefined') return
+    const SpeechRecognition = window.SpeechRecognition || (window as any).webkitSpeechRecognition
+    if (!SpeechRecognition) {
+      alert('Voice search is not supported in this browser.')
+      return
+    }
+
+    const recognition = new SpeechRecognition()
+    recognition.lang = 'en-IN'
+    recognition.interimResults = false
+    recognition.maxAlternatives = 1
+
+    recognition.onstart = () => setIsListening(true)
+    
+    recognition.onresult = (event: any) => {
+      const transcript = event.results[0][0].transcript
+      setSearchQuery(transcript)
+    }
+
+    recognition.onerror = (event: any) => {
+      console.error('Speech recognition error', event.error)
+      if (event.error !== 'no-speech') {
+        alert('Error with voice search. Please try again.')
+      }
+    }
+
+    recognition.onend = () => setIsListening(false)
+
+    recognition.start()
+  }
 
   const handleNearbyClick = () => {
     if (!('geolocation' in navigator)) {
@@ -148,18 +181,27 @@ export function PropertySearch({
           <div className="flex items-center gap-1 sm:gap-2 px-2 w-full sm:w-auto shrink-0 justify-end sm:justify-start">
             <button
               type="button"
-              className="p-3 sm:p-2 text-brand-green hover:bg-brand-green/10 rounded-full transition-colors cursor-pointer min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 flex items-center justify-center"
-              title="Use current location"
+              onClick={handleVoiceSearch}
+              className={`p-3 sm:p-2 rounded-full transition-all cursor-pointer min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 flex items-center justify-center border ${
+                isListening 
+                  ? 'text-red-500 bg-red-100 animate-pulse border-red-500' 
+                  : 'text-brand-green bg-brand-soft hover:bg-brand-green hover:text-white border-brand-green/30 shadow-sm'
+              }`}
+              title="Voice Search"
             >
-              <Crosshair className="w-4 h-4" />
+              <Mic className="w-4 h-4 sm:w-4 sm:h-4" />
             </button>
             <button
               type="button"
               onClick={handleNearbyClick}
-              className={`p-3 sm:p-2 rounded-full transition-colors cursor-pointer min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 flex items-center justify-center ${isLocating ? 'text-brand-green bg-brand-green/20 animate-pulse' : 'text-brand-green hover:bg-brand-green/10'}`}
-              title="Search Nearby Properties"
+              className={`p-3 sm:p-2 rounded-full transition-all cursor-pointer min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 flex items-center justify-center border ${
+                isLocating 
+                  ? 'text-brand-green bg-brand-green/20 animate-pulse border-brand-green' 
+                  : 'text-brand-green bg-brand-soft hover:bg-brand-green hover:text-white border-brand-green/30 shadow-sm'
+              }`}
+              title="Detect Current Location"
             >
-              <Navigation className="w-4 h-4" />
+              <Navigation className="w-4 h-4 sm:w-4 sm:h-4" />
             </button>
             <button
               type="submit"

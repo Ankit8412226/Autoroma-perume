@@ -64,8 +64,26 @@ function PropertiesContent() {
     else initialType = typeParam
   }
 
-  const initialCity = searchParams.get('city') || 'All Cities'
-  const initialLocation = searchParams.get('location') || ''
+  const DEFAULT_MAJOR_INDIAN_CITIES = [
+    'Dholera', 'Noida', 'Bhopal', 'Narmadapuram', 'Ahmedabad', 'Delhi NCR',
+    'Gurgaon', 'Mumbai', 'Bangalore', 'Hyderabad', 'Pune', 'Indore',
+    'Jaipur', 'Lucknow', 'Surat', 'Kolkata', 'Chennai', 'Goa',
+    'Chandigarh', 'Ayodhya', 'Thane', 'Navi Mumbai', 'Nagpur', 'Ludhiana', 'Patna'
+  ]
+
+  let initialCity = searchParams.get('city') || 'All Cities'
+  let initialLocation = searchParams.get('location') || ''
+
+  // Auto-promote known cities from search query to the City Dropdown
+  if (initialLocation && initialCity === 'All Cities') {
+    const exactMatch = DEFAULT_MAJOR_INDIAN_CITIES.find(
+      (c) => c.toLowerCase() === initialLocation.toLowerCase().trim()
+    )
+    if (exactMatch) {
+      initialCity = exactMatch
+      initialLocation = ''
+    }
+  }
   
   const intentParam = searchParams.get('intent')
   let initialListingType = 'ALL'
@@ -109,34 +127,6 @@ function PropertiesContent() {
     }
     fetchLocations()
   }, [])
-
-const DEFAULT_MAJOR_INDIAN_CITIES = [
-  'Dholera',
-  'Noida',
-  'Bhopal',
-  'Narmadapuram',
-  'Ahmedabad',
-  'Delhi NCR',
-  'Gurgaon',
-  'Mumbai',
-  'Bangalore',
-  'Hyderabad',
-  'Pune',
-  'Indore',
-  'Jaipur',
-  'Lucknow',
-  'Surat',
-  'Kolkata',
-  'Chennai',
-  'Goa',
-  'Chandigarh',
-  'Ayodhya',
-  'Thane',
-  'Navi Mumbai',
-  'Nagpur',
-  'Ludhiana',
-  'Patna'
-]
 
   // Dynamically computed list of unique cities (combining API + Indian cities + loaded properties)
   const availableCities = React.useMemo(() => {
