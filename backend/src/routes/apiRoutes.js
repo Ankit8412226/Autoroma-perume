@@ -70,6 +70,7 @@ router.post('/public/bulk-deals/request', inquiryLimiter, validate({
 }), bulkDealController.submitBulkDealRequest);
 
 router.get('/public/announcement', settingController.getAnnouncement);
+router.get('/public/frontend-stats', settingController.getFrontendStats);
 router.put('/admin/announcement', protect, authorize('ADMIN', 'DIRECTOR', 'MANAGER'), settingController.updateAnnouncement);
 router.get('/admin/settings', protect, authorize('ADMIN', 'DIRECTOR'), settingController.getAllSettings);
 router.put('/admin/settings', protect, authorize('ADMIN', 'DIRECTOR'), settingController.updateAllSettings);

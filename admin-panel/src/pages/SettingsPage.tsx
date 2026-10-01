@@ -17,7 +17,8 @@ import {
   Shield,
   AlertTriangle,
   Info,
-  X
+  X,
+  LayoutDashboard
 } from 'lucide-react';
 import api from '../services/api';
 import { useToast } from '../context/ToastContext';
@@ -48,13 +49,21 @@ interface MlmConfig {
   autoRankPromotion: boolean;
 }
 
-type Tab = 'ANNOUNCEMENT' | 'COMPANY' | 'COMMISSION' | 'MLM';
+interface FrontendStatsConfig {
+  projectsCount: string;
+  advisorsCount: string;
+  locationsCount: string;
+  revenue: string;
+}
+
+type Tab = 'ANNOUNCEMENT' | 'COMPANY' | 'COMMISSION' | 'MLM' | 'FRONTEND_STATS';
 
 const TAB_CONFIG: { id: Tab; label: string; icon: React.ReactNode }[] = [
   { id: 'ANNOUNCEMENT', label: 'Announcement Ticker', icon: <Megaphone className="w-4 h-4" /> },
   { id: 'COMPANY',      label: 'Company Identity',   icon: <Building2 className="w-4 h-4" /> },
   { id: 'COMMISSION',   label: 'Commission & Alerts', icon: <Award className="w-4 h-4" /> },
   { id: 'MLM',          label: 'MLM Network',         icon: <GitMerge className="w-4 h-4" /> },
+  { id: 'FRONTEND_STATS', label: 'Frontend Stats',    icon: <LayoutDashboard className="w-4 h-4" /> },
 ];
 
 export const SettingsPage: React.FC = () => {
@@ -96,6 +105,14 @@ export const SettingsPage: React.FC = () => {
     autoRankPromotion: false
   });
 
+  // Frontend Stats
+  const [frontendStats, setFrontendStats] = useState<FrontendStatsConfig>({
+    projectsCount: '2 Projects',
+    advisorsCount: '45+ Team',
+    locationsCount: '6 Enclaves',
+    revenue: '₹1,200 Cr+'
+  });
+
   const fetchSettings = useCallback(async () => {
     setIsLoading(true);
     try {
@@ -114,6 +131,9 @@ export const SettingsPage: React.FC = () => {
       }
       if (data.MLM_CONFIG?.jsonValue) {
         setMlm((prev) => ({ ...prev, ...data.MLM_CONFIG.jsonValue }));
+      }
+      if (data.FRONTEND_STATS?.jsonValue) {
+        setFrontendStats((prev) => ({ ...prev, ...data.FRONTEND_STATS.jsonValue }));
       }
     } catch (err) {
       console.error('Failed to load settings', err);
@@ -144,6 +164,10 @@ export const SettingsPage: React.FC = () => {
         MLM_CONFIG: {
           value: 'mlm_config',
           jsonValue: mlm
+        },
+        FRONTEND_STATS: {
+          value: 'frontend_stats',
+          jsonValue: frontendStats
         }
       });
       toast.success('All settings saved successfully!');
@@ -162,6 +186,9 @@ export const SettingsPage: React.FC = () => {
 
   const updateMlm = (field: keyof MlmConfig, value: any) =>
     setMlm((prev) => ({ ...prev, [field]: value }));
+
+  const updateFrontendStats = (field: keyof FrontendStatsConfig, value: string) =>
+    setFrontendStats((prev) => ({ ...prev, [field]: value }));
 
   return (
     <div className="space-y-6 animate-in fade-in duration-300 max-w-4xl">
@@ -477,6 +504,38 @@ export const SettingsPage: React.FC = () => {
                       <p className="text-[9px] text-[#171A18]/40">Configurable</p>
                     </div>
                   </div>
+                </div>
+              </div>
+            )}
+
+            {/* ── FRONTEND STATS TAB ── */}
+            {activeTab === 'FRONTEND_STATS' && (
+              <div className="space-y-5">
+                <div>
+                  <h3 className="font-serif font-bold text-[#171A18] text-lg">Frontend Statistics</h3>
+                  <p className="text-xs text-[#171A18]/60 mt-0.5">Manage the dynamic statistics shown on the landing page</p>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {[
+                    { key: 'projectsCount', label: 'Township Developments', placeholder: 'e.g. 2 Projects' },
+                    { key: 'advisorsCount', label: 'Community Advisors', placeholder: 'e.g. 45+ Team' },
+                    { key: 'locationsCount', label: 'Prime Locations', placeholder: 'e.g. 6 Enclaves' },
+                    { key: 'revenue', label: 'Demarcated Land Manifest (Revenue)', placeholder: 'e.g. ₹1,200 Cr+' },
+                  ].map((field) => (
+                    <div key={field.key} className="space-y-1.5">
+                      <label className="text-xs font-bold text-[#171A18]/70 flex items-center gap-1.5">
+                        <LayoutDashboard className="w-3.5 h-3.5" /> {field.label}
+                      </label>
+                      <input
+                        type="text"
+                        value={(frontendStats as any)[field.key] || ''}
+                        onChange={(e) => updateFrontendStats(field.key as keyof FrontendStatsConfig, e.target.value)}
+                        placeholder={field.placeholder}
+                        className="w-full bg-[#FAF9F6] border border-[#0B4F3C]/20 rounded-xl px-3 py-2.5 text-sm text-[#171A18] font-semibold focus:outline-none focus:border-[#0B4F3C] transition-colors"
+                      />
+                    </div>
+                  ))}
                 </div>
               </div>
             )}

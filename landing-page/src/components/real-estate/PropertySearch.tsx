@@ -24,6 +24,39 @@ export function PropertySearch({
   const [activeTab, setActiveTab] = React.useState('Buy')
   const [searchQuery, setSearchQuery] = React.useState(initialLocation)
   const [propertyType, setPropertyType] = React.useState('All Residential')
+  const [isListening, setIsListening] = React.useState(false)
+
+  const handleMicClick = () => {
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+      alert('Speech recognition is not supported in this browser.');
+      return;
+    }
+    
+    const SpeechRecognition = window.SpeechRecognition || (window as any).webkitSpeechRecognition;
+    const recognition = new SpeechRecognition();
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    
+    recognition.onstart = () => {
+      setIsListening(true);
+    };
+    
+    recognition.onresult = (event: any) => {
+      const transcript = event.results[0][0].transcript;
+      setSearchQuery(transcript);
+    };
+    
+    recognition.onerror = (event: any) => {
+      console.error('Speech recognition error', event.error);
+      setIsListening(false);
+    };
+    
+    recognition.onend = () => {
+      setIsListening(false);
+    };
+    
+    recognition.start();
+  }
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
@@ -123,7 +156,8 @@ export function PropertySearch({
             </button>
             <button
               type="button"
-              className="p-2 text-brand-green hover:bg-brand-green/10 rounded-full transition-colors cursor-pointer"
+              onClick={handleMicClick}
+              className={`p-2 rounded-full transition-colors cursor-pointer ${isListening ? 'text-red-500 bg-red-100 animate-pulse' : 'text-brand-green hover:bg-brand-green/10'}`}
               title="Voice Search"
             >
               <Mic className="w-4 h-4" />

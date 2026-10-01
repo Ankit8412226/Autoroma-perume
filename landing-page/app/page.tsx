@@ -31,6 +31,12 @@ export default function HomePage() {
   const [projects, setProjects] = React.useState<any[]>([])
   const [listings, setListings] = React.useState<any[]>([])
   const [isLoading, setIsLoading] = React.useState(true)
+  const [frontendStats, setFrontendStats] = React.useState({
+    projectsCount: '',
+    advisorsCount: '',
+    locationsCount: '',
+    revenue: ''
+  })
 
   React.useEffect(() => {
     fetchLiveProjects()
@@ -40,9 +46,10 @@ export default function HomePage() {
     try {
       setIsLoading(true)
       const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1'
-      const [projectRes, propertyRes] = await Promise.all([
+      const [projectRes, propertyRes, statsRes] = await Promise.all([
         fetch(`${baseUrl}/public/projects`).catch(() => null),
-        fetch(`${baseUrl}/public/properties`).catch(() => null)
+        fetch(`${baseUrl}/public/properties`).catch(() => null),
+        fetch(`${baseUrl}/public/frontend-stats`).catch(() => null)
       ])
       if (projectRes && projectRes.ok) {
         const data = await projectRes.json().catch(() => null)
@@ -52,6 +59,10 @@ export default function HomePage() {
         const data = await propertyRes.json().catch(() => null)
         setListings(Array.isArray(data) ? data : [])
       }
+      if (statsRes && statsRes.ok) {
+        const data = await statsRes.json().catch(() => null)
+        if (data) setFrontendStats(data)
+      }
     } catch (e) {
       console.error('Failed to fetch live inventory', e)
     } finally {
@@ -60,10 +71,10 @@ export default function HomePage() {
   }
 
   const stats = [
-    { label: 'TOWNSHIP DEVELOPMENTS', value: `${projects.length || 6} Projects` },
-    { label: 'COMMUNITY ADVISORS', value: '45+ Team' },
-    { label: 'PRIME LOCATIONS', value: '6 Enclaves' },
-    { label: 'DEMARCATED LAND MANIFEST', value: '₹1,200 Cr+' },
+    { label: 'TOWNSHIP DEVELOPMENTS', value: frontendStats.projectsCount || `${projects.length || 6} Projects` },
+    { label: 'COMMUNITY ADVISORS', value: frontendStats.advisorsCount || '45+ Team' },
+    { label: 'PRIME LOCATIONS', value: frontendStats.locationsCount || '6 Enclaves' },
+    { label: 'DEMARCATED LAND MANIFEST', value: frontendStats.revenue || '₹1,200 Cr+' },
   ]
 
   return (
@@ -177,8 +188,8 @@ export default function HomePage() {
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
                   <div className="absolute top-4 left-4">
                     <span className={`px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider ${proj.status === 'ACTIVE' ? 'bg-emerald-500 text-white' :
-                        proj.status === 'UPCOMING' ? 'bg-amber-400 text-amber-900' :
-                          'bg-sky-500 text-white'
+                      proj.status === 'UPCOMING' ? 'bg-amber-400 text-amber-900' :
+                        'bg-sky-500 text-white'
                       }`}>
                       {proj.status || 'ACTIVE'}
                     </span>

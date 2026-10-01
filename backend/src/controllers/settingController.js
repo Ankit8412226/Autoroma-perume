@@ -39,6 +39,15 @@ const DEFAULTS = {
       minSalesForRankUp: 1,
       autoRankPromotion: false
     }
+  },
+  FRONTEND_STATS: {
+    value: 'frontend_stats',
+    jsonValue: {
+      projectsCount: '2 Projects',
+      advisorsCount: '45+ Team',
+      locationsCount: '6 Enclaves',
+      revenue: '₹1,200 Cr+'
+    }
   }
 };
 
@@ -67,6 +76,15 @@ exports.getAnnouncement = async (req, res, next) => {
       announcement: setting.value || DEFAULT_ANNOUNCEMENT,
       isActive: setting.jsonValue?.isActive !== false
     });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.getFrontendStats = async (req, res, next) => {
+  try {
+    const setting = await getOrCreate('FRONTEND_STATS');
+    res.json(setting.jsonValue || DEFAULTS.FRONTEND_STATS.jsonValue);
   } catch (error) {
     next(error);
   }
