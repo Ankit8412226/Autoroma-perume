@@ -82,8 +82,8 @@ export function Navbar() {
             : 'bg-white/90 backdrop-blur-sm border-b border-brand-green/5'
           }`}
       >
-        <div className=" mx-auto px-4 sm:px-6 lg:px-8 py-2.5 sm:py-3">
-          <div className="flex items-center justify-between gap-6">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5 sm:py-3">
+          <div className="flex items-center justify-between gap-4 sm:gap-6">
             <Link href="/" className="focus:outline-none shrink-0">
               <HouseAndSkyLogo variant="dark" showTagline={true} size="sm" />
             </Link>

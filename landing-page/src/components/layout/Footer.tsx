@@ -45,12 +45,12 @@ export function Footer() {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="Enter your email for private listings"
                   required
-                  className="w-full bg-white/10 border border-white/20 text-white placeholder-white/50 text-xs px-4 py-3.5 rounded-md focus:outline-none focus:border-brand-sky transition-colors"
+                  className="w-full bg-white/10 border border-white/20 text-white placeholder-white/50 text-xs px-4 py-3 sm:py-3.5 rounded-md focus:outline-none focus:border-brand-sky transition-colors"
                 />
               </div>
               <button
                 type="submit"
-                className="px-6 py-3.5 bg-brand-green hover:bg-white hover:text-brand-dark text-white text-xs uppercase tracking-[0.18em] font-bold rounded-md transition-all shadow-md cursor-pointer whitespace-nowrap"
+                className="w-full sm:w-auto px-6 py-3 sm:py-3.5 bg-brand-green hover:bg-white hover:text-brand-dark text-white text-xs uppercase tracking-[0.18em] font-bold rounded-md transition-all shadow-md cursor-pointer whitespace-nowrap"
               >
                 Subscribe
               </button>

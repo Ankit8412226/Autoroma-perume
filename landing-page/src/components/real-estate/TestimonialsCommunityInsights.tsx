@@ -123,7 +123,7 @@ export function TestimonialsCommunityInsights() {
       </div>
 
       {/* Community Insights Bar */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 bg-white border border-brand-green/15 rounded-2xl p-6 shadow-sm">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 bg-white border border-brand-green/15 rounded-2xl p-6 shadow-sm">
         {communityStats.map((st, i) => (
           <div key={i} className="text-center space-y-1">
             <span className="font-serif text-2xl sm:text-3xl font-extrabold text-brand-charcoal block">

@@ -39,7 +39,7 @@ export function AnnouncementTicker() {
       {/* Static Badge on the left */}
       <div className="bg-gradient-to-r from-[#063B2D] to-[#0B4F3C] text-amber-300 font-extrabold px-3 sm:px-4 py-2 text-[11px] sm:text-xs uppercase tracking-wider flex items-center gap-1.5 shrink-0 z-10 shadow-md border-r border-[#C9A96E]/50">
         <Megaphone className="w-3.5 h-3.5 text-amber-300 animate-pulse shrink-0" />
-        <span className="whitespace-nowrap font-bold text-amber-200">महत्वपूर्ण सूचना</span>
+        <span className="hidden sm:inline whitespace-nowrap font-bold text-amber-200">महत्वपूर्ण सूचना</span>
       </div>
 
       {/* Marquee scrolling container */}
