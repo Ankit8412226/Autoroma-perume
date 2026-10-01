@@ -29,7 +29,7 @@ export function PropertySearch({
 
   const handleVoiceSearch = () => {
     if (typeof window === 'undefined') return
-    const SpeechRecognition = window.SpeechRecognition || (window as any).webkitSpeechRecognition
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
     if (!SpeechRecognition) {
       alert('Voice search is not supported in this browser.')
       return
