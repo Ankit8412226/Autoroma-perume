@@ -291,14 +291,22 @@ exports.verifyEmail = async (req, res, next) => {
 exports.resendVerificationEmail = async (req, res, next) => {
   try {
     const { email } = req.body;
+    const identifier = (email || '').toLowerCase().trim();
+    const cleanPhone = identifier.replace(/[\s\-+]/g, '');
 
-    if (!email) {
-      return res.status(400).json({ message: 'Email address is required' });
+    if (!identifier) {
+      return res.status(400).json({ message: 'Email address or mobile number is required' });
     }
 
-    const user = await User.findOne({ email: email.toLowerCase().trim() });
+    const user = await User.findOne({
+      $or: [
+        { email: identifier },
+        { phone: identifier },
+        { phone: cleanPhone }
+      ]
+    });
     if (!user) {
-      return res.status(404).json({ message: 'No account found with this email address' });
+      return res.status(404).json({ message: 'No account found with this email address or mobile number' });
     }
 
     if (user.isVerified) {
@@ -332,13 +340,22 @@ exports.resendVerificationEmail = async (req, res, next) => {
 exports.forgotPassword = async (req, res, next) => {
   try {
     const { email } = req.body;
-    if (!email) {
-      return res.status(400).json({ message: 'Email address is required' });
+    const identifier = (email || '').toLowerCase().trim();
+    const cleanPhone = identifier.replace(/[\s\-+]/g, '');
+
+    if (!identifier) {
+      return res.status(400).json({ message: 'Email address or mobile number is required' });
     }
 
-    const user = await User.findOne({ email: email.toLowerCase().trim() });
+    const user = await User.findOne({
+      $or: [
+        { email: identifier },
+        { phone: identifier },
+        { phone: cleanPhone }
+      ]
+    });
     if (!user) {
-      return res.status(404).json({ message: 'No account found with this email address' });
+      return res.status(404).json({ message: 'No account found with this email address or mobile number' });
     }
 
     const rToken = generateRandomToken();
