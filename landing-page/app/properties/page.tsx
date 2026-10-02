@@ -2,7 +2,7 @@
 
 import * as React from 'react'
 import { Suspense } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Property } from '@/data/properties'
 import { PropertyCard } from '@/components/real-estate/PropertyCard'
@@ -55,6 +55,7 @@ const BUDGET_OPTIONS = [
 
 function PropertiesContent() {
   const searchParams = useSearchParams()
+  const router = useRouter()
   
   const typeParam = searchParams.get('type')
   let initialType = 'ALL'
@@ -130,6 +131,8 @@ function PropertiesContent() {
       else if (t === 'Villas') setSelectedType('VILLA')
       else if (t === 'Plots') setSelectedType('RESIDENTIAL_PLOT')
       else setSelectedType(t)
+    } else {
+      setSelectedType('ALL')
     }
 
     const intent = searchParams.get('intent')
@@ -142,6 +145,8 @@ function PropertiesContent() {
       } else if (intentLower === 'rent') {
         setSelectedListingType('RENT')
       }
+    } else {
+      setSelectedListingType('ALL')
     }
   }, [searchParams])
 
@@ -338,6 +343,11 @@ function PropertiesContent() {
     setSelectedBudget('ALL')
     setOnlyVerified(false)
     setSortBy('FEATURED')
+
+    if (typeof window !== 'undefined') {
+      window.history.replaceState(null, '', window.location.pathname)
+    }
+    router.replace('/properties', { scroll: false })
   }
 
   return (
@@ -526,7 +536,7 @@ function PropertiesContent() {
                 >
                   {filteredProperties.length} Properties Found
                 </span>
-                {(searchQuery || selectedCity !== 'All Cities' || selectedType !== 'ALL' || selectedBudget !== 'ALL' || onlyVerified) && (
+                {(searchQuery || selectedCity !== 'All Cities' || selectedType !== 'ALL' || selectedListingType !== 'ALL' || selectedBudget !== 'ALL' || onlyVerified || sortBy !== 'FEATURED') && (
                   <button
                     type="button"
                     onClick={handleResetFilters}
@@ -562,7 +572,14 @@ function PropertiesContent() {
                 <button
                   key={city}
                   type="button"
-                  onClick={() => setSelectedCity(city)}
+                  onClick={() => {
+                    if (city === 'All Cities') {
+                      handleResetFilters()
+                    } else {
+                      setSelectedCity(city)
+                      setSearchQuery('')
+                    }
+                  }}
                   className={`px-4 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center gap-2 shrink-0 border cursor-pointer ${isSelected
                     ? 'bg-emerald-600 text-white border-emerald-600 shadow-md scale-102'
                     : 'bg-white text-slate-700 border-slate-200 hover:border-emerald-300 hover:bg-slate-50'
@@ -595,7 +612,10 @@ function PropertiesContent() {
               return (
                 <div
                   key={cityName}
-                  onClick={() => setSelectedCity(cityName)}
+                  onClick={() => {
+                    setSelectedCity(cityName)
+                    setSearchQuery('')
+                  }}
                   className={`bg-gradient-to-br ${bgGrad} p-4 rounded-3xl text-white border border-white/10 shadow-lg hover:shadow-2xl hover:scale-[1.02] transition-all cursor-pointer group flex flex-col justify-between h-36`}
                 >
                   <div>
