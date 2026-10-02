@@ -61,16 +61,16 @@ function ResetPasswordContent() {
   }
 
   return (
-    <div className="min-h-[80vh] flex items-center justify-center px-4 py-16 bg-bg-primary">
-      <div className="w-full max-w-md">
+    <div className="py-6 sm:py-10 px-4 bg-bg-primary min-h-[calc(100vh-140px)] flex flex-col items-center justify-center">
+      <div className="w-full max-w-md my-auto">
         {/* Logo */}
-        <div className="flex justify-center mb-8">
+        <div className="flex justify-center mb-4">
           <Link href="/">
-            <HouseAndSkyLogo variant="dark" showTagline size="md" />
+            <HouseAndSkyLogo variant="dark" showTagline={false} size="sm" />
           </Link>
         </div>
 
-        <div className="bg-white rounded-3xl border border-brand-green/15 shadow-sm p-8 space-y-6">
+        <div className="hs-form-card space-y-6">
           {isSuccess ? (
             <div className="py-6 space-y-4 text-center">
               <div className="w-16 h-16 bg-emerald-50 rounded-full flex items-center justify-center mx-auto text-emerald-600 border border-emerald-200">

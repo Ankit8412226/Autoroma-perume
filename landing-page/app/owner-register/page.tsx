@@ -97,12 +97,12 @@ function RegisterContent() {
     `input-base ${fieldErrors[field] ? 'hs-input-error' : ''}`
 
   return (
-    <div className="min-h-[80vh] flex items-center justify-center px-4 py-16 bg-bg-primary">
-      <div className="w-full max-w-md">
+    <div className="py-6 sm:py-10 px-4 bg-bg-primary min-h-[calc(100vh-140px)] flex flex-col items-center justify-center">
+      <div className="w-full max-w-md my-auto">
         {/* Logo */}
-        <div className="flex justify-center mb-8">
+        <div className="flex justify-center mb-4">
           <Link href="/">
-            <HouseAndSkyLogo variant="dark" showTagline size="md" />
+            <HouseAndSkyLogo variant="dark" showTagline={false} size="sm" />
           </Link>
         </div>
 

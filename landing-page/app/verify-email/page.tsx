@@ -48,16 +48,16 @@ function VerifyEmailContent() {
   }, [token])
 
   return (
-    <div className="min-h-[80vh] flex items-center justify-center px-4 py-16 bg-bg-primary">
-      <div className="w-full max-w-md text-center">
+    <div className="py-6 sm:py-10 px-4 bg-bg-primary min-h-[calc(100vh-140px)] flex flex-col items-center justify-center">
+      <div className="w-full max-w-md my-auto text-center">
         {/* Logo */}
-        <div className="flex justify-center mb-8">
+        <div className="flex justify-center mb-4">
           <Link href="/">
-            <HouseAndSkyLogo variant="dark" showTagline size="md" />
+            <HouseAndSkyLogo variant="dark" showTagline={false} size="sm" />
           </Link>
         </div>
 
-        <div className="bg-white rounded-3xl border border-brand-green/15 shadow-sm p-8 space-y-6">
+        <div className="hs-form-card space-y-6">
           {status === 'LOADING' && (
             <div className="py-8 space-y-4">
               <Loader2 className="w-12 h-12 text-brand-green animate-spin mx-auto" />

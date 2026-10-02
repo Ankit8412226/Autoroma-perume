@@ -142,12 +142,12 @@ function LoginContent() {
   }
 
   return (
-    <div className="min-h-[80vh] flex items-center justify-center px-4 py-16 bg-bg-primary relative">
-      <div className="w-full max-w-md">
+    <div className="py-6 sm:py-10 px-4 bg-bg-primary min-h-[calc(100vh-140px)] flex flex-col items-center justify-center">
+      <div className="w-full max-w-md my-auto">
         {/* Logo */}
-        <div className="flex justify-center mb-8">
+        <div className="flex justify-center mb-4">
           <Link href="/">
-            <HouseAndSkyLogo variant="dark" showTagline size="md" />
+            <HouseAndSkyLogo variant="dark" showTagline={false} size="sm" />
           </Link>
         </div>
 
@@ -155,7 +155,7 @@ function LoginContent() {
           {/* Header */}
           <div className="space-y-1">
             <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-brand-green">Property Owner Portal</p>
-            <h1 className="font-serif text-3xl font-bold text-brand-charcoal">Welcome back</h1>
+            <h1 className="font-serif text-2xl sm:text-3xl font-bold text-brand-charcoal">Welcome back</h1>
             <p className="text-xs text-brand-charcoal/60 font-medium">Login to manage your property listings</p>
           </div>
 
@@ -206,8 +206,8 @@ function LoginContent() {
             </div>
 
             <div className="space-y-1.5">
-              <div className="flex items-center justify-between">
-                <label htmlFor="hs-login-password" className="hs-label">Password <span className="hs-required">*</span></label>
+              <div className="flex items-center justify-between mb-1">
+                <label htmlFor="hs-login-password" className="hs-label !mb-0">Password <span className="hs-required">*</span></label>
                 <button
                   type="button"
                   onClick={() => {
