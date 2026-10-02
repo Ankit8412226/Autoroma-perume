@@ -4,7 +4,7 @@ import * as React from 'react'
 import { Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Property } from '@/data/properties'
+import { Property, PROPERTIES } from '@/data/properties'
 import { PropertyCard } from '@/components/real-estate/PropertyCard'
 import { getApiBaseUrl } from '@/utils/api'
 import { mapBackendProperty } from '@/utils/mapListing'
@@ -150,11 +150,11 @@ function PropertiesContent() {
     }
   }, [searchParams])
 
-  const [allProperties, setAllProperties] = React.useState<Property[]>([])
+  const [allProperties, setAllProperties] = React.useState<Property[]>(PROPERTIES)
   const [dbCities, setDbCities] = React.useState<string[]>([])
   const [dbLocations, setDbLocations] = React.useState<string[]>([])
   const [showLocationDropdown, setShowLocationDropdown] = React.useState(false)
-  const [isLoading, setIsLoading] = React.useState(true)
+  const [isLoading, setIsLoading] = React.useState(false)
   const [isBulkBuyOpen, setIsBulkBuyOpen] = React.useState(false)
   const [isListening, setIsListening] = React.useState(false)
 
@@ -242,9 +242,9 @@ function PropertiesContent() {
 
   // Fetch properties from backend API with location-wise & parameter query string
   React.useEffect(() => {
+    let isSubscribed = true
     const loadProperties = async () => {
       try {
-        setIsLoading(true)
         const baseUrl = getApiBaseUrl()
         const queryParams = new URLSearchParams()
         if (selectedCity !== 'All Cities') queryParams.set('city', selectedCity)
@@ -256,21 +256,24 @@ function PropertiesContent() {
 
         const url = `${baseUrl}/public/properties${queryParams.toString() ? `?${queryParams.toString()}` : ''}`
         const res = await fetch(url).catch(() => null)
-        if (res && res.ok) {
+        if (res && res.ok && isSubscribed) {
           const data = await res.json().catch(() => [])
-          if (Array.isArray(data)) {
+          if (Array.isArray(data) && data.length > 0) {
             setAllProperties(data.map(mapBackendProperty))
           }
         }
       } catch (err) {
         console.error('Failed to load properties:', err)
       } finally {
-        setIsLoading(false)
+        if (isSubscribed) setIsLoading(false)
       }
     }
 
     const timer = setTimeout(loadProperties, 250)
-    return () => clearTimeout(timer)
+    return () => {
+      isSubscribed = false
+      clearTimeout(timer)
+    }
   }, [selectedCity, selectedType, selectedListingType, searchQuery, onlyVerified, sortBy])
 
   // Filtered Properties Computation
@@ -356,11 +359,11 @@ function PropertiesContent() {
   }
 
   return (
-    <div className="min-h-screen bg-bg-primary space-y-8 pb-16">
-      <div className="bg-gradient-to-r from-[#051711] via-[#0A2E23] to-[#0B4F3C] text-white pt-10 pb-12 px-4 sm:px-6 lg:px-8 border-b border-emerald-500/20 shadow-xl relative overflow-hidden">
+    <div className="min-h-screen bg-bg-primary space-y-8 pb-16 overflow-x-hidden max-w-full w-full">
+      <div className="bg-gradient-to-r from-[#051711] via-[#0A2E23] to-[#0B4F3C] text-white pt-10 pb-12 px-4 sm:px-6 lg:px-8 border-b border-emerald-500/20 shadow-xl relative overflow-hidden max-w-full">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(16,185,129,0.15),transparent_50%)]" />
 
-        <div className="max-w-[1440px] mx-auto relative z-10 space-y-6">
+        <div className="max-w-[1440px] mx-auto relative z-10 space-y-6 max-w-full">
           <div className="text-center max-w-3xl mx-auto space-y-2">
             <span className="px-3 py-1 bg-emerald-500/20 text-emerald-300 rounded-full text-xs font-extrabold uppercase tracking-widest border border-emerald-500/30 inline-flex items-center gap-1.5 shadow-sm">
               <Sparkles className="w-3.5 h-3.5 text-emerald-400" /> Smart Dynamic Real Estate Finder
@@ -389,7 +392,7 @@ function PropertiesContent() {
               </a>
             </div>
           </div>
-          <div className="bg-white rounded-3xl p-3 sm:p-4 shadow-2xl border border-emerald-500/20 max-w-5xl mx-auto text-slate-800">
+          <div className="bg-white rounded-3xl p-3 sm:p-4 shadow-2xl border border-emerald-500/20 max-w-5xl mx-auto text-slate-800 max-w-full overflow-hidden">
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2.5">
               <div className="relative">
                 <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />

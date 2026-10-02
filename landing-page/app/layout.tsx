@@ -56,12 +56,12 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className={`scroll-smooth scroll-pt-32 sm:scroll-pt-36 ${cormorant.variable} ${inter.variable}`}>
-      <body className="bg-bg-primary text-brand-charcoal font-inter antialiased selection:bg-brand-soft selection:text-brand-green">
+    <html lang="en" className={`scroll-smooth scroll-pt-32 sm:scroll-pt-36 overflow-x-hidden max-w-full ${cormorant.variable} ${inter.variable}`}>
+      <body className="bg-bg-primary text-brand-charcoal font-inter antialiased selection:bg-brand-soft selection:text-brand-green overflow-x-hidden max-w-full w-full">
         <QueryProvider>
           <ToastProvider>
             <Navbar />
-            <div className="min-h-screen pt-28 sm:pt-32">
+            <div className="min-h-screen pt-28 sm:pt-32 max-w-full overflow-x-hidden">
               {children}
             </div>
             <Footer />
