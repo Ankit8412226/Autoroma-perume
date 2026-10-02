@@ -17,45 +17,52 @@ export function HouseAndSkyLogo({
   const isDark = variant === 'dark'
   const textColor = isDark ? '#171A18' : '#FFFFFF'
 
-  const logoDimension = size === 'sm' ? 48 : size === 'lg' ? 68 : 56
-
   return (
-    <div className={`inline-flex items-center gap-2.5 cursor-pointer select-none ${className}`}>
+    <div className={`inline-flex items-center gap-2 sm:gap-2.5 cursor-pointer select-none max-w-full ${className}`}>
       {/* Luxury Medallion Image Emblem */}
       <div
-        className="relative shrink-0 rounded-full overflow-hidden shadow-md border-2 border-[#C9A96E] bg-[#0B241C]"
-        style={{ width: logoDimension, height: logoDimension }}
+        className={`relative shrink-0 rounded-full overflow-hidden shadow-md border-2 border-[#C9A96E] bg-[#0B241C] ${
+          size === 'sm' ? 'w-9 h-9 sm:w-12 sm:h-12' : size === 'lg' ? 'w-16 h-16 sm:w-20 sm:h-20' : 'w-11 h-11 sm:w-14 sm:h-14'
+        }`}
       >
         <Image
           src="/logo.png"
           alt="House & Sky Logo"
           fill
-          sizes={`${logoDimension}px`}
+          sizes="(max-width: 640px) 40px, 64px"
           className="object-cover transform hover:scale-105 transition-transform duration-300"
         />
       </div>
 
       {/* Typography */}
-      <div className="flex flex-col">
+      <div className="flex flex-col min-w-0">
         <div className="flex items-center gap-1 leading-none">
           <span
-            className="font-serif text-xl sm:text-2xl font-bold tracking-tight"
+            className={`font-serif font-bold tracking-tight ${
+              size === 'sm' ? 'text-lg sm:text-2xl' : size === 'lg' ? 'text-2xl sm:text-3xl' : 'text-xl sm:text-2xl'
+            }`}
             style={{ color: textColor }}
           >
             House
           </span>
-          <span className="font-serif text-xl sm:text-2xl italic font-bold text-[#C9A96E]">
+          <span
+            className={`font-serif italic font-bold text-[#C9A96E] ${
+              size === 'sm' ? 'text-lg sm:text-2xl' : size === 'lg' ? 'text-2xl sm:text-3xl' : 'text-xl sm:text-2xl'
+            }`}
+          >
             &
           </span>
           <span
-            className="font-serif text-xl sm:text-2xl font-bold tracking-tight"
+            className={`font-serif font-bold tracking-tight ${
+              size === 'sm' ? 'text-lg sm:text-2xl' : size === 'lg' ? 'text-2xl sm:text-3xl' : 'text-xl sm:text-2xl'
+            }`}
             style={{ color: textColor }}
           >
             Sky
           </span>
         </div>
         {showTagline && (
-          <span className="text-[9px] sm:text-[10px] uppercase tracking-[0.22em] font-extrabold text-[#C9A96E] mt-1 block whitespace-nowrap">
+          <span className="text-[7.5px] min-[380px]:text-[8.5px] sm:text-[10px] uppercase tracking-[0.08em] min-[380px]:tracking-[0.14em] sm:tracking-[0.2em] font-extrabold text-[#C9A96E] mt-0.5 sm:mt-1 block truncate max-w-[180px] min-[380px]:max-w-none">
             BUILDING TRUST. DELIVERING VALUE.
           </span>
         )}
