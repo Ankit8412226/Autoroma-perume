@@ -109,6 +109,16 @@ function PropertiesContent() {
   const [sortBy, setSortBy] = React.useState('FEATURED')
   const [viewMode, setViewMode] = React.useState<'grid' | 'list'>('grid')
 
+  const scrollToResults = () => {
+    if (typeof window === 'undefined') return
+    setTimeout(() => {
+      const el = document.getElementById('properties-grid')
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }
+    }, 150)
+  }
+
   React.useEffect(() => {
     const isNearby = searchParams.get('nearby') === 'true'
     let loc = searchParams.get('location') || (isNearby ? 'Nearby Locations' : '')
@@ -147,6 +157,11 @@ function PropertiesContent() {
       }
     } else {
       setSelectedListingType('ALL')
+    }
+
+    // Auto-scroll down to results section when navigated via search or query parameters
+    if (searchParams.toString().length > 0) {
+      scrollToResults()
     }
   }, [searchParams])
 
@@ -403,6 +418,12 @@ function PropertiesContent() {
                     setSearchQuery(e.target.value)
                     setShowLocationDropdown(true)
                   }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      setShowLocationDropdown(false)
+                      scrollToResults()
+                    }
+                  }}
                   onFocus={() => setShowLocationDropdown(true)}
                   placeholder="City, locality, landmark, project..."
                   className="w-full pl-10 pr-7 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-semibold focus:outline-none focus:border-emerald-600 focus:bg-white text-slate-900"
@@ -451,6 +472,7 @@ function PropertiesContent() {
                               setSearchQuery(text)
                             }
                             setShowLocationDropdown(false)
+                            scrollToResults()
                           }}
                           className="w-full text-left px-4 py-2.5 hover:bg-emerald-50 text-xs flex items-center justify-between transition-colors cursor-pointer"
                         >
@@ -472,7 +494,10 @@ function PropertiesContent() {
               <div>
                 <select
                   value={selectedCity}
-                  onChange={(e) => setSelectedCity(e.target.value)}
+                  onChange={(e) => {
+                    setSelectedCity(e.target.value)
+                    scrollToResults()
+                  }}
                   className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-bold text-slate-800 focus:outline-none focus:border-emerald-600 cursor-pointer"
                 >
                   {availableCities.map((c) => (
@@ -485,7 +510,10 @@ function PropertiesContent() {
               <div>
                 <select
                   value={selectedType}
-                  onChange={(e) => setSelectedType(e.target.value)}
+                  onChange={(e) => {
+                    setSelectedType(e.target.value)
+                    scrollToResults()
+                  }}
                   className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-bold text-slate-800 focus:outline-none focus:border-emerald-600 cursor-pointer"
                 >
                   {PROPERTY_TYPE_OPTIONS.map((t) => (
@@ -498,7 +526,10 @@ function PropertiesContent() {
               <div>
                 <select
                   value={selectedBudget}
-                  onChange={(e) => setSelectedBudget(e.target.value)}
+                  onChange={(e) => {
+                    setSelectedBudget(e.target.value)
+                    scrollToResults()
+                  }}
                   className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-bold text-slate-800 focus:outline-none focus:border-emerald-600 cursor-pointer"
                 >
                   {BUDGET_OPTIONS.map((b) => (
@@ -516,7 +547,10 @@ function PropertiesContent() {
                   <input
                     type="checkbox"
                     checked={onlyVerified}
-                    onChange={(e) => setOnlyVerified(e.target.checked)}
+                    onChange={(e) => {
+                      setOnlyVerified(e.target.checked)
+                      scrollToResults()
+                    }}
                     className="w-3.5 h-3.5 text-emerald-600 rounded focus:ring-emerald-500"
                   />
                   <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" /> Verified / RERA Only
@@ -526,7 +560,10 @@ function PropertiesContent() {
                   <button
                     key={lType}
                     type="button"
-                    onClick={() => setSelectedListingType(lType)}
+                    onClick={() => {
+                      setSelectedListingType(lType)
+                      scrollToResults()
+                    }}
                     className={`px-3 py-1 rounded-xl text-xs font-bold transition-all ${selectedListingType === lType
                       ? 'bg-slate-900 text-white shadow-sm'
                       : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
@@ -586,6 +623,7 @@ function PropertiesContent() {
                     } else {
                       setSelectedCity(city)
                       setSearchQuery('')
+                      scrollToResults()
                     }
                   }}
                   className={`px-4 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center gap-2 shrink-0 border cursor-pointer ${isSelected
@@ -623,6 +661,7 @@ function PropertiesContent() {
                   onClick={() => {
                     setSelectedCity(cityName)
                     setSearchQuery('')
+                    scrollToResults()
                   }}
                   className={`bg-gradient-to-br ${bgGrad} p-4 rounded-3xl text-white border border-white/10 shadow-lg hover:shadow-2xl hover:scale-[1.02] transition-all cursor-pointer group flex flex-col justify-between h-36`}
                 >

@@ -81,7 +81,7 @@ export function PropertySearch({
         params.set('lng', longitude.toString())
         params.set('nearby', 'true')
         
-        router.push(`/properties?${params.toString()}`)
+        router.push(`/properties?${params.toString()}#properties-grid`)
       },
       (error) => {
         console.error('Geolocation error:', error)
@@ -98,7 +98,7 @@ export function PropertySearch({
     if (propertyType !== 'All Residential') {
       params.set('type', propertyType)
     }
-    router.push(`/properties?${params.toString()}`)
+    router.push(`/properties?${params.toString()}#properties-grid`)
   }
 
   const handleSearch = (e: React.FormEvent) => {
