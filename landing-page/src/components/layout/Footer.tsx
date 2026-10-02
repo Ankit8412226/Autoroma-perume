@@ -174,11 +174,6 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/saved" className="block py-2 sm:py-0 hover:text-brand-sky transition-colors">
-                  Saved Vault
-                </Link>
-              </li>
-              <li>
                 <Link href="/contact" className="block py-2 sm:py-0 hover:text-brand-sky transition-colors">
                   Get In Touch
                 </Link>

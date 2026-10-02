@@ -352,9 +352,6 @@ export function Navbar() {
               <Link href="/contact" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center text-xs uppercase tracking-[0.14em] font-semibold text-brand-charcoal py-4 border-b border-brand-green/10 min-h-[44px]">
                 Get In Touch
               </Link>
-              <Link href="/saved" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center text-xs uppercase tracking-[0.14em] font-semibold text-brand-charcoal py-4 border-b border-brand-green/10 min-h-[44px]">
-                Saved
-              </Link>
 
               {/* Owner auth section in mobile menu */}
               {isAuthenticated && user ? (

@@ -4,7 +4,6 @@ import * as React from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { Property } from '@/data/properties'
-import { FavoriteButton } from './FavoriteButton'
 import { PriceDisplay } from './PriceDisplay'
 import { useCompareStore } from '@/stores/compare.store'
 import { PropertyQuickViewModal } from './PropertyQuickViewModal'
@@ -151,8 +150,6 @@ export function PropertyCard({
                   <Building2 className="w-3.5 h-3.5" />
                   <span className="hidden sm:inline">Bulk Buy</span>
                 </button>
-
-                <FavoriteButton propertyId={property.id} size="sm" />
               </div>
             </div>
 
@@ -168,7 +165,7 @@ export function PropertyCard({
               </h3>
 
               <div className="flex flex-wrap items-center justify-between gap-4 pt-2 border-t border-white/20">
-                <PriceDisplay formattedPrice={property.formattedPrice} size="md" />
+                <PriceDisplay formattedPrice={property.formattedPrice} size="md" textColor="text-white" subTextColor="text-white/80" />
 
                 <div className="flex items-center space-x-3 text-xs text-white/90 font-mono">
                   <span>{renderSpecsSummary(property.specs)}</span>
@@ -243,7 +240,6 @@ export function PropertyCard({
                   >
                     {isComparing ? 'Comparing ✓' : '+ Compare'}
                   </button>
-                  <FavoriteButton propertyId={property.id} size="sm" />
                 </div>
               </div>
 
@@ -260,6 +256,8 @@ export function PropertyCard({
                 formattedPrice={property.formattedPrice}
                 formattedPricePerSqFt={property.formattedPricePerSqFt}
                 size="sm"
+                textColor="text-brand-green font-bold"
+                subTextColor="text-brand-charcoal/60"
               />
 
               <div className="flex flex-wrap items-center gap-2 sm:gap-3">
@@ -349,7 +347,6 @@ export function PropertyCard({
                 <Eye className="w-3 h-3 text-brand-green" />
                 <span className="hidden sm:inline">Quick View</span>
               </button>
-              <FavoriteButton propertyId={property.id} size="sm" />
             </div>
           </div>
         </div>
