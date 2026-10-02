@@ -182,13 +182,13 @@ export const LoginPage: React.FC = () => {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="text-xs text-[#171A18]/70 font-semibold">Email Address</label>
+            <label className="text-xs text-[#171A18]/70 font-semibold">Email Address or Mobile Number</label>
             <div className="relative mt-1">
               <Mail className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#171A18]/50" />
               <input
-                type="email"
+                type="text"
                 required
-                placeholder="enter your email"
+                placeholder="you@example.com or 10-digit mobile"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full bg-[#FAF9F6] border border-[#0B4F3C]/20 rounded-xl pl-9 pr-4 py-2.5 text-xs text-[#171A18] placeholder-[#171A18]/50 focus:outline-none focus:border-[#0B4F3C]"

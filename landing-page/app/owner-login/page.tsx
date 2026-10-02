@@ -47,7 +47,7 @@ function LoginContent() {
 
     const emailTrimmed = email.trim().toLowerCase()
     if (!emailTrimmed || !password) {
-      setError('Email and password are required.')
+      setError('Email or Mobile number and password are required.')
       return
     }
 
@@ -189,17 +189,17 @@ function LoginContent() {
           {/* Form */}
           <form onSubmit={handleSubmit} noValidate className="space-y-5">
             <div className="space-y-1.5">
-              <label htmlFor="hs-login-email" className="hs-label">Email Address <span className="hs-required">*</span></label>
+              <label htmlFor="hs-login-email" className="hs-label">Email Address or Mobile Number <span className="hs-required">*</span></label>
               <div className="relative">
                 <Mail className="w-4 h-4 text-brand-charcoal/40 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                 <input
                   id="hs-login-email"
-                  type="email"
+                  type="text"
                   required
-                  autoComplete="email"
+                  autoComplete="username"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="you@example.com"
+                  placeholder="you@example.com or 10-digit mobile"
                   className="input-base pl-10"
                 />
               </div>

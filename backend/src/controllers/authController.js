@@ -180,8 +180,20 @@ exports.registerPublicAgent = async (req, res, next) => {
 exports.login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
+    const identifier = (email || '').toLowerCase().trim();
+    const cleanPhone = identifier.replace(/[\s\-+]/g, '');
 
-    const user = await User.findOne({ email: email.toLowerCase().trim() });
+    if (!identifier || !password) {
+      return res.status(400).json({ message: 'Email/Mobile number and password are required' });
+    }
+
+    const user = await User.findOne({
+      $or: [
+        { email: identifier },
+        { phone: identifier },
+        { phone: cleanPhone }
+      ]
+    });
     if (!user) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
