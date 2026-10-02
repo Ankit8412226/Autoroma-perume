@@ -290,7 +290,12 @@ function PropertiesContent() {
 
       // 3. Listing Type Filter (Sale / Rent / Lease)
       if (selectedListingType !== 'ALL') {
-        if ((prop.listingType || 'SALE').toUpperCase() !== selectedListingType.toUpperCase()) return false
+        const pType = (prop.listingType || 'SALE').toUpperCase()
+        const sType = selectedListingType.toUpperCase()
+        const isSaleOrBuy = (pType === 'SALE' || pType === 'BUY') && (sType === 'SALE' || sType === 'BUY')
+        const isRent = pType === 'RENT' && sType === 'RENT'
+        const isLease = pType === 'LEASE' && sType === 'LEASE'
+        if (!isSaleOrBuy && !isRent && !isLease) return false
       }
 
       // 4. Budget Range Filter

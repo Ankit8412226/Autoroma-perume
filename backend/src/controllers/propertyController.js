@@ -208,7 +208,12 @@ exports.getPublicProperties = async (req, res, next) => {
     }
     
     if (listingType && listingType !== 'ALL') {
-      filter.listingType = listingType;
+      const lUpper = String(listingType).toUpperCase();
+      if (lUpper === 'SALE' || lUpper === 'BUY') {
+        filter.listingType = { $in: ['SALE', 'BUY', 'Sale', 'Buy'] };
+      } else {
+        filter.listingType = listingType;
+      }
     }
 
     if (city && city !== 'All Cities' && city !== 'ALL') {
