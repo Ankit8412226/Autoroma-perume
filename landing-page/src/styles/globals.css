@@ -66,7 +66,10 @@ html, body {
   background: #FFFFFF;
   border: 1px solid #D5DDD8;
   color: #171A18;
-  padding: 0.75rem 1rem;
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
   font-family: var(--font-inter), sans-serif;
   font-size: 0.875rem;
   font-weight: 500;
@@ -77,6 +80,19 @@ html, body {
   border-radius: 12px;
   width: 100%;
 }
+
+/* ── Padding Overrides for Left & Right Icons to Prevent Overlap ──────── */
+.input-base.pl-8, select.input-base.pl-8, input.input-base.pl-8 { padding-left: 2rem !important; }
+.input-base.pl-9, select.input-base.pl-9, input.input-base.pl-9 { padding-left: 2.25rem !important; }
+.input-base.pl-10, select.input-base.pl-10, input.input-base.pl-10 { padding-left: 2.625rem !important; }
+.input-base.pl-11, select.input-base.pl-11, input.input-base.pl-11 { padding-left: 2.875rem !important; }
+.input-base.pl-12, select.input-base.pl-12, input.input-base.pl-12 { padding-left: 3.125rem !important; }
+
+.input-base.pr-8, select.input-base.pr-8, input.input-base.pr-8 { padding-right: 2rem !important; }
+.input-base.pr-9, select.input-base.pr-9, input.input-base.pr-9 { padding-right: 2.25rem !important; }
+.input-base.pr-10, select.input-base.pr-10, input.input-base.pr-10 { padding-right: 2.625rem !important; }
+.input-base.pr-11, select.input-base.pr-11, input.input-base.pr-11 { padding-right: 2.875rem !important; }
+.input-base.pr-12, select.input-base.pr-12, input.input-base.pr-12 { padding-right: 3.125rem !important; }
 
 @media (min-width: 640px) {
   .input-base {

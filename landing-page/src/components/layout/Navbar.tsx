@@ -69,7 +69,7 @@ export function Navbar() {
 
   const isActive = (href: string) => pathname === href || (href !== '/' && pathname.startsWith(href))
   const linkClass = (href: string) =>
-    `text-[11px] uppercase tracking-[0.12em] font-semibold py-1 transition-colors ${isActive(href) && (href !== '/' || pathname === '/')
+    `text-[10px] lg:text-[10.5px] xl:text-[11px] uppercase tracking-[0.06em] lg:tracking-[0.08em] xl:tracking-[0.12em] font-semibold py-1 transition-colors whitespace-nowrap ${isActive(href) && (href !== '/' || pathname === '/')
       ? 'text-brand-green'
       : 'text-brand-charcoal/75 hover:text-brand-green'
     }`
@@ -82,13 +82,13 @@ export function Navbar() {
             : 'bg-white/90 backdrop-blur-sm border-b border-brand-green/5'
           }`}
       >
-        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-2.5 sm:py-3 relative z-20">
-          <div className="flex items-center justify-between gap-4 sm:gap-6">
+        <div className="max-w-[1440px] mx-auto px-3 sm:px-6 lg:px-5 xl:px-8 py-2.5 sm:py-3 relative z-20">
+          <div className="flex items-center justify-between gap-2 lg:gap-3 xl:gap-6">
             <Link href="/" className="focus:outline-none shrink-0">
               <HouseAndSkyLogo variant="dark" showTagline={true} size="sm" />
             </Link>
 
-            <nav className="hidden lg:flex items-center gap-6">
+            <nav className="hidden lg:flex items-center gap-3 xl:gap-6">
               <Link href="/" className={linkClass('/')}>Home</Link>
 
               <div className="relative" onMouseEnter={() => setOpenMenu('about')} onMouseLeave={() => setOpenMenu(null)}>
@@ -168,11 +168,11 @@ export function Navbar() {
 
 
             {/* Desktop right side — sleek hierarchy: Phone info | Login/Owner | List Property CTA */}
-            <div className="hidden lg:flex items-center gap-3">
-              {/* Phone info (xl screens) */}
+            <div className="hidden lg:flex items-center gap-2 xl:gap-3 shrink-0">
+              {/* Phone info (2xl screens only to avoid mid-screen overflow) */}
               <a
                 href={telHref}
-                className="hidden xl:inline-flex items-center gap-1.5 text-[11px] font-bold tracking-[0.08em] text-brand-charcoal/70 hover:text-brand-green transition-colors mr-1"
+                className="hidden 2xl:inline-flex items-center gap-1.5 text-[11px] font-bold tracking-[0.08em] text-brand-charcoal/70 hover:text-brand-green transition-colors mr-1"
                 title="Call Us"
               >
                 <PhoneCall className="w-3.5 h-3.5 text-brand-green" />
@@ -184,9 +184,9 @@ export function Navbar() {
                 <div className="relative" onMouseEnter={() => setOpenMenu('owner')} onMouseLeave={() => setOpenMenu(null)}>
                   <button
                     type="button"
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold text-brand-charcoal bg-brand-soft hover:bg-brand-green/10 rounded-full border border-brand-green/20 transition-all"
+                    className="inline-flex items-center gap-1.5 px-2.5 xl:px-3 py-1.5 text-[10px] xl:text-[11px] font-bold text-brand-charcoal bg-brand-soft hover:bg-brand-green/10 rounded-full border border-brand-green/20 transition-all whitespace-nowrap"
                   >
-                    <UserCircle className="w-4 h-4 text-brand-green" />
+                    <UserCircle className="w-3.5 h-3.5 xl:w-4 xl:h-4 text-brand-green" />
                     <span>{user.fullName.split(' ')[0]}</span>
                     <ChevronDown className="w-3 h-3 text-brand-charcoal/50" />
                   </button>
@@ -214,7 +214,7 @@ export function Navbar() {
               ) : (
                 <Link
                   href="/owner-login"
-                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-[0.1em] text-brand-charcoal hover:text-brand-green border border-brand-charcoal/20 hover:border-brand-green rounded-full transition-all"
+                  className="inline-flex items-center gap-1 sm:gap-1.5 px-2.5 xl:px-3.5 py-1.5 text-[10px] xl:text-[11px] font-bold uppercase tracking-[0.08em] xl:tracking-[0.1em] text-brand-charcoal hover:text-brand-green border border-brand-charcoal/20 hover:border-brand-green rounded-full transition-all whitespace-nowrap"
                 >
                   <LogIn className="w-3.5 h-3.5 text-brand-green" />
                   <span>Login</span>
@@ -224,7 +224,7 @@ export function Navbar() {
               {/* Primary CTA: List Property — Solid Brand Green pill */}
               <Link
                 href="/list-your-property"
-                className="inline-flex items-center gap-1.5 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.1em] text-white bg-brand-green hover:bg-brand-dark rounded-full shadow-sm hover:shadow transition-all"
+                className="inline-flex items-center gap-1 sm:gap-1.5 px-3 xl:px-4 py-1.5 sm:py-2 text-[10px] xl:text-[11px] font-bold uppercase tracking-[0.08em] xl:tracking-[0.1em] text-white bg-brand-green hover:bg-brand-dark rounded-full shadow-sm hover:shadow transition-all whitespace-nowrap"
               >
                 <Home className="w-3.5 h-3.5" />
                 <span>List Property</span>

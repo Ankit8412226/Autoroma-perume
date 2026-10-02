@@ -22,7 +22,11 @@ export function HouseAndSkyLogo({
       {/* Luxury Medallion Image Emblem */}
       <div
         className={`relative shrink-0 rounded-full overflow-hidden shadow-md border-2 border-[#C9A96E] bg-[#0B241C] ${
-          size === 'sm' ? 'w-9 h-9 sm:w-12 sm:h-12' : size === 'lg' ? 'w-16 h-16 sm:w-20 sm:h-20' : 'w-11 h-11 sm:w-14 sm:h-14'
+          size === 'sm'
+            ? 'w-9 h-9 sm:w-10 sm:h-10 xl:w-12 xl:h-12'
+            : size === 'lg'
+            ? 'w-16 h-16 sm:w-18 sm:h-18 xl:w-20 xl:h-20'
+            : 'w-11 h-11 sm:w-12 sm:h-12 xl:w-14 xl:h-14'
         }`}
       >
         <Image
@@ -39,7 +43,11 @@ export function HouseAndSkyLogo({
         <div className="flex items-center gap-1 leading-none">
           <span
             className={`font-serif font-bold tracking-tight ${
-              size === 'sm' ? 'text-lg sm:text-2xl' : size === 'lg' ? 'text-2xl sm:text-3xl' : 'text-xl sm:text-2xl'
+              size === 'sm'
+                ? 'text-lg sm:text-xl xl:text-2xl'
+                : size === 'lg'
+                ? 'text-2xl sm:text-2xl xl:text-3xl'
+                : 'text-xl sm:text-xl xl:text-2xl'
             }`}
             style={{ color: textColor }}
           >
@@ -47,14 +55,22 @@ export function HouseAndSkyLogo({
           </span>
           <span
             className={`font-serif italic font-bold text-[#C9A96E] ${
-              size === 'sm' ? 'text-lg sm:text-2xl' : size === 'lg' ? 'text-2xl sm:text-3xl' : 'text-xl sm:text-2xl'
+              size === 'sm'
+                ? 'text-lg sm:text-xl xl:text-2xl'
+                : size === 'lg'
+                ? 'text-2xl sm:text-2xl xl:text-3xl'
+                : 'text-xl sm:text-xl xl:text-2xl'
             }`}
           >
             &
           </span>
           <span
             className={`font-serif font-bold tracking-tight ${
-              size === 'sm' ? 'text-lg sm:text-2xl' : size === 'lg' ? 'text-2xl sm:text-3xl' : 'text-xl sm:text-2xl'
+              size === 'sm'
+                ? 'text-lg sm:text-xl xl:text-2xl'
+                : size === 'lg'
+                ? 'text-2xl sm:text-2xl xl:text-3xl'
+                : 'text-xl sm:text-xl xl:text-2xl'
             }`}
             style={{ color: textColor }}
           >
@@ -62,7 +78,7 @@ export function HouseAndSkyLogo({
           </span>
         </div>
         {showTagline && (
-          <span className="text-[7.5px] min-[380px]:text-[8.5px] sm:text-[10px] uppercase tracking-[0.08em] min-[380px]:tracking-[0.14em] sm:tracking-[0.2em] font-extrabold text-[#C9A96E] mt-0.5 sm:mt-1 block truncate max-w-[180px] min-[380px]:max-w-none">
+          <span className="text-[7.5px] min-[380px]:text-[8.5px] sm:text-[9px] xl:text-[10px] uppercase tracking-[0.08em] min-[380px]:tracking-[0.12em] sm:tracking-[0.16em] xl:tracking-[0.2em] font-extrabold text-[#C9A96E] mt-0.5 sm:mt-1 block truncate max-w-[180px] min-[380px]:max-w-none">
             BUILDING TRUST. DELIVERING VALUE.
           </span>
         )}
