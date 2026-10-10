@@ -63,7 +63,12 @@ const employeeSchema = new mongoose.Schema({
     default: 1,
     min: 1
   }
-}, { timestamps: true });
+}, {
+  timestamps: true,
+  // Expose the `id` virtual in API JSON — the admin panel keys employee rows,
+  // sponsor pickers and approve/reject/delete actions off `employee.id`.
+  toJSON: { virtuals: true }
+});
 
 employeeSchema.index({ inviteCode: 1 }, { unique: true, sparse: true });
 

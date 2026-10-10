@@ -12,7 +12,11 @@ import { HouseAndSkyLogo } from '@/components/layout/HouseAndSkyLogo'
 function LoginContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const redirectTo = searchParams.get('redirect') || '/my-properties'
+  // Only allow same-site relative paths to avoid an open redirect (e.g. ?redirect=https://evil.com)
+  const rawRedirect = searchParams.get('redirect')
+  const redirectTo = rawRedirect && rawRedirect.startsWith('/') && !rawRedirect.startsWith('//') && !rawRedirect.startsWith('/\\')
+    ? rawRedirect
+    : '/my-properties'
   const { login, isAuthenticated } = useOwnerAuth()
 
   const [email, setEmail] = React.useState('')

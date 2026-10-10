@@ -4,12 +4,16 @@ const Transaction = require('../models/Transaction');
 const Employee = require('../models/Employee');
 const { processDifferentialCommission } = require('../services/commissionEngine');
 const { computePricing, deriveBaseRatePerSqYrd } = require('../services/pricingEngine');
+const { queryString, containsRegex } = require('../utils/queryUtils');
 
 const PLOT_STATUSES = ['AVAILABLE', 'BOOKED', 'PENDING', 'SOLD'];
 
 exports.getPlots = async (req, res, next) => {
   try {
-    const { projectId, block, status, search } = req.query;
+    const projectId = queryString(req.query.projectId);
+    const block = queryString(req.query.block);
+    const status = queryString(req.query.status);
+    const search = queryString(req.query.search);
     const page = parseInt(req.query.page) || null;
     const limit = parseInt(req.query.limit) || null;
 
@@ -20,13 +24,14 @@ exports.getPlots = async (req, res, next) => {
     if (status) filter.status = status;
     if (search) {
       filter.$or = [
-        { plotNo: { $regex: search, $options: 'i' } },
-        { block: { $regex: search, $options: 'i' } }
+        { plotNo: containsRegex(search) },
+        { block: containsRegex(search) }
       ];
     }
 
     const total = await Plot.countDocuments(filter);
-    let query = Plot.find(filter).populate('ownerId', 'fullName email phone');
+    // Stable order so skip/limit pages don't overlap or drop plots.
+    let query = Plot.find(filter).sort({ _id: 1 }).populate('ownerId', 'fullName email phone');
 
     if (page && limit) {
       const skip = (page - 1) * limit;
@@ -111,11 +116,23 @@ exports.updatePlotStatus = async (req, res, next) => {
       return res.json(plot);
     }
 
+    // Non-admin users may only place a booking/sale request on an AVAILABLE plot.
+    // They must never be able to release (AVAILABLE) or overwrite a plot that is
+    // already booked/sold — that would wipe the buyer's ownership & payment data.
+    if (!isAdminOrManager) {
+      if (!['BOOKED', 'SOLD', 'PENDING'].includes(status)) {
+        return res.status(403).json({ message: 'Only admins can change this plot to the requested status' });
+      }
+      if (prevStatus !== 'AVAILABLE') {
+        return res.status(409).json({ message: `Plot is already ${prevStatus} and cannot be requested` });
+      }
+    }
+
     // Business Logic: If an Agent or Customer requests to purchase/book, set to PENDING (Hold) pending Admin approval!
     let targetStatus = status;
     let targetApprovalStatus = 'APPROVED';
 
-    if (!isAdminOrManager && (status === 'SOLD' || status === 'BOOKED')) {
+    if (!isAdminOrManager) {
       targetStatus = 'PENDING';
       targetApprovalStatus = 'PENDING_APPROVAL';
     }
@@ -226,11 +243,13 @@ exports.updatePlotMarker = async (req, res, next) => {
 
 exports.getUserProperties = async (req, res, next) => {
   try {
-    const userEmail = req.user ? req.user.email : req.query.email;
-    const filter = userEmail ? { ownerEmail: userEmail } : {};
-    
-    const plots = await Plot.find(filter).populate('projectId');
-    const transactions = await Transaction.find(userEmail ? { buyerEmail: userEmail } : {})
+    const userEmail = req.user ? req.user.email : queryString(req.query.email);
+    // Never fall back to an empty filter — that would return every plot and
+    // every sale transaction to an anonymous caller.
+    if (!userEmail) return res.json({ plots: [], transactions: [] });
+
+    const plots = await Plot.find({ ownerEmail: userEmail }).populate('projectId');
+    const transactions = await Transaction.find({ buyerEmail: userEmail })
       .populate('sellerEmployeeId')
       .populate('plotId');
 
@@ -287,9 +306,10 @@ exports.uploadPlotDocument = async (req, res, next) => {
 
 exports.exportPlotsCSV = async (req, res, next) => {
   try {
-    const { projectId } = req.query;
+    const projectId = queryString(req.query.projectId);
     const filter = projectId ? { projectId } : {};
     const plots = await Plot.find(filter).sort({ plotNo: 1 });
+    const quote = (v) => `"${String(v || '').replace(/"/g, '""')}"`;
 
     const headers = [
       'S.No', 'Plot No', 'Sellable Sq Yrd', 'Carpet Sq Yrd',
@@ -300,7 +320,7 @@ exports.exportPlotsCSV = async (req, res, next) => {
 
     const rows = plots.map((p, idx) => [
       idx + 1,
-      `"${p.plotNo || ''}"`,
+      quote(p.plotNo),
       p.sellableSqYrd || 0,
       p.carpetSqYrd || 0,
       p.plc12mtr || '-',
@@ -312,8 +332,8 @@ exports.exportPlotsCSV = async (req, res, next) => {
       p.otmc || 0,
       p.gstOnOtherCharges || 0,
       p.totalCost || p.price || 0,
-      `"${p.status || 'AVAILABLE'}"`,
-      `"${p.ownerName || ''}"`
+      quote(p.status || 'AVAILABLE'),
+      quote(p.ownerName)
     ]);
 
     const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
@@ -334,8 +354,9 @@ exports.importPlotsCSV = async (req, res, next) => {
 
     const importedPlots = [];
     for (const item of plotsData) {
-      const plotNo = item['Plot No'] || item.plotNo;
-      if (!plotNo) continue;
+      const rawPlotNo = item['Plot No'] || item.plotNo;
+      if (rawPlotNo === undefined || rawPlotNo === null || !String(rawPlotNo).trim()) continue;
+      const plotNo = String(rawPlotNo).trim();
 
       const block = plotNo.split('-')[0] || 'E5';
       const sellableSqYrd = parseFloat(item['Sellable Sq Yrd'] || item.sellableSqYrd || 0);
@@ -347,7 +368,7 @@ exports.importPlotsCSV = async (req, res, next) => {
       const discountedPlc = parseFloat(item['Discounted PLC'] || item.discountedPlc || 0);
       const otmc = parseFloat(item['OTMC'] || item.otmc || 0);
       const providedTotalCost = parseFloat(item['Total Cost'] || item.totalCost || item.price || 0);
-      const status = (item['Status'] || item.status || 'AVAILABLE').toUpperCase();
+      const status = String(item['Status'] || item.status || 'AVAILABLE').toUpperCase();
       const ownerName = item['Owner'] || item.ownerName || '';
 
       const priceInputs = {

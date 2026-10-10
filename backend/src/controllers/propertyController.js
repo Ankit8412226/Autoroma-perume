@@ -2,6 +2,8 @@ const mongoose = require('mongoose');
 const Property = require('../models/Property');
 const { PROPERTY_TYPES, LISTING_TYPES, PROPERTY_STATUSES } = require('../models/Property');
 const { notifyAdmins } = require('../services/notificationService');
+const { queryString, containsRegex } = require('../utils/queryUtils');
+const { getPresignedUrl } = require('../services/s3Service');
 
 const SLUG_FALLBACK = 'property';
 
@@ -39,6 +41,21 @@ function sanitizeGallery(gallery) {
       s3Key: item.s3Key ? String(item.s3Key) : '',
       caption: item.caption ? String(item.caption) : ''
     }));
+}
+
+// Gallery images are saved with an expiring pre-signed URL plus their S3 key;
+// re-sign on read so listing images don't break after the URL expires.
+async function withFreshGallery(property) {
+  if (!property) return property;
+  const p = typeof property.toObject === 'function' ? property.toObject() : { ...property };
+  if (Array.isArray(p.gallery) && p.gallery.some((g) => g && g.s3Key)) {
+    p.gallery = await Promise.all(p.gallery.map(async (g) => {
+      if (!g || !g.s3Key) return g;
+      const freshUrl = await getPresignedUrl(g.s3Key);
+      return freshUrl ? { ...g, url: freshUrl } : g;
+    }));
+  }
+  return p;
 }
 
 function buildPropertyPayload(body, slug) {
@@ -91,7 +108,10 @@ function buildPropertyPayload(body, slug) {
 
 exports.getProperties = async (req, res, next) => {
   try {
-    const { projectId, propertyType, status, search } = req.query;
+    const projectId = queryString(req.query.projectId);
+    const propertyType = queryString(req.query.propertyType);
+    const status = queryString(req.query.status);
+    const search = queryString(req.query.search);
     const filter = {};
 
     if (projectId && isValidObjectId(projectId)) filter.projectId = projectId;
@@ -99,9 +119,9 @@ exports.getProperties = async (req, res, next) => {
     if (status) filter.status = status;
     if (search) {
       filter.$or = [
-        { title: { $regex: search, $options: 'i' } },
-        { city: { $regex: search, $options: 'i' } },
-        { location: { $regex: search, $options: 'i' } }
+        { title: containsRegex(search) },
+        { city: containsRegex(search) },
+        { location: containsRegex(search) }
       ];
     }
 
@@ -109,7 +129,7 @@ exports.getProperties = async (req, res, next) => {
       .populate('projectId', 'name code location city')
       .sort({ createdAt: -1 });
 
-    res.json(properties);
+    res.json(await Promise.all(properties.map(withFreshGallery)));
   } catch (error) {
     next(error);
   }
@@ -120,7 +140,7 @@ exports.getPropertyById = async (req, res, next) => {
     const { id } = req.params;
     const property = await Property.findById(id).populate('projectId', 'name code location city bannerImage');
     if (!property) return res.status(404).json({ message: 'Property not found' });
-    res.json(property);
+    res.json(await withFreshGallery(property));
   } catch (error) {
     next(error);
   }
@@ -184,6 +204,11 @@ const APPROVAL_FILTER = {
 
 exports.getPublicProperties = async (req, res, next) => {
   try {
+    const q = {};
+    ['projectId', 'propertyType', 'listingType', 'city', 'location', 'search', 'minPrice',
+      'maxPrice', 'bedrooms', 'featured', 'onlyVerified', 'sort'].forEach((key) => {
+      q[key] = queryString(req.query[key]);
+    });
     const {
       projectId,
       propertyType,
@@ -197,9 +222,10 @@ exports.getPublicProperties = async (req, res, next) => {
       featured,
       onlyVerified,
       sort
-    } = req.query;
+    } = q;
 
-    const filter = { isPublished: { $ne: false }, ...APPROVAL_FILTER };
+    // Approval filter lives in $and so a later search $or can't overwrite it.
+    const filter = { isPublished: { $ne: false }, $and: [APPROVAL_FILTER] };
 
     if (projectId && isValidObjectId(projectId)) filter.projectId = projectId;
     
@@ -217,11 +243,11 @@ exports.getPublicProperties = async (req, res, next) => {
     }
 
     if (city && city !== 'All Cities' && city !== 'ALL') {
-      filter.city = { $regex: city, $options: 'i' };
+      filter.city = containsRegex(city);
     }
 
     if (location) {
-      filter.location = { $regex: location, $options: 'i' };
+      filter.location = containsRegex(location);
     }
 
     if (minPrice || maxPrice) {
@@ -249,8 +275,7 @@ exports.getPublicProperties = async (req, res, next) => {
     }
 
     if (search && String(search).trim()) {
-      const q = String(search).trim();
-      const searchRegex = { $regex: q, $options: 'i' };
+      const searchRegex = containsRegex(String(search).trim());
       const searchOr = [
         { title: searchRegex },
         { location: searchRegex },
@@ -265,13 +290,7 @@ exports.getPublicProperties = async (req, res, next) => {
         { amenities: searchRegex }
       ];
 
-      if (filter.city) {
-        // If city is already specified, combine with $and
-        filter.$and = filter.$and || [];
-        filter.$and.push({ $or: searchOr });
-      } else {
-        filter.$or = searchOr;
-      }
+      filter.$and.push({ $or: searchOr });
     }
 
     let sortOptions = { isFeatured: -1, createdAt: -1 };
@@ -283,7 +302,7 @@ exports.getPublicProperties = async (req, res, next) => {
       .populate('projectId', 'name code location city bannerImage')
       .sort(sortOptions);
 
-    res.json(properties);
+    res.json(await Promise.all(properties.map(withFreshGallery)));
   } catch (error) {
     next(error);
   }
@@ -297,28 +316,32 @@ exports.getPublicPropertyBySlug = async (req, res, next) => {
       : { slug };
 
     const property = await Property.findOne({
-      ...slugFilter,
-      isPublished: { $ne: false },
-      ...APPROVAL_FILTER
+      $and: [slugFilter, APPROVAL_FILTER],
+      isPublished: { $ne: false }
     })
       .populate('projectId', 'name code location city bannerImage mapImageUrl');
 
     if (!property) return res.status(404).json({ message: 'Property not found' });
 
+    const similarOr = [
+      { propertyType: property.propertyType },
+      { city: property.city }
+    ];
+    // Only match on project when there is one (null would match every standalone listing).
+    if (property.projectId) similarOr.push({ projectId: property.projectId._id || property.projectId });
+
     const similar = await Property.find({
       _id: { $ne: property._id },
       isPublished: { $ne: false },
-      ...APPROVAL_FILTER,
-      $or: [
-        { propertyType: property.propertyType },
-        { city: property.city },
-        { projectId: property.projectId }
-      ]
+      $and: [APPROVAL_FILTER, { $or: similarOr }]
     })
       .limit(4)
       .sort({ isFeatured: -1, createdAt: -1 });
 
-    res.json({ property, similar });
+    res.json({
+      property: await withFreshGallery(property),
+      similar: await Promise.all(similar.map(withFreshGallery))
+    });
   } catch (error) {
     next(error);
   }
@@ -667,6 +690,9 @@ exports.createBuyInquiry = async (req, res, next) => {
 
     const property = await Property.findById(id).select('title city state propertyType listingType status approvalStatus isPublished');
     if (!property) return res.status(404).json({ message: 'Property not found' });
+    if (property.isPublished === false || (property.approvalStatus && property.approvalStatus !== 'APPROVED')) {
+      return res.status(404).json({ message: 'Property not found' });
+    }
     if (property.status === 'SOLD') return res.status(400).json({ message: 'This property has already been sold.' });
 
     const { name, phone, email, message: userMessage, budget, inquiryIntent } = req.body;

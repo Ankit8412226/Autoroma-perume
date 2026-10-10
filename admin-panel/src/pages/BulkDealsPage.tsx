@@ -135,6 +135,7 @@ export const BulkDealsPage: React.FC = () => {
     totalPackageUnits: '8 Packages Available',
     perks: ['0% Brokerage', 'Instant Registry & Demarcation', 'NA Approved & Title Clear'],
     bannerImage: '',
+    bannerImageS3Key: '',
     description: '',
     isAvailable: true,
     isFeatured: false,
@@ -212,6 +213,7 @@ export const BulkDealsPage: React.FC = () => {
         totalPackageUnits: deal.totalPackageUnits || '',
         perks: deal.perks && deal.perks.length > 0 ? deal.perks : ['0% Brokerage'],
         bannerImage: deal.bannerImage || '',
+        bannerImageS3Key: (deal as any).bannerImageS3Key || '',
         description: deal.description || '',
         isAvailable: deal.isAvailable !== false,
         isFeatured: Boolean(deal.isFeatured),
@@ -246,6 +248,7 @@ export const BulkDealsPage: React.FC = () => {
         totalPackageUnits: '',
         perks: ['0% Brokerage', 'Instant Registry & Demarcation', 'NA Approved & Title Clear'],
         bannerImage: '',
+        bannerImageS3Key: '',
         description: '',
         isAvailable: true,
         isFeatured: false,
@@ -265,6 +268,7 @@ export const BulkDealsPage: React.FC = () => {
       city: p && (!editingDeal || !prev.city) ? (p.city || prev.city) : prev.city,
       state: p && (!editingDeal || !prev.state) ? ((p as any).state || prev.state || 'Gujarat') : prev.state,
       bannerImage: p && (!editingDeal || !prev.bannerImage) ? (p.bannerImage || prev.bannerImage) : prev.bannerImage,
+      bannerImageS3Key: p && p.bannerImage && (!editingDeal || !prev.bannerImage) ? ((p as any).bannerImageS3Key || '') : prev.bannerImageS3Key,
       originalPriceDisplay: p && (!editingDeal || !prev.originalPriceDisplay) ? (p.priceRange ? p.priceRange.split('-')[0].trim() : prev.originalPriceDisplay) : prev.originalPriceDisplay
     }));
   };
@@ -278,6 +282,7 @@ export const BulkDealsPage: React.FC = () => {
       city: pr && (!editingDeal || !prev.city) ? (pr.city || prev.city) : prev.city,
       state: pr && (!editingDeal || !prev.state) ? ((pr as any).state || prev.state || 'Gujarat') : prev.state,
       bannerImage: pr && (!editingDeal || !prev.bannerImage) ? (pr.heroImage || prev.bannerImage) : prev.bannerImage,
+      bannerImageS3Key: pr && pr.heroImage && (!editingDeal || !prev.bannerImage) ? '' : prev.bannerImageS3Key,
       originalPriceDisplay: pr && (!editingDeal || !prev.originalPriceDisplay) ? (pr.price ? `₹${pr.price.toLocaleString('en-IN')}` : prev.originalPriceDisplay) : prev.originalPriceDisplay
     }));
   };
@@ -290,11 +295,13 @@ export const BulkDealsPage: React.FC = () => {
       setIsUploading(true);
       const uploadFormData = new FormData();
       uploadFormData.append('file', file);
+      uploadFormData.append('folder', 'bulk_deals');
 
       const res = await api.post('/upload', uploadFormData);
 
       if (res.data?.url) {
-        setFormData((prev) => ({ ...prev, bannerImage: res.data.url }));
+        // Keep the S3 key so the backend can re-sign the (expiring) pre-signed URL on read
+        setFormData((prev) => ({ ...prev, bannerImage: res.data.url, bannerImageS3Key: res.data.s3Key || '' }));
         toast.success('Banner image uploaded successfully');
       } else {
         toast.error('Image upload failed');
@@ -1072,7 +1079,7 @@ export const BulkDealsPage: React.FC = () => {
                     type="text"
                     placeholder="https://... or upload image"
                     value={formData.bannerImage}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, bannerImage: e.target.value }))}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, bannerImage: e.target.value, bannerImageS3Key: '' }))}
                     className="flex-1 px-3.5 py-2.5 text-xs border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-500 font-mono"
                   />
                   <label className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 flex items-center gap-2 cursor-pointer transition-colors shrink-0">

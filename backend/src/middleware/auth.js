@@ -8,23 +8,30 @@ const protect = async (req, res, next) => {
   if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
     try {
       token = req.headers.authorization.split(' ')[1];
+      if (!token) {
+        return res.status(401).json({ message: 'Not authorized, no token provided' });
+      }
       const decoded = jwt.verify(token, JWT_SECRET);
 
       req.user = await User.findById(decoded.id).select('-password');
       if (!req.user) {
         return res.status(401).json({ message: 'User not found' });
       }
-
-      next();
+      if (req.user.isActive === false || req.user.approvalStatus === 'REJECTED') {
+        return res.status(401).json({ message: 'Your account has been deactivated. Please contact support.' });
+      }
+      // Token issued before the last password change/reset — session revoked.
+      if ((decoded.tv || 0) !== (req.user.tokenVersion || 0)) {
+        return res.status(401).json({ message: 'Your password was changed. Please log in again.' });
+      }
     } catch (error) {
       console.error(error);
-      res.status(401).json({ message: 'Not authorized, token failed' });
+      return res.status(401).json({ message: 'Not authorized, token failed' });
     }
+    return next();
   }
 
-  if (!token) {
-    res.status(401).json({ message: 'Not authorized, no token provided' });
-  }
+  return res.status(401).json({ message: 'Not authorized, no token provided' });
 };
 
 const authorize = (...roles) => {

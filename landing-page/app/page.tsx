@@ -1,6 +1,7 @@
 'use client'
 
 import * as React from 'react'
+import { getApiBaseUrl } from '@/utils/api'
 import Image from 'next/image'
 import Link from 'next/link'
 import { SectionHeading } from '@/components/real-estate/SectionHeading'
@@ -45,7 +46,7 @@ export default function HomePage() {
   const fetchLiveProjects = async () => {
     try {
       setIsLoading(true)
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1'
+      const baseUrl = getApiBaseUrl()
       const [projectRes, propertyRes, statsRes] = await Promise.all([
         fetch(`${baseUrl}/public/projects`).catch(() => null),
         fetch(`${baseUrl}/public/properties`).catch(() => null),

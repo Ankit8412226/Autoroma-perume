@@ -35,7 +35,8 @@ export const employeesService = {
     return response.data;
   },
   getMLMTree: async (rootEmployeeId?: string): Promise<MLMTreeNode> => {
-    const response = await api.get('/mlm/tree', { params: { rootEmployeeId } });
+    // Backend reads the root from `rootId` (see mlmController.getTree).
+    const response = await api.get('/mlm/tree', { params: { rootId: rootEmployeeId } });
     return response.data;
   },
   getRankRules: async () => {

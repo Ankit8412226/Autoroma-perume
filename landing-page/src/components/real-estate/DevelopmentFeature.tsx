@@ -1,6 +1,7 @@
 'use client'
 
 import * as React from 'react'
+import { getApiBaseUrl } from '@/utils/api'
 import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowUpRight, MapPin } from 'lucide-react'
@@ -16,7 +17,7 @@ export function DevelopmentFeature() {
   const fetchFeaturedProject = async () => {
     try {
       setIsLoading(true)
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1'
+      const baseUrl = getApiBaseUrl()
       const res = await fetch(`${baseUrl}/public/projects`).catch(() => null)
       if (res && res.ok) {
         const projects = await res.json().catch(() => null)

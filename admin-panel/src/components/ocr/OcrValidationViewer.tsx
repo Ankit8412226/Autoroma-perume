@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   AlertTriangle,
   CheckCircle2,
@@ -30,6 +30,49 @@ interface ExtractedPlot {
   gstOnOtherCharges?: number;
   totalCost?: number;
   confidence: number;
+  /** Plot centre, 0-100 % of the full (EXIF-oriented) naksha image */
+  marker?: { xPercent?: number | null; yPercent?: number | null } | null;
+  /** Plot bounding box (top-left + size), 0-100 % of the full naksha image */
+  boxPercent?: { xPercent: number; yPercent: number; widthPercent: number; heightPercent: number } | null;
+}
+
+interface ContentBox {
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+}
+
+const OVERLAY_COLORS: Record<string, string> = {
+  AVAILABLE: '#22C55E',
+  BOOKED: '#EAB308',
+  PENDING: '#EAB308',
+  SOLD: '#EF4444',
+};
+
+function toPercent(value: unknown): number | null {
+  if (value === null || value === undefined || value === '') return null;
+  const num = Number(value);
+  if (!Number.isFinite(num)) return null;
+  return Math.min(100, Math.max(0, num));
+}
+
+/** Box (preferred) or centre point of a plot, in % of the image content box. */
+function plotGeometry(plot: ExtractedPlot) {
+  const box = plot.boxPercent;
+  if (box) {
+    const left = toPercent(box.xPercent);
+    const top = toPercent(box.yPercent);
+    const width = toPercent(box.widthPercent);
+    const height = toPercent(box.heightPercent);
+    if (left !== null && top !== null && width && height) {
+      return { kind: 'box' as const, left, top, width: Math.min(width, 100 - left), height: Math.min(height, 100 - top) };
+    }
+  }
+  const x = toPercent(plot.marker?.xPercent);
+  const y = toPercent(plot.marker?.yPercent);
+  if (x !== null && y !== null) return { kind: 'point' as const, left: x, top: y };
+  return null;
 }
 
 interface OcrValidationViewerProps {
@@ -64,6 +107,41 @@ export const OcrValidationViewer: React.FC<OcrValidationViewerProps> = ({
   const [isProcessing, setIsProcessing] = useState(false);
   const [imageZoomed, setImageZoomed] = useState(false);
   const [editingIdx, setEditingIdx] = useState<number | null>(null);
+  const imgRef = useRef<HTMLImageElement>(null);
+  const [contentBox, setContentBox] = useState<ContentBox | null>(null);
+
+  // The <img> uses object-contain, so the picture is letterboxed inside its element box.
+  // Overlay coordinates are % of the picture itself, so position the overlay layer over
+  // the actual rendered content rect (recomputed on every resize / zoom toggle).
+  const measureImage = useCallback(() => {
+    const img = imgRef.current;
+    if (!img || !img.naturalWidth || !img.naturalHeight || !img.clientWidth || !img.clientHeight) {
+      setContentBox(null);
+      return;
+    }
+    const scale = Math.min(img.clientWidth / img.naturalWidth, img.clientHeight / img.naturalHeight);
+    const width = img.naturalWidth * scale;
+    const height = img.naturalHeight * scale;
+    setContentBox({
+      left: img.offsetLeft + (img.clientWidth - width) / 2,
+      top: img.offsetTop + (img.clientHeight - height) / 2,
+      width,
+      height
+    });
+  }, []);
+
+  useEffect(() => {
+    const img = imgRef.current;
+    if (!img) return undefined;
+    measureImage();
+    if (typeof ResizeObserver === 'undefined') {
+      window.addEventListener('resize', measureImage);
+      return () => window.removeEventListener('resize', measureImage);
+    }
+    const observer = new ResizeObserver(() => measureImage());
+    observer.observe(img);
+    return () => observer.disconnect();
+  }, [measureImage, uploadedPreviewUrl, mapData.imageUrl]);
 
   const handleFieldChange = (index: number, field: keyof ExtractedPlot, value: any) => {
     const updated = [...plots];
@@ -100,7 +178,8 @@ export const OcrValidationViewer: React.FC<OcrValidationViewerProps> = ({
     }
   };
 
-  const isHighConfidence = mapData.confidenceScore >= 0.90;
+  const confidenceScore = Number(mapData.confidenceScore) || 0;
+  const isHighConfidence = confidenceScore >= 0.90;
   const imageToShow = uploadedPreviewUrl || mapData.imageUrl;
 
   // Counts
@@ -132,7 +211,7 @@ export const OcrValidationViewer: React.FC<OcrValidationViewerProps> = ({
             <p className="font-bold text-sm text-[#171A18]">
               {mapData.isSample
                 ? '⚠️ Demo data — Upload a real Naksha to extract actual plots'
-                : `${plots.length} plots extracted — ${(mapData.confidenceScore * 100).toFixed(0)}% confidence`
+                : `${plots.length} plots extracted — ${(confidenceScore * 100).toFixed(0)}% confidence`
               }
             </p>
             <p className="text-xs text-[#171A18]/60 mt-0.5">
@@ -175,12 +254,64 @@ export const OcrValidationViewer: React.FC<OcrValidationViewerProps> = ({
             {imageToShow ? (
               <div className="relative">
                 <img
+                  ref={imgRef}
                   src={imageToShow}
                   alt="Naksha Layout"
-                  className={`w-full object-contain transition-all cursor-zoom-in ${imageZoomed ? 'max-h-[500px]' : 'max-h-56'}`}
+                  className={`block w-full object-contain transition-all cursor-zoom-in ${imageZoomed ? 'max-h-[500px]' : 'max-h-56'}`}
                   onClick={() => setImageZoomed(v => !v)}
-                  onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                  onLoad={measureImage}
+                  onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; setContentBox(null); }}
                 />
+                {contentBox && (
+                  <div
+                    className="absolute pointer-events-none"
+                    style={{ left: contentBox.left, top: contentBox.top, width: contentBox.width, height: contentBox.height }}
+                  >
+                    {plots.map((p, idx) => {
+                      const geometry = plotGeometry(p);
+                      if (!geometry) return null;
+                      const color = OVERLAY_COLORS[p.status] || OVERLAY_COLORS.PENDING;
+                      const selected = editingIdx === idx;
+                      const common = {
+                        title: `${p.plotNo} · ${p.status}`,
+                        onClick: () => setEditingIdx(selected ? null : idx),
+                      };
+                      if (geometry.kind === 'box') {
+                        return (
+                          <div
+                            key={idx}
+                            {...common}
+                            className="absolute box-border pointer-events-auto cursor-pointer"
+                            style={{
+                              left: `${geometry.left}%`,
+                              top: `${geometry.top}%`,
+                              width: `${geometry.width}%`,
+                              height: `${geometry.height}%`,
+                              border: `${selected ? 2 : 1}px solid ${color}`,
+                              backgroundColor: `${color}${selected ? '55' : '26'}`,
+                              zIndex: selected ? 2 : 1
+                            }}
+                          />
+                        );
+                      }
+                      return (
+                        <div
+                          key={idx}
+                          {...common}
+                          className="absolute -translate-x-1/2 -translate-y-1/2 rounded-full border border-white pointer-events-auto cursor-pointer"
+                          style={{
+                            left: `${geometry.left}%`,
+                            top: `${geometry.top}%`,
+                            width: selected ? 12 : 8,
+                            height: selected ? 12 : 8,
+                            backgroundColor: color,
+                            zIndex: selected ? 2 : 1
+                          }}
+                        />
+                      );
+                    })}
+                  </div>
+                )}
                 <button
                   onClick={() => setImageZoomed(v => !v)}
                   className="absolute bottom-2 right-2 w-7 h-7 bg-black/60 text-white rounded-lg flex items-center justify-center hover:bg-black/80 transition-colors"

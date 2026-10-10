@@ -6,16 +6,18 @@ const User = require('../models/User');
 const Employee = require('../models/Employee');
 const bcrypt = require('bcryptjs');
 const { getPresignedUrl } = require('../services/s3Service');
-const { resolveSponsorByInviteCode } = require('../utils/agentInvite');
+const { resolveSponsorByInviteCode, generateEmployeeCode } = require('../utils/agentInvite');
 const { deriveMapEmbedUrl } = require('../utils/googleMaps');
 const { notifyAdmins } = require('../services/notificationService');
 const { withFreshProjectMedia } = require('../utils/mediaHydrator');
+const { queryString, containsRegex } = require('../utils/queryUtils');
+const mongoose = require('mongoose');
 
 // 1. Public Project Listing (With Live MongoDB Plot Status Aggregation)
 exports.getPublicProjects = async (req, res, next) => {
   try {
     const projects = await Project.find({ status: { $ne: 'DELETED' } })
-      .select('name code location city state description highlights locationAdvantages amenities totalAreaSqft area totalPlots priceRange basePricePerSqft bannerImage bannerImageS3Key mapImageUrl mapImageS3Key logoImage insetImage gallery surveyNumber village googleMapsUrl mapEmbedUrl brochureUrl videoUrl contactPhone contactEmail legalInfo legalDocuments launchDate status')
+      .select('name code location city state description highlights locationAdvantages amenities totalAreaSqft area totalPlots priceRange basePricePerSqft bannerImage bannerImageS3Key mapImageUrl mapImageS3Key logoImage insetImage gallery surveyNumber village googleMapsUrl mapEmbedUrl brochureUrl videoUrl contactPhone contactEmail legalInfo legalDocuments launchDate status isDholera')
       .sort({ createdAt: -1 })
       .lean();
 
@@ -58,6 +60,7 @@ exports.getPublicProjects = async (req, res, next) => {
 exports.getPublicProjectById = async (req, res, next) => {
   try {
     const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) return res.status(404).json({ message: 'Project not found' });
     const project = await Project.findById(id).lean();
 
     if (!project) return res.status(404).json({ message: 'Project not found' });
@@ -82,7 +85,9 @@ exports.getPublicProjectById = async (req, res, next) => {
 
     const properties = await Property.find({
       projectId: project._id,
-      isPublished: { $ne: false }
+      isPublished: { $ne: false },
+      // Never expose pending/rejected owner submissions publicly
+      $or: [{ approvalStatus: 'APPROVED' }, { approvalStatus: { $exists: false } }]
     }).sort({ isFeatured: -1, createdAt: -1 });
 
     const hydrated = await withFreshProjectMedia(project);
@@ -108,15 +113,20 @@ exports.getPublicProjectById = async (req, res, next) => {
 // 2. Public Plot Discovery Listing (Public-safe available plots)
 exports.getPublicPlots = async (req, res, next) => {
   try {
-    const { projectId, block, search } = req.query;
+    const projectId = queryString(req.query.projectId);
+    const block = queryString(req.query.block);
+    const search = queryString(req.query.search);
     const filter = { status: { $in: ['AVAILABLE', 'BOOKED', 'PENDING'] } };
 
-    if (projectId) filter.projectId = projectId;
+    if (projectId) {
+      if (!mongoose.Types.ObjectId.isValid(projectId)) return res.json([]);
+      filter.projectId = projectId;
+    }
     if (block) filter.block = block;
     if (search) {
       filter.$or = [
-        { plotNo: { $regex: search, $options: 'i' } },
-        { block: { $regex: search, $options: 'i' } }
+        { plotNo: containsRegex(search) },
+        { block: containsRegex(search) }
       ];
     }
 
@@ -140,8 +150,10 @@ exports.createPublicInquiry = async (req, res, next) => {
     }
 
     let projectName = '';
-    if (projectId) {
-      const proj = await Project.findById(projectId);
+    // Ignore malformed ids instead of failing the whole inquiry with a CastError
+    const validProjectId = projectId && mongoose.Types.ObjectId.isValid(String(projectId)) ? String(projectId) : null;
+    if (validProjectId) {
+      const proj = await Project.findById(validProjectId);
       if (proj) projectName = proj.name;
     }
 
@@ -150,9 +162,9 @@ exports.createPublicInquiry = async (req, res, next) => {
       email,
       phone,
       inquiryType: inquiryType || 'CONTACT_FORM',
-      projectId: projectId || null,
+      projectId: validProjectId,
       projectName,
-      plotNo: plotNo || '',
+      plotNo: plotNo ? String(plotNo) : '',
       message: message || '',
       status: 'NEW',
       source: 'LANDING_PAGE'
@@ -223,9 +235,10 @@ exports.createPublicAgentApplication = async (req, res, next) => {
   try {
     const { fullName, email, phone, password, experienceYears, message, inviteCode } = req.body;
 
-    if (!fullName || !email || !phone) {
-      return res.status(400).json({ message: 'Full name, email, and phone number are required' });
+    if (!fullName || !email || !phone || !password) {
+      return res.status(400).json({ message: 'Full name, email, phone number, and password are required' });
     }
+    const normalizedEmail = String(email).toLowerCase().trim();
 
     let sponsor = null;
     if (inviteCode) {
@@ -235,16 +248,16 @@ exports.createPublicAgentApplication = async (req, res, next) => {
       }
     }
 
-    let user = await User.findOne({ email });
+    let user = await User.findOne({ email: normalizedEmail });
     if (user) {
       return res.status(400).json({ message: 'An account with this email address already exists' });
     }
 
     const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password || 'Password123!', salt);
+    const hashedPassword = await bcrypt.hash(password, salt);
 
     user = await User.create({
-      email,
+      email: normalizedEmail,
       password: hashedPassword,
       fullName,
       phone,
@@ -253,21 +266,25 @@ exports.createPublicAgentApplication = async (req, res, next) => {
       approvalStatus: 'PENDING_APPROVAL'
     });
 
-    const empCount = await Employee.countDocuments();
-    const employeeCode = `EMP-${1000 + empCount + 1}`;
-
-    const employee = await Employee.create({
-      userId: user._id,
-      employeeCode,
-      joiningDate: new Date(),
-      currentRank: 'Business Executive',
-      parentId: sponsor ? sponsor._id : null
-    });
+    let employee;
+    try {
+      employee = await Employee.create({
+        userId: user._id,
+        employeeCode: await generateEmployeeCode(),
+        joiningDate: new Date(),
+        currentRank: 'Business Executive',
+        parentId: sponsor ? sponsor._id : null
+      });
+    } catch (err) {
+      // Don't leave an orphan user that blocks this email from re-applying.
+      await User.deleteOne({ _id: user._id });
+      throw err;
+    }
 
     const sponsorName = sponsor?.userId?.fullName || '';
     const inquiry = await Inquiry.create({
       name: fullName,
-      email,
+      email: normalizedEmail,
       phone,
       inquiryType: 'AGENT_APPLICATION',
       message: message || (sponsor
@@ -322,8 +339,18 @@ exports.updateInquiryStatus = async (req, res, next) => {
     const inquiry = await Inquiry.findById(id);
     if (!inquiry) return res.status(404).json({ message: 'Inquiry lead not found' });
 
-    if (status) inquiry.status = status;
-    if (assignedAgentId !== undefined) inquiry.assignedAgentId = assignedAgentId || null;
+    if (status) {
+      if (!Inquiry.schema.path('status').enumValues.includes(status)) {
+        return res.status(400).json({ message: 'Invalid status' });
+      }
+      inquiry.status = status;
+    }
+    if (assignedAgentId !== undefined) {
+      if (assignedAgentId && !mongoose.Types.ObjectId.isValid(String(assignedAgentId))) {
+        return res.status(400).json({ message: 'Invalid agent id' });
+      }
+      inquiry.assignedAgentId = assignedAgentId || null;
+    }
 
     await inquiry.save();
     res.json({ message: 'Inquiry status updated successfully', inquiry });
@@ -335,13 +362,14 @@ exports.updateInquiryStatus = async (req, res, next) => {
 // 7. Public Agents Listing
 exports.getPublicAgents = async (req, res, next) => {
   try {
-    const employees = await Employee.find()
-      .populate('userId', 'fullName email phone avatar role')
+    const employees = await Employee.find({ employeeCode: { $exists: true, $ne: '' } })
+      .populate('userId', 'fullName email phone avatar role isActive approvalStatus')
       .sort({ selfSalesCount: -1 })
       .lean();
 
     const formattedAgents = employees
-      .filter((emp) => emp.userId)
+      // Only live, approved agents belong on the public site — not pending/rejected applicants.
+      .filter((emp) => emp.userId && emp.userId.isActive !== false && emp.userId.approvalStatus !== 'PENDING_APPROVAL' && emp.userId.approvalStatus !== 'REJECTED')
       .map((emp) => {
         const name = emp.userId.fullName || 'Sales Executive';
         const nameParts = name.trim().split(/\s+/);

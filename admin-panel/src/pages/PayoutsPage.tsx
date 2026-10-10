@@ -10,9 +10,15 @@ import { formatCurrency, formatDate } from '../utils/formatters';
 import { Plus, RefreshCw, CheckCircle2, CreditCard, Search, DollarSign, Clock, Filter, ShieldAlert } from 'lucide-react';
 import { useToast } from '../context/ToastContext';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+
+// Mirrors backend: POST /payouts/:id/approve is ADMIN/DIRECTOR only.
+const PAYOUT_APPROVER_ROLES = ['ADMIN', 'DIRECTOR'];
 
 export const PayoutsPage: React.FC = () => {
   const toast = useToast();
+  const { user } = useAuth();
+  const canApprovePayouts = Boolean(user && PAYOUT_APPROVER_ROLES.includes(user.role));
   const [payouts, setPayouts] = useState<Payout[]>([]);
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -242,7 +248,9 @@ export const PayoutsPage: React.FC = () => {
                       </span>
                     </td>
                     <td className="p-3">
-                      {p.status === 'PENDING' ? (
+                      {p.status === 'PENDING' && !canApprovePayouts ? (
+                        <span className="text-amber-700 text-[10px] font-bold">Awaiting approval</span>
+                      ) : p.status === 'PENDING' ? (
                         <button
                           onClick={() => handleApprove(p._id)}
                           className="px-3 py-1 bg-[#0B4F3C] hover:bg-[#063B2D] text-white font-bold rounded-lg text-xs shadow-md flex items-center gap-1 cursor-pointer border border-[#0B4F3C]"

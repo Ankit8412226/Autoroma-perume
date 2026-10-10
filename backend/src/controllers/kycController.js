@@ -2,6 +2,7 @@ const AgentKyc = require('../models/AgentKyc');
 const Employee = require('../models/Employee');
 const { getDownlineEmployeeIds } = require('../services/mlmEngine');
 const { sendNotification } = require('../services/notificationService');
+const { getPresignedUrl } = require('../services/s3Service');
 
 const STATUS_DRAFT = 'DRAFT';
 const STATUS_SUBMITTED = 'SUBMITTED';
@@ -229,6 +230,34 @@ async function reviewerListFilter(req) {
   return { employeeId: { $in: [managerEmp._id, ...downlines] } };
 }
 
+/**
+ * Uploaded PAN/Aadhaar URLs are pre-signed and expire after 7 days, so a
+ * stored URL is dead by the time a reviewer opens an older KYC. Re-sign from
+ * the stored S3 key whenever a KYC record is returned.
+ */
+async function hydrateKycDocs(kyc) {
+  if (!kyc || typeof kyc.toJSON !== 'function') return kyc;
+  const obj = kyc.toJSON();
+  if (obj.panDocS3Key) {
+    const fresh = await getPresignedUrl(obj.panDocS3Key);
+    if (fresh) obj.panDocUrl = fresh;
+  }
+  if (obj.aadhaarDocS3Key) {
+    const fresh = await getPresignedUrl(obj.aadhaarDocS3Key);
+    if (fresh) obj.aadhaarDocUrl = fresh;
+  }
+  return obj;
+}
+
+async function notifySafely(payload) {
+  try {
+    await sendNotification(payload);
+  } catch (err) {
+    // The KYC decision is already saved — never fail the request over a notification.
+    console.error('[KYC] notification failed:', err.message);
+  }
+}
+
 function populateKycQuery(query) {
   return query
     .populate({
@@ -246,7 +275,7 @@ exports.getMyKyc = async (req, res, next) => {
     }
 
     const existing = await AgentKyc.findOne({ employeeId: employee._id });
-    const kyc = existing || emptyKycFromUser(req.user);
+    const kyc = existing ? await hydrateKycDocs(existing) : emptyKycFromUser(req.user);
     const status = existing ? existing.status : STATUS_DRAFT;
 
     res.json({
@@ -326,7 +355,7 @@ exports.saveMyKyc = async (req, res, next) => {
     await kyc.save();
 
     res.json({
-      kyc,
+      kyc: await hydrateKycDocs(kyc),
       canEdit: EDITABLE_STATUSES.includes(kyc.status),
       payoutEligible: kyc.status === STATUS_APPROVED,
       employee: {
@@ -358,7 +387,7 @@ exports.listKyc = async (req, res, next) => {
     }
 
     const records = await populateKycQuery(AgentKyc.find(filter)).sort({ submittedAt: -1, updatedAt: -1 });
-    res.json(records);
+    res.json(await Promise.all(records.map(hydrateKycDocs)));
   } catch (error) {
     next(error);
   }
@@ -377,7 +406,7 @@ exports.getKycById = async (req, res, next) => {
       return res.status(403).json({ message: 'You can only review KYC for your downline' });
     }
 
-    res.json(kyc);
+    res.json(await hydrateKycDocs(kyc));
   } catch (error) {
     next(error);
   }
@@ -407,7 +436,7 @@ exports.getKycByEmployee = async (req, res, next) => {
     }
 
     res.json({
-      kyc,
+      kyc: await hydrateKycDocs(kyc),
       payoutEligible: kyc.status === STATUS_APPROVED,
       canEdit: isSelf && EDITABLE_STATUSES.includes(kyc.status)
     });
@@ -450,7 +479,7 @@ exports.approveKyc = async (req, res, next) => {
       ? kyc.employeeId.userId._id || kyc.employeeId.userId
       : null;
     if (agentUserId) {
-      await sendNotification({
+      await notifySafely({
         userId: agentUserId,
         title: 'KYC Approved',
         message: 'Your KYC is approved. You can now request commission payouts.',
@@ -500,7 +529,7 @@ exports.rejectKyc = async (req, res, next) => {
       ? kyc.employeeId.userId._id || kyc.employeeId.userId
       : null;
     if (agentUserId) {
-      await sendNotification({
+      await notifySafely({
         userId: agentUserId,
         title: 'KYC Needs Correction',
         message: `Your KYC was sent back. Reason: ${reason}`,

@@ -16,6 +16,7 @@ import {
   Landmark,
 } from 'lucide-react'
 import { getApiBaseUrl } from '@/utils/api'
+import { scrollToSection } from '@/utils/scroll'
 
 const STATUS_COLORS: Record<string, string> = {
   ACTIVE: 'bg-emerald-500 text-white',
@@ -135,6 +136,10 @@ function ProjectsInner() {
                 placeholder="Search Dholera projects…"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') scrollToSection('projects-results', { blur: true })
+                }}
+                enterKeyHint="search"
                 className="input-base pl-11 bg-white/10 border-amber-400/30 text-white placeholder:text-white/40 focus:border-amber-400/60 focus:bg-white/20 backdrop-blur-sm"
               />
             </div>
@@ -167,6 +172,10 @@ function ProjectsInner() {
                 placeholder="Search by project name, location…"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') scrollToSection('projects-results', { blur: true })
+                }}
+                enterKeyHint="search"
                 className="input-base pl-11 bg-white/10 border-white/20 text-white placeholder:text-white/40 focus:border-[#C9A96E]/60 focus:bg-white/20 backdrop-blur-sm"
               />
             </div>
@@ -176,7 +185,7 @@ function ProjectsInner() {
 
       {/* ── FILTER TABS & CONTENT ── */}
       <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        <div className="flex flex-wrap items-center justify-between gap-4 mb-10">
+        <div id="projects-results" className="flex flex-wrap items-center justify-between gap-4 mb-10">
           <div className="flex flex-wrap items-center gap-2">
             {/* Dholera / All toggle */}
             <div className="flex items-center gap-1 bg-white border border-amber-200 p-1 rounded-xl shadow-sm">
@@ -216,9 +225,14 @@ function ProjectsInner() {
           </div>
 
           <div className="flex items-center gap-3">
-            <span className="text-xs text-brand-charcoal/60 font-semibold">
-              {filtered.length} {filtered.length === 1 ? 'Project' : 'Projects'}
-            </span>
+            <button
+              type="button"
+              onClick={() => scrollToSection('projects-list')}
+              className="text-xs text-brand-charcoal/70 font-semibold px-3 py-1.5 rounded-xl border border-brand-green/20 bg-white hover:bg-brand-green hover:text-white transition-colors cursor-pointer"
+              title="Jump to projects"
+            >
+              {filtered.length} {filtered.length === 1 ? 'Project' : 'Projects'} ↓
+            </button>
             <button
               onClick={fetchProjects}
               className="p-2 bg-white border border-brand-green/20 text-brand-green rounded-xl hover:bg-brand-green hover:text-white transition-all cursor-pointer shadow-sm"
@@ -271,7 +285,7 @@ function ProjectsInner() {
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div id="projects-list" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {filtered.map((proj) => (
               <ProjectCard key={proj._id} proj={proj} />
             ))}

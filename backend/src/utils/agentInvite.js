@@ -36,6 +36,19 @@ async function ensureInviteCode(employee) {
   return code;
 }
 
+/**
+ * Next free employee code (H&S-1001, H&S-1002, ...). Starts from the document
+ * count like before, but skips codes already taken — a plain count collides
+ * with existing codes after any employee is deleted (unique index violation).
+ */
+async function generateEmployeeCode() {
+  let next = EMPLOYEE_CODE_START + (await Employee.countDocuments()) + 1;
+  while (await Employee.exists({ employeeCode: `${EMPLOYEE_CODE_PREFIX}${next}` })) {
+    next += 1;
+  }
+  return `${EMPLOYEE_CODE_PREFIX}${next}`;
+}
+
 async function findOrCreateSponsorEmployee(user) {
   if (!user?._id) return null;
   let employee = await Employee.findOne({ userId: user._id }).populate(
@@ -44,8 +57,11 @@ async function findOrCreateSponsorEmployee(user) {
   );
   if (employee) return employee;
 
-  const empCount = await Employee.countDocuments();
-  const employeeCode = `${EMPLOYEE_CODE_PREFIX}${EMPLOYEE_CODE_START + empCount + 1}`;
+  // Only MLM roles get an auto-created sponsor profile; public USER /
+  // PROPERTY_OWNER accounts must never be inserted into the hierarchy.
+  if (!RANK_BY_ROLE[user.role]) return null;
+
+  const employeeCode = await generateEmployeeCode();
   const created = await Employee.create({
     userId: user._id,
     employeeCode,
@@ -85,6 +101,7 @@ function publicSponsorPayload(sponsor) {
 
 module.exports = {
   normalizeInviteCode,
+  generateEmployeeCode,
   ensureInviteCode,
   findOrCreateSponsorEmployee,
   resolveSponsorByInviteCode,

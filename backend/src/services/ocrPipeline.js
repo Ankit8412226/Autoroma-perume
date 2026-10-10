@@ -181,29 +181,104 @@ async function generateJsonFromImage({ fileBuffer, mimeType, prompt }) {
   throw lastError || new Error('Gemini vision analysis failed after trying all fallback models');
 }
 
-function toGlobalPercent(localPercent, start, end) {
-  const local = Number(localPercent);
-  if (!Number.isFinite(local)) return null;
-  return (start + (local / 100) * (end - start)) * 100;
+/**
+ * Coordinate convention (stored on every extracted plot):
+ *   marker.xPercent / marker.yPercent  -> plot CENTER, 0-100 % of the full,
+ *                                         EXIF-auto-oriented naksha image
+ *   boxPercent {xPercent,yPercent,widthPercent,heightPercent}
+ *                                      -> plot bounding box (top-left + size), same space
+ * Renderers position overlays with CSS percentages relative to the rendered <img> box.
+ */
+function readNumber(value) {
+  if (value === null || value === undefined || value === '') return null;
+  const num = Number(value);
+  return Number.isFinite(num) ? num : null;
+}
+
+/** Map a 0-100 % coordinate local to a crop back to 0-100 % of the full image. */
+function toGlobalPercent(localPercent, startPx, sizePx, fullPx) {
+  const local = readNumber(localPercent);
+  if (local === null || !fullPx) return null;
+  return ((startPx + (local / 100) * sizePx) / fullPx) * 100;
+}
+
+/**
+ * Gemini's native detection format is box_2d = [ymin, xmin, ymax, xmax] normalised to 0-1000.
+ * Returns the box as 0-100 % of the crop it was produced on, or null.
+ */
+function localBoxFromModel(plot) {
+  const raw = plot && (plot.box_2d || plot.box2d || plot.box_2D);
+  if (!Array.isArray(raw) || raw.length !== 4) return null;
+  const nums = raw.map(readNumber);
+  if (nums.some((n) => n === null)) return null;
+  const clamp = (n) => Math.min(1000, Math.max(0, n));
+  const [y0, x0, y1, x1] = nums.map(clamp);
+  const xmin = Math.min(x0, x1);
+  const xmax = Math.max(x0, x1);
+  const ymin = Math.min(y0, y1);
+  const ymax = Math.max(y0, y1);
+  if (xmax - xmin <= 0 || ymax - ymin <= 0) return null;
+  return { xmin: xmin / 10, ymin: ymin / 10, xmax: xmax / 10, ymax: ymax / 10 };
+}
+
+/** Convert a model plot (tile-local coords) into full-image percent marker + box. */
+function globalGeometry(plot, rect, imageWidth, imageHeight) {
+  const box = localBoxFromModel(plot);
+  if (box) {
+    const left = toGlobalPercent(box.xmin, rect.left, rect.width, imageWidth);
+    const right = toGlobalPercent(box.xmax, rect.left, rect.width, imageWidth);
+    const top = toGlobalPercent(box.ymin, rect.top, rect.height, imageHeight);
+    const bottom = toGlobalPercent(box.ymax, rect.top, rect.height, imageHeight);
+    return {
+      markerXPercent: (left + right) / 2,
+      markerYPercent: (top + bottom) / 2,
+      boxPercent: {
+        xPercent: left,
+        yPercent: top,
+        widthPercent: right - left,
+        heightPercent: bottom - top
+      }
+    };
+  }
+  const localX = plot.markerXPercent ?? plot.marker?.xPercent;
+  const localY = plot.markerYPercent ?? plot.marker?.yPercent;
+  return {
+    markerXPercent: toGlobalPercent(localX, rect.left, rect.width, imageWidth),
+    markerYPercent: toGlobalPercent(localY, rect.top, rect.height, imageHeight),
+    boxPercent: null
+  };
+}
+
+/**
+ * Bake EXIF orientation into the pixels. sharp's metadata()/extract() work on the
+ * stored (un-rotated) pixel grid while browsers display the EXIF-rotated image, so
+ * without this every coordinate from a phone photo lands transposed/mirrored.
+ */
+async function autoOrient(fileBuffer) {
+  const meta = await sharp(fileBuffer).metadata();
+  if (!meta.orientation || meta.orientation === 1) {
+    return { buffer: fileBuffer, width: meta.width || 1, height: meta.height || 1, rotated: false };
+  }
+  const { data, info } = await sharp(fileBuffer).rotate().toBuffer({ resolveWithObject: true });
+  return { buffer: data, width: info.width || 1, height: info.height || 1, rotated: true };
 }
 
 async function cropTile(fileBuffer, tile, imageWidth, imageHeight) {
   const left = Math.max(0, Math.round(tile.x0 * imageWidth));
   const top = Math.max(0, Math.round(tile.y0 * imageHeight));
-  const width = Math.min(imageWidth - left, Math.round((tile.x1 - tile.x0) * imageWidth));
-  const height = Math.min(imageHeight - top, Math.round((tile.y1 - tile.y0) * imageHeight));
+  const width = Math.max(1, Math.min(imageWidth - left, Math.round((tile.x1 - tile.x0) * imageWidth)));
+  const height = Math.max(1, Math.min(imageHeight - top, Math.round((tile.y1 - tile.y0) * imageHeight)));
   const zoomed = await sharp(fileBuffer)
     .extract({ left, top, width, height })
     .resize({ width: Math.min(2000, width * 2), withoutEnlargement: false })
     .jpeg({ quality: 90 })
     .toBuffer();
-  return zoomed;
+  // rect = exact pixel window that was cropped; model coords are relative to it
+  return { buffer: zoomed, rect: { left, top, width, height } };
 }
 
-async function extractPlotsFromTiles(fileBuffer) {
-  const meta = await sharp(fileBuffer).metadata();
-  const imageWidth = meta.width || 1;
-  const imageHeight = meta.height || 1;
+async function extractPlotsFromTiles(rawBuffer) {
+  const { buffer: fileBuffer, width: imageWidth, height: imageHeight } = await autoOrient(rawBuffer);
   const allPlots = [];
   const failedTiles = [];
   const warnings = [];
@@ -214,23 +289,18 @@ async function extractPlotsFromTiles(fileBuffer) {
     const batch = tiles.slice(i, i + BATCH_SIZE);
     await Promise.all(
       batch.map(async (tile) => {
-        const tileBuffer = await cropTile(fileBuffer, tile, imageWidth, imageHeight);
         try {
+          const { buffer: tileBuffer, rect } = await cropTile(fileBuffer, tile, imageWidth, imageHeight);
           const parsed = await generateJsonFromImage({
             fileBuffer: tileBuffer,
             mimeType: 'image/jpeg',
             prompt: PLOT_TILE_PROMPT
           });
           const payload = parseGeminiPayload(parsed);
-          const mapped = payload.plots.map((plot, index) => {
-            const localX = plot.markerXPercent ?? plot.marker?.xPercent;
-            const localY = plot.markerYPercent ?? plot.marker?.yPercent;
-            return normalizeExtractedPlot({
-              ...plot,
-              markerXPercent: toGlobalPercent(localX, tile.x0, tile.x1),
-              markerYPercent: toGlobalPercent(localY, tile.y0, tile.y1)
-            }, index);
-          }).filter(Boolean);
+          const mapped = payload.plots.map((plot, index) => normalizeExtractedPlot({
+            ...plot,
+            ...globalGeometry(plot, rect, imageWidth, imageHeight)
+          }, index)).filter(Boolean);
           console.log(`[OCR] tile ${tile.id} extracted ${mapped.length} plots`);
           allPlots.push(...mapped);
         } catch (error) {
@@ -262,13 +332,11 @@ async function extractPlotsFromTiles(fileBuffer) {
   return { plots: stamped, warnings };
 }
 
-async function applySoldStamps(fileBuffer, plots, options = {}) {
+async function applySoldStamps(rawBuffer, plots, options = {}) {
   try {
-    const meta = await sharp(fileBuffer).metadata();
-    const imageWidth = meta.width || 1;
-    const imageHeight = meta.height || 1;
+    const { buffer: fileBuffer, width: imageWidth, height: imageHeight } = await autoOrient(rawBuffer);
     const zone = { x0: 0, y0: 0, x1: 1, y1: 1 };
-    const zoneBuffer = await cropTile(fileBuffer, zone, imageWidth, imageHeight);
+    const { buffer: zoneBuffer, rect } = await cropTile(fileBuffer, zone, imageWidth, imageHeight);
     const parsed = await generateJsonFromImage({
       fileBuffer: zoneBuffer,
       mimeType: 'image/jpeg',
@@ -278,10 +346,9 @@ async function applySoldStamps(fileBuffer, plots, options = {}) {
       .map((plot) => normalizeExtractedPlot({
         ...plot,
         status: 'SOLD',
-        markerXPercent: toGlobalPercent(plot.markerXPercent ?? plot.marker?.xPercent, zone.x0, zone.x1),
-        markerYPercent: toGlobalPercent(plot.markerYPercent ?? plot.marker?.yPercent, zone.y0, zone.y1)
+        ...globalGeometry(plot, rect, imageWidth, imageHeight)
       }))
-      .filter((plot) => plot && Number.isFinite(Number(plot.marker?.xPercent)) && Number.isFinite(Number(plot.marker?.yPercent)));
+      .filter((plot) => plot && readNumber(plot.marker?.xPercent) !== null && readNumber(plot.marker?.yPercent) !== null);
 
     if (!solds.length) {
       console.log('[OCR] sold-stamp pass found 0 SOLD plots');
@@ -290,9 +357,12 @@ async function applySoldStamps(fileBuffer, plots, options = {}) {
 
     let marked = 0;
     const next = plots.map((plot) => {
+      const px = readNumber(plot.marker?.xPercent);
+      const py = readNumber(plot.marker?.yPercent);
+      if (px === null || py === null) return plot;
       const match = solds.find((sold) => {
-        const dx = Math.abs(Number(sold.marker.xPercent) - Number(plot.marker?.xPercent));
-        const dy = Math.abs(Number(sold.marker.yPercent) - Number(plot.marker?.yPercent));
+        const dx = Math.abs(Number(sold.marker.xPercent) - px);
+        const dy = Math.abs(Number(sold.marker.yPercent) - py);
         return dx < 3.2 && dy < 2.4;
       });
       if (!match) return plot;
@@ -321,7 +391,18 @@ async function processMapImageOCR({ projectId, mapName, fileBuffer, fileName, mi
     error.statusCode = 400;
     throw error;
   }
-  const uploadResult = await uploadToS3(fileBuffer, fileName, resolvedMime, 'naksa_layouts');
+  // Store the EXIF-oriented pixels so the displayed image and the OCR coordinates
+  // always refer to the exact same pixel grid (no reliance on browser EXIF handling).
+  let displayBuffer = fileBuffer;
+  try {
+    const oriented = await autoOrient(fileBuffer);
+    displayBuffer = oriented.buffer;
+  } catch (error) {
+    const invalid = new Error('Could not read this image. Upload a valid JPG or PNG naksha.');
+    invalid.statusCode = 400;
+    throw invalid;
+  }
+  const uploadResult = await uploadToS3(displayBuffer, fileName, resolvedMime, 'naksa_layouts');
   const s3ImageUrl = typeof uploadResult === 'string' ? uploadResult : (uploadResult?.url || '');
   const imageS3Key = typeof uploadResult === 'string' ? '' : (uploadResult?.key || '');
 
@@ -343,13 +424,14 @@ async function processMapImageOCR({ projectId, mapName, fileBuffer, fileName, mi
     console.warn('[OCR] project meta pass failed:', error.message);
   }
 
-  const { plots: extractedPlots, warnings: ocrWarnings } = await extractPlotsFromTiles(fileBuffer);
+  const { plots: extractedPlots, warnings: ocrWarnings } = await extractPlotsFromTiles(displayBuffer);
   if (extractedPlots.length === 0) {
     const error = new Error('AI could not read plot boxes from this naksha. Upload a clearer layout image.');
     error.statusCode = 422;
     throw error;
   }
 
+  const confidenceScore = ocrWarnings.length ? 0.6 : 0.8;
   const plotMapRecord = await PlotMap.create({
     projectId: projectId || undefined,
     mapName: mapName || fileName || 'Site Layout Plan',
@@ -357,7 +439,7 @@ async function processMapImageOCR({ projectId, mapName, fileBuffer, fileName, mi
     imageS3Key,
     vectorOverlayData: extractedPlots,
     extractedProjectMeta: projectMeta,
-    confidenceScore: 0.92,
+    confidenceScore,
     status: 'PENDING_REVIEW'
   });
 
@@ -368,7 +450,7 @@ async function processMapImageOCR({ projectId, mapName, fileBuffer, fileName, mi
     mapName: plotMapRecord.mapName,
     imageUrl: plotMapRecord.imageUrl,
     imageS3Key,
-    confidenceScore: ocrWarnings.length ? 0.6 : 0.8,
+    confidenceScore,
     requiresHumanReview: true,
     usedAI: true,
     isSample: false,
@@ -395,12 +477,19 @@ async function processMapImageFromUrl({ projectId, imageUrl, mapName }) {
       return null;
     }
 
+    let format = 'jpeg';
+    try {
+      format = (await sharp(buffer).metadata()).format || 'jpeg';
+    } catch (_error) {
+      // processMapImageOCR reports unreadable images
+    }
+    const ext = format === 'jpeg' ? 'jpg' : format;
     const result = await processMapImageOCR({
       projectId,
       mapName: mapName || 'Site Layout Plan',
       fileBuffer: buffer,
-      fileName: 'naksha_auto_analysis.jpg',
-      mimeType: 'image/jpeg'
+      fileName: `naksha_auto_analysis.${ext}`,
+      mimeType: mimeFromFileName(`x.${ext}`)
     });
 
     if (result && result.mapId && projectId) {

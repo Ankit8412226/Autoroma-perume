@@ -11,7 +11,13 @@ exports.uploadFile = async (req, res, next) => {
       return res.status(400).json({ message: 'No file provided' });
     }
 
-    const folder = req.body.folder || 'general';
+    // The folder becomes the S3 key prefix — restrict it to a safe charset so a
+    // caller can't escape into other prefixes (e.g. "../", absolute paths).
+    const folder = String(req.body.folder || 'general')
+      .replace(/[^a-zA-Z0-9_\-/]/g, '')
+      .split('/')
+      .filter((seg) => seg && seg !== '.' && seg !== '..')
+      .join('/') || 'general';
 
     // uploadToS3 now returns { url, key } where url is a pre-signed URL
     const result = await uploadToS3(

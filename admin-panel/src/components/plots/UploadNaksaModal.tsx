@@ -158,7 +158,7 @@ export const UploadNaksaModal: React.FC<UploadNaksaModalProps> = ({
                 <input
                   ref={fileInputRef}
                   type="file"
-                  accept=".pdf,.png,.jpg,.jpeg"
+                  accept=".png,.jpg,.jpeg,.webp"
                   className="hidden"
                   onChange={(e) => e.target.files?.[0] && handleFileSelect(e.target.files[0])}
                 />
@@ -191,8 +191,8 @@ export const UploadNaksaModal: React.FC<UploadNaksaModalProps> = ({
                 ) : (
                   <div className="p-10 text-center">
                     <UploadCloud className="w-10 h-10 text-[#0B4F3C]/40 mx-auto mb-2" />
-                    <p className="text-sm font-bold text-[#171A18]">Upload Naksha Image or PDF</p>
-                    <p className="text-xs text-[#171A18]/50 mt-1">PNG, JPG, PDF • AI will extract plot numbers, sizes & boundaries</p>
+                    <p className="text-sm font-bold text-[#171A18]">Upload Naksha Image</p>
+                    <p className="text-xs text-[#171A18]/50 mt-1">PNG, JPG, WEBP • AI will extract plot numbers, sizes & boundaries</p>
                   </div>
                 )}
               </div>

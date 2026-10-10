@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { CheckCircle2, XCircle, Loader2, ArrowRight } from 'lucide-react';
@@ -10,6 +10,9 @@ export const VerifyEmailPage: React.FC = () => {
 
   const [status, setStatus] = useState<'LOADING' | 'SUCCESS' | 'ERROR'>('LOADING');
   const [message, setMessage] = useState<string>('Verifying your email address...');
+  // Tokens are single-use: guard against StrictMode's double effect run, where the
+  // second request fails and overwrites the success state with an error.
+  const verifiedTokenRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (!token) {
@@ -17,6 +20,8 @@ export const VerifyEmailPage: React.FC = () => {
       setMessage('Invalid verification link. No verification token was provided.');
       return;
     }
+    if (verifiedTokenRef.current === token) return;
+    verifiedTokenRef.current = token;
 
     const verify = async () => {
       try {

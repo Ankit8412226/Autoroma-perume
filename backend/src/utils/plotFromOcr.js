@@ -13,6 +13,12 @@ function toNumber(value, fallback = 0) {
   return Number.isFinite(num) ? num : fallback;
 }
 
+// clampPercent(null|''|false) would coerce to 0 and pin the plot at the top-left corner.
+function percentOrNull(value) {
+  if (value === null || value === undefined || value === '' || typeof value === 'boolean') return null;
+  return clampPercent(value);
+}
+
 function cleanText(value) {
   if (value === undefined || value === null) return '';
   return String(value).trim();
@@ -99,12 +105,13 @@ function plotArea(plot) {
 function mergeExtractedPlots(plots) {
   const unique = [];
   plots.forEach((plot) => {
-    const x = Number(plot.marker?.xPercent);
-    const y = Number(plot.marker?.yPercent);
+    // percentOrNull: Number(null) === 0 would make every un-located plot a "duplicate" at (0,0)
+    const x = percentOrNull(plot.marker?.xPercent) ?? NaN;
+    const y = percentOrNull(plot.marker?.yPercent) ?? NaN;
     const size = plotArea(plot);
     const duplicateIndex = unique.findIndex((existing) => {
-      const dx = Math.abs(Number(existing.marker?.xPercent) - x);
-      const dy = Math.abs(Number(existing.marker?.yPercent) - y);
+      const dx = Math.abs((percentOrNull(existing.marker?.xPercent) ?? NaN) - x);
+      const dy = Math.abs((percentOrNull(existing.marker?.yPercent) ?? NaN) - y);
       if (!Number.isFinite(dx) || !Number.isFinite(dy)) return false;
       if (dx < 2 && dy < 1.05) return true;
       const existingSize = plotArea(existing);
@@ -176,7 +183,7 @@ function assignStablePlotNumbers(plots) {
   });
 }
 
-function finalizeExtractedPlots(plots) {
+function finalizeExtractedPlots(plots, options = {}) {
   const prepared = (plots || []).map((plot) => {
     const sellableSqYrd = sanitizeSellableArea(plot.sellableSqYrd, plot.label || plot.plotNo);
     const sizeSqft = sellableSqYrd
@@ -190,7 +197,9 @@ function finalizeExtractedPlots(plots) {
       superBuiltUpSqft: toNumber(plot.superBuiltUpSqft) || sizeSqft
     };
   });
-  const merged = mergeExtractedPlots(prepared).filter((plot) => plotArea(plot) > 0);
+  // Re-merging already reviewed rows (approve step) would silently drop plots the admin kept.
+  const merged = (options.merge === false ? prepared : mergeExtractedPlots(prepared))
+    .filter((plot) => plotArea(plot) > 0);
   return assignStablePlotNumbers(merged);
 }
 
@@ -248,8 +257,8 @@ function average(values) {
 }
 
 function markerFromExtracted(plot) {
-  const directX = clampPercent(plot.markerXPercent ?? plot.marker?.xPercent);
-  const directY = clampPercent(plot.markerYPercent ?? plot.marker?.yPercent);
+  const directX = percentOrNull(plot.markerXPercent ?? plot.marker?.xPercent);
+  const directY = percentOrNull(plot.markerYPercent ?? plot.marker?.yPercent);
   if (directX !== null && directY !== null) {
     return { xPercent: directX, yPercent: directY };
   }
@@ -259,8 +268,8 @@ function markerFromExtracted(plot) {
     return { xPercent: null, yPercent: null };
   }
 
-  const percentXs = points.map((pt) => clampPercent(pt.xPercent ?? (Number(pt.x) <= 100 ? pt.x : null))).filter((n) => n !== null);
-  const percentYs = points.map((pt) => clampPercent(pt.yPercent ?? (Number(pt.y) <= 100 ? pt.y : null))).filter((n) => n !== null);
+  const percentXs = points.map((pt) => percentOrNull(pt?.xPercent ?? (Number(pt?.x) <= 100 ? pt?.x : null))).filter((n) => n !== null);
+  const percentYs = points.map((pt) => percentOrNull(pt?.yPercent ?? (Number(pt?.y) <= 100 ? pt?.y : null))).filter((n) => n !== null);
   if (percentXs.length >= 3 && percentYs.length >= 3) {
     return { xPercent: average(percentXs), yPercent: average(percentYs) };
   }
@@ -293,7 +302,24 @@ function bboxFromPoints(points) {
   };
 }
 
+/** Bounding box in % of the full naksha image: { xPercent, yPercent, widthPercent, heightPercent } (top-left + size). */
+function normalizeBoxPercent(box) {
+  if (!box || typeof box !== 'object') return null;
+  const x = percentOrNull(box.xPercent);
+  const y = percentOrNull(box.yPercent);
+  const w = percentOrNull(box.widthPercent);
+  const h = percentOrNull(box.heightPercent);
+  if (x === null || y === null || !w || !h) return null;
+  return {
+    xPercent: x,
+    yPercent: y,
+    widthPercent: Math.min(w, 100 - x),
+    heightPercent: Math.min(h, 100 - y)
+  };
+}
+
 function normalizeExtractedPlot(raw = {}, index = 0) {
+  if (!raw || typeof raw !== 'object') return null;
   const label = cleanText(raw.label || raw.areaText || raw.plotNo);
   const plotNo = cleanText(raw.plotNo) || label || `TMP-${index + 1}`;
   if (!plotNo) return null;
@@ -337,6 +363,7 @@ function normalizeExtractedPlot(raw = {}, index = 0) {
     otmc: toNumber(raw.otmc),
     totalCost: toNumber(raw.totalCost),
     marker,
+    boxPercent: normalizeBoxPercent(raw.boxPercent),
     polygonPoints: points,
     coordinates: raw.coordinates && raw.coordinates.width ? raw.coordinates : bboxFromPoints(points),
     confidence: toNumber(raw.confidence, 0)
@@ -418,19 +445,23 @@ function mapIncomingPlot(plot, blockName) {
   };
 }
 
+function isPlotObject(plot) {
+  return Boolean(plot) && typeof plot === 'object' && !Array.isArray(plot);
+}
+
 function parseGeminiPayload(parsed) {
   if (Array.isArray(parsed)) {
-    return { plots: parsed.map((plot) => mapIncomingPlot(plot)), projectMeta: {} };
+    return { plots: parsed.filter(isPlotObject).map((plot) => mapIncomingPlot(plot)), projectMeta: {} };
   }
   if (parsed && typeof parsed === 'object') {
     if (Array.isArray(parsed.blocks)) {
       const plots = parsed.blocks.flatMap((block) =>
-        (block.plots || []).map((plot) => mapIncomingPlot(plot, block.block_name || block.blockName || block.block))
+        (Array.isArray(block?.plots) ? block.plots : []).filter(isPlotObject).map((plot) => mapIncomingPlot(plot, block.block_name || block.blockName || block.block))
       );
       return { plots, projectMeta: parsed.project || parsed.projectMeta || {} };
     }
     const plots = Array.isArray(parsed.plots)
-      ? parsed.plots.map((plot) => mapIncomingPlot(plot))
+      ? parsed.plots.filter(isPlotObject).map((plot) => mapIncomingPlot(plot))
       : [];
     return { plots, projectMeta: parsed.projectMeta || parsed.project || {} };
   }

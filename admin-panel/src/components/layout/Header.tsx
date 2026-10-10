@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { Search, Bell, LogOut, Menu, ChevronRight, Plus, Building2, Users, MapPin, ScanText, Home, Link2, ShieldCheck } from 'lucide-react';
+import { Search, Bell, LogOut, Menu, ChevronRight, Plus, Building2, Users, MapPin, ScanText, Home, Link2, ShieldCheck, KeyRound } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { ChangePasswordModal } from '../common/ChangePasswordModal';
 
 const ROLE_LABEL: Record<string, string> = {
   ADMIN: 'Super Admin',
@@ -29,6 +30,7 @@ const ROUTE_NAMES: Record<string, string> = {
   '/reports': 'Financial Reports',
   '/ai-knowledge': 'AI Knowledge Base',
   '/notifications': 'Notifications Center',
+  '/cities': 'Cities & Locations',
   '/settings': 'System Settings'
 };
 
@@ -41,6 +43,7 @@ export const Header: React.FC<HeaderProps> = ({ onToggleMobileMenu }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [showQuickActions, setShowQuickActions] = useState(false);
+  const [showChangePassword, setShowChangePassword] = useState(false);
 
   const currentRouteName = ROUTE_NAMES[location.pathname] || 'Dashboard';
   const roleDisplay = user ? (ROLE_LABEL[user.role] || user.role) : 'Super Admin';
@@ -173,14 +176,23 @@ export const Header: React.FC<HeaderProps> = ({ onToggleMobileMenu }) => {
             <p className="text-[10px] text-[#0B4F3C] font-semibold mt-0.5">{roleDisplay}{rankDisplay}</p>
           </div>
           <button
+            onClick={() => setShowChangePassword(true)}
+            title="Change Password"
+            className="p-1.5 text-[#171A18]/40 hover:text-[#0B4F3C] transition-colors cursor-pointer ml-1"
+          >
+            <KeyRound className="w-4 h-4" />
+          </button>
+          <button
             onClick={handleLogout}
             title="Logout"
-            className="p-1.5 text-[#171A18]/40 hover:text-red-600 transition-colors cursor-pointer ml-1"
+            className="p-1.5 text-[#171A18]/40 hover:text-red-600 transition-colors cursor-pointer"
           >
             <LogOut className="w-4 h-4" />
           </button>
         </div>
       </div>
+
+      {showChangePassword && <ChangePasswordModal onClose={() => setShowChangePassword(false)} />}
     </header>
   );
 };

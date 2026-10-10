@@ -5,6 +5,7 @@ const Project = require('../models/Project');
 const Property = require('../models/Property');
 const { notifyAdmins } = require('../services/notificationService');
 const { getPresignedUrl } = require('../services/s3Service');
+const { queryString, containsRegex } = require('../utils/queryUtils');
 
 async function hydrateBulkDeal(deal) {
   if (!deal) return deal;
@@ -44,7 +45,12 @@ function slugify(text) {
 // GET /public/bulk-deals
 exports.getPublicBulkDeals = async (req, res, next) => {
   try {
-    const { search, city, state, dealType, minDiscount, sort } = req.query;
+    const search = queryString(req.query.search);
+    const city = queryString(req.query.city);
+    const state = queryString(req.query.state);
+    const dealType = queryString(req.query.dealType);
+    const minDiscount = queryString(req.query.minDiscount);
+    const sort = queryString(req.query.sort);
     const filter = { isAvailable: true };
 
     if (dealType && dealType !== 'ALL') {
@@ -52,11 +58,11 @@ exports.getPublicBulkDeals = async (req, res, next) => {
     }
 
     if (city && city !== 'All Cities' && city !== 'ALL') {
-      filter.city = { $regex: city, $options: 'i' };
+      filter.city = containsRegex(city);
     }
 
     if (state) {
-      filter.state = { $regex: state, $options: 'i' };
+      filter.state = containsRegex(state);
     }
 
     if (minDiscount && !isNaN(Number(minDiscount))) {
@@ -64,8 +70,7 @@ exports.getPublicBulkDeals = async (req, res, next) => {
     }
 
     if (search && String(search).trim()) {
-      const q = String(search).trim();
-      const searchRegex = { $regex: q, $options: 'i' };
+      const searchRegex = containsRegex(String(search).trim());
       const searchOr = [
         { title: searchRegex },
         { location: searchRegex },
@@ -107,7 +112,7 @@ exports.getPublicBulkDeals = async (req, res, next) => {
 // GET /public/bulk-deals/:slug
 exports.getPublicBulkDealBySlug = async (req, res, next) => {
   try {
-    const deal = await BulkDeal.findOne({ slug: req.params.slug, isAvailable: true })
+    const deal = await BulkDeal.findOne({ slug: String(req.params.slug).toLowerCase(), isAvailable: true })
       .populate('projectId')
       .populate('propertyId');
     if (!deal) {
@@ -152,7 +157,7 @@ exports.submitBulkDealRequest = async (req, res, next) => {
       name: String(name).trim(),
       email: String(email || '').trim(),
       phone: String(phone).trim(),
-      unitCount: Number(unitCount) || 5,
+      unitCount: Math.min(BulkBuyInquiry.MAX_BULK_UNITS, Math.max(BulkBuyInquiry.MIN_BULK_UNITS, Math.round(Number(unitCount)) || 5)),
       budgetRange: String(budgetRange || '').trim(),
       city: String(city || '').trim(),
       state: String(state || '').trim(),

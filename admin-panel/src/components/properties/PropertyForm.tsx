@@ -162,7 +162,8 @@ export function formToPayload(form: PropertyFormValues) {
     description: form.description,
     propertyType: form.propertyType,
     listingType: form.listingType,
-    projectId: form.projectId || undefined,
+    // null (not undefined) so clearing the project on edit actually unlinks it
+    projectId: form.projectId || null,
     location: form.location,
     city: form.city,
     state: form.state,

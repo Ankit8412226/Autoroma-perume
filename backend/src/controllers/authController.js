@@ -4,11 +4,11 @@ const crypto = require('crypto');
 const User = require('../models/User');
 const Employee = require('../models/Employee');
 const { JWT_SECRET, JWT_EXPIRE } = require('../config/jwt');
-const { resolveSponsorByInviteCode } = require('../utils/agentInvite');
+const { resolveSponsorByInviteCode, generateEmployeeCode } = require('../utils/agentInvite');
 const { sendVerificationEmail, sendPasswordResetEmail } = require('../services/emailService');
 
-const generateToken = (id) => {
-  return jwt.sign({ id }, JWT_SECRET, { expiresIn: JWT_EXPIRE });
+const generateToken = (user) => {
+  return jwt.sign({ id: user._id, tv: user.tokenVersion || 0 }, JWT_SECRET, { expiresIn: JWT_EXPIRE });
 };
 
 const generateRandomToken = () => {
@@ -49,16 +49,19 @@ exports.register = async (req, res, next) => {
       verificationTokenExpires: isAdminRole ? null : new Date(Date.now() + 24 * 60 * 60 * 1000)
     });
 
-    const empCount = await Employee.countDocuments();
-    const employeeCode = `H&S-${1000 + empCount + 1}`;
-
-    const employee = await Employee.create({
-      userId: user._id,
-      employeeCode,
-      joiningDate: new Date(),
-      currentRank: currentRank || 'Business Executive',
-      parentId: parentEmployeeId || null
-    });
+    let employee;
+    try {
+      employee = await Employee.create({
+        userId: user._id,
+        employeeCode: await generateEmployeeCode(),
+        joiningDate: new Date(),
+        currentRank: currentRank || 'Business Executive',
+        parentId: parentEmployeeId || null
+      });
+    } catch (err) {
+      await User.deleteOne({ _id: user._id });
+      throw err;
+    }
 
     // Send verification email if not admin
     if (!isAdminRole) {
@@ -72,7 +75,7 @@ exports.register = async (req, res, next) => {
       }).catch(err => console.error('Failed to send verification email:', err.message));
     }
 
-    const token = generateToken(user._id);
+    const token = generateToken(user);
 
     res.status(201).json({
       message: isAdminRole
@@ -140,16 +143,19 @@ exports.registerPublicAgent = async (req, res, next) => {
       verificationTokenExpires: new Date(Date.now() + 24 * 60 * 60 * 1000)
     });
 
-    const empCount = await Employee.countDocuments();
-    const employeeCode = `H&S-${1000 + empCount + 1}`;
-
-    await Employee.create({
-      userId: user._id,
-      employeeCode,
-      joiningDate: new Date(),
-      currentRank: 'Business Executive',
-      parentId: sponsor ? sponsor._id : null
-    });
+    try {
+      await Employee.create({
+        userId: user._id,
+        employeeCode: await generateEmployeeCode(),
+        joiningDate: new Date(),
+        currentRank: 'Business Executive',
+        parentId: sponsor ? sponsor._id : null
+      });
+    } catch (err) {
+      // Don't leave an orphan user that blocks this email from re-registering.
+      await User.deleteOne({ _id: user._id });
+      throw err;
+    }
 
     // Send verification email
     const clientOrigin = req.headers.origin || req.headers.referer;
@@ -228,7 +234,7 @@ exports.login = async (req, res, next) => {
 
     const employee = await Employee.findOne({ userId: user._id });
 
-    const token = generateToken(user._id);
+    const token = generateToken(user);
 
     res.json({
       token,
@@ -260,7 +266,9 @@ exports.verifyEmail = async (req, res, next) => {
   try {
     const token = req.body.token || req.query.token;
 
-    if (!token) {
+    // Must be a plain string — an object like { $ne: null } would be treated as a
+    // Mongo query operator and match arbitrary users.
+    if (!token || typeof token !== 'string') {
       return res.status(400).json({ message: 'Verification token is required' });
     }
 
@@ -387,7 +395,7 @@ exports.resetPassword = async (req, res, next) => {
     const { resetToken, token, newPassword } = req.body;
     const activeToken = resetToken || token;
 
-    if (!activeToken || !newPassword) {
+    if (!activeToken || !newPassword || typeof activeToken !== 'string' || typeof newPassword !== 'string') {
       return res.status(400).json({ message: 'Reset token and new password are required' });
     }
 
@@ -395,22 +403,10 @@ exports.resetPassword = async (req, res, next) => {
       return res.status(400).json({ message: 'Password must be at least 6 characters long' });
     }
 
-    let user = await User.findOne({
+    const user = await User.findOne({
       resetPasswordToken: activeToken,
       resetPasswordExpires: { $gt: new Date() }
     });
-
-    // Fallback: Support JWT reset token if passed from old format
-    if (!user) {
-      try {
-        const decoded = jwt.verify(activeToken, JWT_SECRET);
-        if (decoded && decoded.type === 'RESET') {
-          user = await User.findById(decoded.id);
-        }
-      } catch (e) {
-        // Ignore JWT verify error
-      }
-    }
 
     if (!user) {
       return res.status(400).json({ message: 'Invalid or expired password reset link. Please request a new password reset.' });
@@ -420,11 +416,53 @@ exports.resetPassword = async (req, res, next) => {
     user.password = await bcrypt.hash(newPassword, salt);
     user.resetPasswordToken = null;
     user.resetPasswordExpires = null;
+    user.tokenVersion = (user.tokenVersion || 0) + 1; // log out all existing sessions
     await user.save();
 
     res.json({
       success: true,
       message: 'Password reset successfully! You can now log in with your new password.'
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.changePassword = async (req, res, next) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+
+    if (typeof currentPassword !== 'string' || typeof newPassword !== 'string' || !currentPassword || !newPassword) {
+      return res.status(400).json({ message: 'Current password and new password are required' });
+    }
+    if (newPassword.length < 6) {
+      return res.status(400).json({ message: 'Password must be at least 6 characters long' });
+    }
+
+    const user = await User.findById(req.user._id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    // 400 (not 401) so the client doesn't treat a typo as an expired session.
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ message: 'Current password is incorrect' });
+    }
+    if (await bcrypt.compare(newPassword, user.password)) {
+      return res.status(400).json({ message: 'New password must be different from the current password' });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(newPassword, salt);
+    user.resetPasswordToken = null;
+    user.resetPasswordExpires = null;
+    user.tokenVersion = (user.tokenVersion || 0) + 1; // log out every other session
+    await user.save();
+
+    // Fresh token so the session that made the change stays logged in.
+    res.json({
+      success: true,
+      message: 'Password changed successfully. All other sessions have been logged out.',
+      token: generateToken(user)
     });
   } catch (error) {
     next(error);

@@ -4,6 +4,7 @@ import * as React from 'react'
 import Image from 'next/image'
 import { SectionHeading } from '@/components/real-estate/SectionHeading'
 import { getApiBaseUrl } from '@/utils/api'
+import { scrollToSection } from '@/utils/scroll'
 import { FALLBACK_IMAGE, SITE } from '@/utils/siteConfig'
 import {
   Flame,
@@ -309,8 +310,18 @@ export default function BulkDealsPage() {
                       setShowLocationDropdown(true)
                     }}
                     onFocus={() => setShowLocationDropdown(true)}
+                    onBlur={() => setTimeout(() => setShowLocationDropdown(false), 150)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        setShowLocationDropdown(false)
+                        scrollToSection('bulk-deals-results', { blur: true })
+                      } else if (e.key === 'Escape') {
+                        setShowLocationDropdown(false)
+                      }
+                    }}
+                    enterKeyHint="search"
                     placeholder="City, TP Sector, Survey No, Project..."
-                    className="w-full pl-10 pr-7 py-2.5 bg-neutral-950 border border-white/10 rounded-2xl text-xs font-semibold text-white focus:outline-none focus:border-amber-400 placeholder-neutral-500"
+                    className="w-full pl-10 pr-8 py-2.5 bg-neutral-950 border border-white/10 rounded-2xl text-xs font-semibold text-white focus:outline-none focus:border-amber-400 placeholder-neutral-500"
                   />
                   {searchQuery && (
                     <button
@@ -334,6 +345,7 @@ export default function BulkDealsPage() {
                           <button
                             key={i}
                             type="button"
+                            onMouseDown={(e) => e.preventDefault()}
                             onClick={() => {
                               if (item.startsWith('City:')) {
                                 setSelectedCity(text)
@@ -342,6 +354,7 @@ export default function BulkDealsPage() {
                                 setSearchQuery(text)
                               }
                               setShowLocationDropdown(false)
+                              scrollToSection('bulk-deals-results', { blur: true })
                             }}
                             className="w-full text-left px-4 py-2.5 hover:bg-neutral-800 text-xs flex items-center justify-between transition-colors cursor-pointer text-white"
                           >
@@ -409,9 +422,14 @@ export default function BulkDealsPage() {
                 </div>
 
                 <div className="flex items-center gap-3">
-                  <span className="text-xs font-bold text-amber-400 bg-amber-500/10 px-3 py-1 rounded-xl border border-amber-500/30">
-                    {filteredDeals.length} Wholesale Deals
-                  </span>
+                  <button
+                    type="button"
+                    onClick={() => scrollToSection('bulk-deals-results')}
+                    className="text-xs font-bold text-amber-400 bg-amber-500/10 px-3 py-1 rounded-xl border border-amber-500/30 hover:bg-amber-500 hover:text-slate-950 transition-colors cursor-pointer"
+                    title="Jump to deals"
+                  >
+                    {filteredDeals.length} Wholesale {filteredDeals.length === 1 ? 'Deal' : 'Deals'} ↓
+                  </button>
                   {(searchQuery || selectedCity !== 'ALL' || minDiscount > 0 || selectedFilter !== 'ALL') && (
                     <button
                       type="button"
@@ -434,7 +452,7 @@ export default function BulkDealsPage() {
       </div>
 
       {/* Main Container */}
-      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
+      <div id="bulk-deals-results" className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
         {/* Category Filter Tabs */}
         {!isLoading && deals.length > 0 && (
           <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">

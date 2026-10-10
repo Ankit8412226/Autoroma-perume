@@ -31,7 +31,7 @@ export default function JoinAgentLandingPage() {
         return
       }
       try {
-        const res = await fetch(`${getApiBaseUrl()}/public/agent-invite/${inviteCode}`)
+        const res = await fetch(`${getApiBaseUrl()}/public/agent-invite/${encodeURIComponent(inviteCode)}`)
         const data = await res.json().catch(() => ({}))
         if (!res.ok) {
           setSponsorError(data.message || 'This invite link is invalid.')
@@ -52,6 +52,16 @@ export default function JoinAgentLandingPage() {
     event.preventDefault()
     setError('')
     setSuccess('')
+    // The form uses noValidate, and the backend falls back to a default
+    // password when none is sent — so enforce the required fields here.
+    if (!fullName.trim() || !email.trim() || !phone.trim()) {
+      setError('Full name, email and phone are required.')
+      return
+    }
+    if (password.length < MIN_PASSWORD_LENGTH) {
+      setError(`Password must be at least ${MIN_PASSWORD_LENGTH} characters.`)
+      return
+    }
     setIsSubmitting(true)
     try {
       const res = await fetch(`${getApiBaseUrl()}/public/agent-application`, {

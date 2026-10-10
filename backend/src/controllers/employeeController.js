@@ -2,7 +2,27 @@ const Employee = require('../models/Employee');
 const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 const { calculateEmployeeSalesMetrics, evaluateAndUpgradeRank, getDownlineEmployeeIds } = require('../services/mlmEngine');
-const { ensureInviteCode, findOrCreateSponsorEmployee, resolveSponsorByInviteCode, publicSponsorPayload } = require('../utils/agentInvite');
+const { ensureInviteCode, findOrCreateSponsorEmployee, resolveSponsorByInviteCode, publicSponsorPayload, generateEmployeeCode } = require('../utils/agentInvite');
+
+const FULL_ACCESS_ROLES = ['ADMIN', 'DIRECTOR'];
+const SENSITIVE_USER_FIELDS = ['password', 'verificationToken', 'verificationTokenExpires', 'resetPasswordToken', 'resetPasswordExpires'];
+
+// Never echo password hashes / auth tokens back in API responses.
+function safeUser(user) {
+  if (!user) return user;
+  const obj = typeof user.toObject === 'function' ? user.toObject() : { ...user };
+  SENSITIVE_USER_FIELDS.forEach((field) => delete obj[field]);
+  return obj;
+}
+
+// Non-admin reviewers (e.g. MANAGER) may only act on their own downline.
+async function isInCallerDownline(req, employeeId) {
+  if (req.user && FULL_ACCESS_ROLES.includes(req.user.role)) return true;
+  const callerEmp = await Employee.findOne({ userId: req.user._id });
+  if (!callerEmp) return false;
+  const downlines = await getDownlineEmployeeIds(callerEmp._id);
+  return downlines.some((id) => id.toString() === employeeId.toString());
+}
 
 exports.getEmployees = async (req, res, next) => {
   try {
@@ -34,7 +54,7 @@ exports.getEmployees = async (req, res, next) => {
 
 exports.createEmployee = async (req, res, next) => {
   try {
-    const { fullName, email, phone, password, role, parentId, legNumber, joiningDate } = req.body;
+    const { fullName, email, phone, password, role, parentId, legNumber, joiningDate, currentRank } = req.body;
 
     let user = await User.findOne({ email });
     if (user) {
@@ -51,6 +71,9 @@ exports.createEmployee = async (req, res, next) => {
     let sponsorParentId;
     if (isAdmin) {
       sponsorParentId = parentId || (loggedInEmployee ? loggedInEmployee._id : null);
+      if (parentId && !(await Employee.exists({ _id: parentId }))) {
+        return res.status(400).json({ message: 'Selected sponsor (parent) agent does not exist' });
+      }
     } else {
       if (!loggedInEmployee) {
         return res.status(403).json({ message: 'No employee profile found for your account' });
@@ -72,17 +95,27 @@ exports.createEmployee = async (req, res, next) => {
       approvalStatus: 'APPROVED'
     });
 
-    const empCount = await Employee.countDocuments();
-    const employeeCode = `H&S-${1000 + empCount + 1}`;
+    // Admins may pick the starting rank in the onboarding form; agents cannot.
+    const initialRank = isAdmin && Employee.RANKS.includes(currentRank) ? currentRank : 'Business Executive';
+    const parsedLeg = parseInt(legNumber, 10);
 
-    const employee = await Employee.create({
-      userId: user._id,
-      employeeCode,
-      joiningDate: joiningDate || new Date(),
-      currentRank: 'Business Executive',
-      parentId: sponsorParentId,
-      legNumber: legNumber ? Math.max(1, parseInt(legNumber, 10)) : 1
-    });
+    let employee;
+    try {
+      const employeeCode = await generateEmployeeCode();
+      employee = await Employee.create({
+        userId: user._id,
+        employeeCode,
+        joiningDate: joiningDate || new Date(),
+        currentRank: initialRank,
+        parentId: sponsorParentId,
+        legNumber: Number.isNaN(parsedLeg) ? 1 : Math.max(1, parsedLeg)
+      });
+    } catch (empErr) {
+      // Roll back the user so a failed onboarding never leaves an orphan login
+      // that blocks re-registration with the same email.
+      await User.findByIdAndDelete(user._id).catch(() => {});
+      throw empErr;
+    }
 
     const populatedEmployee = await Employee.findById(employee._id)
       .populate('userId', 'fullName email phone role avatar approvalStatus isActive')
@@ -94,7 +127,7 @@ exports.createEmployee = async (req, res, next) => {
     res.status(201).json({
       message: 'Direct agent onboarding successful!',
       employee: populatedEmployee,
-      user
+      user: safeUser(user)
     });
   } catch (error) {
     next(error);
@@ -110,6 +143,39 @@ exports.updateEmployee = async (req, res, next) => {
       return res.status(404).json({ message: 'Employee not found' });
     }
 
+    const isAdmin = req.user && FULL_ACCESS_ROLES.includes(req.user.role);
+    if (!isAdmin) {
+      // Non-admins may only edit themselves or their downline, and may not
+      // change rank / sponsor / leg placement (MLM structure is admin-only).
+      const callerEmp = await Employee.findOne({ userId: req.user._id });
+      const isSelf = Boolean(callerEmp && callerEmp._id.toString() === employee._id.toString());
+      if (!isSelf && !(await isInCallerDownline(req, employee._id))) {
+        return res.status(403).json({ message: 'You can only edit yourself or agents in your downline' });
+      }
+      const currentParent = employee.parentId ? employee.parentId.toString() : '';
+      const rankChanged = currentRank && currentRank !== employee.currentRank;
+      const parentChanged = parentId !== undefined && String(parentId || '') !== currentParent;
+      const legChanged = legNumber !== undefined && parseInt(legNumber, 10) !== (employee.legNumber || 1);
+      if (rankChanged || parentChanged || legChanged) {
+        return res.status(403).json({ message: 'Only an admin or director can change rank, sponsor or leg placement' });
+      }
+    }
+
+    if (parentId) {
+      // Prevent hierarchy cycles: an agent cannot be placed under itself or
+      // under anyone in its own downline.
+      if (parentId.toString() === employee._id.toString()) {
+        return res.status(400).json({ message: 'An agent cannot be their own sponsor' });
+      }
+      if (!(await Employee.exists({ _id: parentId }))) {
+        return res.status(400).json({ message: 'Selected sponsor (parent) agent does not exist' });
+      }
+      const downlines = await getDownlineEmployeeIds(employee._id);
+      if (downlines.some((id) => id.toString() === parentId.toString())) {
+        return res.status(400).json({ message: 'Cannot move an agent under someone in their own downline' });
+      }
+    }
+
     if (fullName || phone) {
       await User.findByIdAndUpdate(employee.userId, {
         ...(fullName && { fullName }),
@@ -119,7 +185,9 @@ exports.updateEmployee = async (req, res, next) => {
 
     if (currentRank) employee.currentRank = currentRank;
     if (parentId !== undefined) employee.parentId = parentId || null;
-    if (legNumber !== undefined) employee.legNumber = Math.max(1, parseInt(legNumber, 10));
+    if (legNumber !== undefined && !Number.isNaN(parseInt(legNumber, 10))) {
+      employee.legNumber = Math.max(1, parseInt(legNumber, 10));
+    }
 
     await employee.save();
 
@@ -142,6 +210,10 @@ exports.deleteEmployee = async (req, res, next) => {
     if (!employee) {
       return res.status(404).json({ message: 'Employee not found' });
     }
+
+    // Re-attach direct downline to the deleted agent's sponsor so their
+    // subtree is not orphaned under a dangling parentId.
+    await Employee.updateMany({ parentId: employee._id }, { parentId: employee.parentId || null });
 
     await User.findByIdAndDelete(employee.userId);
     await Employee.findByIdAndDelete(req.params.id);
@@ -199,6 +271,9 @@ exports.approveAgent = async (req, res, next) => {
   try {
     const employee = await Employee.findById(req.params.id);
     if (!employee) return res.status(404).json({ message: 'Agent record not found' });
+    if (!(await isInCallerDownline(req, employee._id))) {
+      return res.status(403).json({ message: 'You can only approve agents in your downline' });
+    }
 
     const user = await User.findById(employee.userId);
     if (!user) return res.status(404).json({ message: 'User record not found' });
@@ -210,7 +285,7 @@ exports.approveAgent = async (req, res, next) => {
     res.json({
       message: `🎉 Agent ${user.fullName} (${employee.employeeCode}) has been APPROVED & Activated!`,
       employee,
-      user
+      user: safeUser(user)
     });
   } catch (error) {
     next(error);
@@ -224,7 +299,7 @@ exports.getMyInviteLink = async (req, res, next) => {
     }
     const employee = await findOrCreateSponsorEmployee(req.user);
     if (!employee) {
-      return res.status(404).json({ message: 'Could not create an invite profile for this account' });
+      return res.status(403).json({ message: 'Your account type cannot invite agents' });
     }
     const inviteCode = await ensureInviteCode(employee);
     res.json({
@@ -252,6 +327,9 @@ exports.rejectAgent = async (req, res, next) => {
   try {
     const employee = await Employee.findById(req.params.id);
     if (!employee) return res.status(404).json({ message: 'Agent record not found' });
+    if (!(await isInCallerDownline(req, employee._id))) {
+      return res.status(403).json({ message: 'You can only reject agents in your downline' });
+    }
 
     const user = await User.findById(employee.userId);
     if (!user) return res.status(404).json({ message: 'User record not found' });
@@ -263,7 +341,7 @@ exports.rejectAgent = async (req, res, next) => {
     res.json({
       message: `Agent application for ${user.fullName} has been rejected.`,
       employee,
-      user
+      user: safeUser(user)
     });
   } catch (error) {
     next(error);

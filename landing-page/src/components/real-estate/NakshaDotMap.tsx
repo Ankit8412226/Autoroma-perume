@@ -25,6 +25,8 @@ export function hasPinnedMarker(plot: any): boolean {
   if (rawX === null || rawX === undefined || rawY === null || rawY === undefined) return false
   const x = Number(rawX)
   const y = Number(rawY)
+  // Legacy OCR data stored un-located plots as exactly (0,0); treat those as unpinned
+  if (x === 0 && y === 0) return false
   return Number.isFinite(x) && Number.isFinite(y)
 }
 
@@ -134,8 +136,8 @@ export function NakshaDotMap({ imageUrl, imageAlt, plots, onSelectPlot }: Naksha
           <dl className="space-y-1 text-[10px] text-brand-charcoal">
             {derivePlotType(hovered) !== 'Simple' && <Row label="Type" value={derivePlotType(hovered)} />}
             {deriveFacing(hovered) !== 'Standard' && <Row label="Facing" value={deriveFacing(hovered)} />}
-            {hovered.sizeSqft && <Row label="Area (Sq Ft)" value={hovered.sizeSqft} />}
-            {hovered.dimensions && <Row label="Dimension" value={hovered.dimensions} />}
+            {hovered.sizeSqft ? <Row label="Area (Sq Ft)" value={hovered.sizeSqft} /> : null}
+            {hovered.dimensions ? <Row label="Dimension" value={hovered.dimensions} /> : null}
           </dl>
           {hovered.status === 'AVAILABLE' && (
             <p className="mt-2 pt-2 border-t border-brand-green/10 text-[9px] font-bold text-brand-green flex items-center gap-1">

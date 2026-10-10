@@ -129,7 +129,9 @@ export const PlotDetailModal: React.FC<PlotDetailModalProps> = ({
         registryStatus,
         registryDate: registryDate ? new Date(registryDate) : undefined,
         paymentMilestones,
-        sellerEmployeeId: sellerEmployeeId === 'DIRECT' ? null : (sellerEmployeeId || null),
+        // Send 'DIRECT' explicitly: the backend treats a null seller as "credit the
+        // logged-in user", which would wrongly create commission for a direct sale.
+        sellerEmployeeId: sellerEmployeeId === 'DIRECT' ? 'DIRECT' : (sellerEmployeeId || null),
         paymentMode,
         plotType,
         facing,

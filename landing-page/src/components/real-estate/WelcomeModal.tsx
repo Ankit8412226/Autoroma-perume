@@ -9,8 +9,19 @@ export function WelcomeModal() {
   const [isOpen, setIsOpen] = React.useState<boolean>(false)
 
   React.useEffect(() => {
+    // Show once per browser session, and never when the visitor arrived with a
+    // search/filter or a deep link — the popup would cover the results they asked for.
+    const SEEN_KEY = 'hs-welcome-seen'
+    try {
+      if (sessionStorage.getItem(SEEN_KEY)) return
+    } catch {}
+    if (window.location.search || window.location.hash) return
+
     const timer = setTimeout(() => {
       setIsOpen(true)
+      try {
+        sessionStorage.setItem(SEEN_KEY, '1')
+      } catch {}
     }, 600)
 
     return () => clearTimeout(timer)

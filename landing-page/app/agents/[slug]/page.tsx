@@ -2,7 +2,8 @@ import * as React from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { AGENTS } from '@/data/agents'
+import { AGENTS, Agent } from '@/data/agents'
+import { getApiBaseUrl } from '@/utils/api'
 import { PROPERTIES } from '@/data/properties'
 import { PropertyGrid } from '@/components/real-estate/PropertyGrid'
 import { InquiryForm } from '@/components/real-estate/InquiryForm'
@@ -14,6 +15,51 @@ interface AgentPageProps {
   }>
 }
 
+/**
+ * The /agents listing renders LIVE agents from the API (slug = employee code),
+ * so detail pages must resolve those too — not only the static showcase data,
+ * otherwise every live agent card links to a 404.
+ */
+async function resolveAgent(rawSlug: string): Promise<Agent | null> {
+  let slug = rawSlug
+  try {
+    slug = decodeURIComponent(rawSlug)
+  } catch {
+    // keep raw slug
+  }
+  const staticAgent = AGENTS.find((a) => a.slug === slug || a.slug === rawSlug)
+  if (staticAgent) return staticAgent
+
+  try {
+    const res = await fetch(`${getApiBaseUrl()}/public/agents`, { next: { revalidate: 60 } })
+    if (!res.ok) return null
+    const data = await res.json()
+    if (!Array.isArray(data)) return null
+    const live = data.find((a: any) => a?.slug === slug || a?.slug === rawSlug)
+    if (!live) return null
+    return {
+      id: String(live.id || ''),
+      slug: String(live.slug || slug),
+      name: live.name || 'Sales Executive',
+      title: live.title || 'Advisory Executive',
+      avatar: live.avatar || '',
+      phone: live.phone || '',
+      email: live.email || '',
+      location: live.location || 'Executive Desk',
+      experienceYears: Number(live.experienceYears) || 0,
+      activeListingsCount: Number(live.activeListingsCount) || 0,
+      totalSalesVolume: live.totalSalesVolume || '0 Plots Sold',
+      rating: Number(live.rating) || 5,
+      reviewCount: Number(live.reviewCount) || 0,
+      bio: live.bio || '',
+      specialties: Array.isArray(live.specialties) ? live.specialties : [],
+      socials: live.socials || {},
+    }
+  } catch {
+    return null
+  }
+}
+
 export async function generateStaticParams() {
   return AGENTS.map((a) => ({
     slug: a.slug,
@@ -22,7 +68,7 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: AgentPageProps) {
   const resolvedParams = await params
-  const agent = AGENTS.find((a) => a.slug === resolvedParams.slug)
+  const agent = await resolveAgent(resolvedParams.slug)
   if (!agent) return { title: 'Advisor Not Found' }
 
   return {
@@ -33,7 +79,7 @@ export async function generateMetadata({ params }: AgentPageProps) {
 
 export default async function AgentDetailPage({ params }: AgentPageProps) {
   const resolvedParams = await params
-  const agent = AGENTS.find((a) => a.slug === resolvedParams.slug)
+  const agent = await resolveAgent(resolvedParams.slug)
 
   if (!agent) {
     notFound()
@@ -56,13 +102,21 @@ export default async function AgentDetailPage({ params }: AgentPageProps) {
       {/* Header Profile Section */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start bg-bg-surface border border-white/10 p-8 sm:p-12">
         <div className="lg:col-span-4 relative aspect-[4/5] w-full border border-white/15 overflow-hidden">
-          <Image
-            src={agent.avatar}
-            alt={agent.name}
-            fill
-            priority
-            className="object-cover"
-          />
+          {agent.avatar ? (
+            <Image
+              src={agent.avatar}
+              alt={agent.name}
+              fill
+              priority
+              className="object-cover"
+            />
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-[#0B4F3C] via-[#0B241C] to-[#063B2D]">
+              <span className="font-serif font-bold text-6xl text-amber-300 tracking-wider">
+                {agent.name.split(/\s+/).filter(Boolean).map((p) => p[0]).slice(0, 2).join('').toUpperCase()}
+              </span>
+            </div>
+          )}
         </div>
 
         <div className="lg:col-span-8 space-y-6">

@@ -1,6 +1,7 @@
 'use client'
 
 import * as React from 'react'
+import { getApiBaseUrl } from '@/utils/api'
 import { LocationCard } from '@/components/real-estate/LocationCard'
 import { SectionHeading } from '@/components/real-estate/SectionHeading'
 import { RefreshCw, MapPin } from 'lucide-react'
@@ -16,7 +17,7 @@ export default function LocationsPage() {
   const fetchLocations = async () => {
     try {
       setIsLoading(true)
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1'
+      const baseUrl = getApiBaseUrl()
       const res = await fetch(`${baseUrl}/public/locations`)
       if (res.ok) {
         const data = await res.json()

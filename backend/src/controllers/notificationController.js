@@ -1,24 +1,30 @@
 const Notification = require('../models/Notification');
 
+// Broadcast notifications (userId: null) carry lead contact details meant for
+// the admin desk only — agents/owners/customers must only see their own.
+const ADMIN_FEED_ROLES = ['ADMIN', 'DIRECTOR', 'MANAGER'];
+
+function visibilityFilter(user) {
+  if (user && ADMIN_FEED_ROLES.includes(user.role)) {
+    return { $or: [{ userId: null }, { userId: user._id }] };
+  }
+  return { userId: user._id };
+}
+
 
 exports.getNotifications = async (req, res, next) => {
   try {
     const { category, status, limit = 100 } = req.query;
 
-    const filter = {
-      $or: [
-        { userId: null },             // broadcast admin notifications
-        { userId: req.user._id }      // personal notifications for this user
-      ]
-    };
+    const filter = visibilityFilter(req.user);
 
-    if (category) filter.category = category;
-    if (status) filter.status = status;
+    if (typeof category === 'string' && category) filter.category = category;
+    if (typeof status === 'string' && status) filter.status = status;
 
     const notifications = await Notification.find(filter)
       .populate('userId', 'fullName email')
       .sort({ sentAt: -1 })
-      .limit(Number(limit) || 100);
+      .limit(Math.min(500, Math.max(1, Number(limit) || 100)));
 
     res.json(notifications);
   } catch (error) {
@@ -33,7 +39,7 @@ exports.getNotifications = async (req, res, next) => {
 exports.getUnreadCount = async (req, res, next) => {
   try {
     const count = await Notification.countDocuments({
-      $or: [{ userId: null }, { userId: req.user._id }],
+      ...visibilityFilter(req.user),
       status: 'UNREAD'
     });
     res.json({ count });
@@ -49,7 +55,8 @@ exports.getUnreadCount = async (req, res, next) => {
 exports.markAsRead = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const notif = await Notification.findById(id);
+    if (!/^[a-fA-F0-9]{24}$/.test(String(id))) return res.status(404).json({ message: 'Notification not found' });
+    const notif = await Notification.findOne({ _id: id, ...visibilityFilter(req.user) });
     if (!notif) return res.status(404).json({ message: 'Notification not found' });
 
     notif.status = 'READ';
@@ -68,7 +75,7 @@ exports.markAllRead = async (req, res, next) => {
   try {
     const result = await Notification.updateMany(
       {
-        $or: [{ userId: null }, { userId: req.user._id }],
+        ...visibilityFilter(req.user),
         status: 'UNREAD'
       },
       { $set: { status: 'READ' } }

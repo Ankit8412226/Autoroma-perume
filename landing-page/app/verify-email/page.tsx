@@ -14,6 +14,9 @@ function VerifyEmailContent() {
 
   const [status, setStatus] = React.useState<'LOADING' | 'SUCCESS' | 'ERROR'>('LOADING')
   const [message, setMessage] = React.useState<string>('Verifying your email address...')
+  // Tokens are single-use: guard against StrictMode's double effect run, where the
+  // second request fails and overwrites the success state with an error.
+  const verifiedTokenRef = React.useRef<string | null>(null)
 
   React.useEffect(() => {
     if (!token) {
@@ -21,6 +24,8 @@ function VerifyEmailContent() {
       setMessage('Invalid verification link. No verification token was provided.')
       return
     }
+    if (verifiedTokenRef.current === token) return
+    verifiedTokenRef.current = token
 
     const verify = async () => {
       try {

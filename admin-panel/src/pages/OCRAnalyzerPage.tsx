@@ -10,8 +10,7 @@ import {
   Cpu,
   FileImage,
   ChevronRight,
-  X,
-  Sparkles
+  X
 } from 'lucide-react';
 import { useToast } from '../context/ToastContext';
 
@@ -48,17 +47,18 @@ export const OCRAnalyzerPage: React.FC = () => {
     }
   }, [isAdmin]);
 
-  const handleAnalyze = async (useSample = false, targetFile = file, targetProjectId = selectedProjectId) => {
+  const handleAnalyze = async (targetFile = file, targetProjectId = selectedProjectId) => {
     if (!targetProjectId) {
       toast.error('Please select a project first.');
       return;
     }
-    if (!useSample && !targetFile) {
-      toast.error('Please upload a Naksha image or PDF first.');
+    if (!targetFile) {
+      toast.error('Please upload a Naksha image first.');
       return;
     }
 
     setStep(1);
+    const startedAt = Date.now();
     const messages = [
       'Uploading image to secure storage...',
       'Running Gemini 2.5 Pro Vision AI on Naksha...',
@@ -75,7 +75,7 @@ export const OCRAnalyzerPage: React.FC = () => {
 
     try {
       const formData = new FormData();
-      if (targetFile && !useSample) formData.append('file', targetFile);
+      formData.append('file', targetFile);
       formData.append('projectId', targetProjectId);
       formData.append('mapName', mapName || 'Naksha Layout');
 
@@ -87,11 +87,17 @@ export const OCRAnalyzerPage: React.FC = () => {
       toast.success(`Extracted ${response.data?.extractedPlots?.length || 0} plots from the Naksha!`);
     } catch (error: any) {
       clearInterval(interval);
-      // Attempt recovery of completed background OCR map if network/timeout occurred
-      if (targetProjectId) {
+      // Attempt recovery of completed background OCR map only if network/timeout/gateway
+      // errors occurred. A 4xx means the server rejected THIS upload — never show an older map.
+      const httpStatus: number | undefined = error?.response?.status;
+      const recoverable = !httpStatus || httpStatus >= 500;
+      if (targetProjectId && recoverable) {
         try {
           const recovered = await api.get(`/ocr/latest/${targetProjectId}`);
-          if (recovered.data?.extractedPlots?.length) {
+          const createdAt = recovered.data?.createdAt ? new Date(recovered.data.createdAt).getTime() : 0;
+          // allow some client/server clock skew, but reject maps from earlier runs
+          const isFromThisRun = createdAt >= startedAt - 2 * 60 * 1000;
+          if (recovered.data?.extractedPlots?.length && recovered.data?.status === 'PENDING_REVIEW' && isFromThisRun) {
             setOcrResult(recovered.data);
             setStep(2);
             toast.success(`AI analysis completed in background! Recovered ${recovered.data.extractedPlots.length} plots.`);
@@ -115,7 +121,7 @@ export const OCRAnalyzerPage: React.FC = () => {
       setPreviewUrl(null);
     }
     if (selectedProjectId) {
-      handleAnalyze(false, f, selectedProjectId);
+      handleAnalyze(f, selectedProjectId);
     } else {
       toast.error('Please select a project above to run AI analysis.');
     }
@@ -241,7 +247,7 @@ export const OCRAnalyzerPage: React.FC = () => {
             <input
               ref={fileInputRef}
               type="file"
-              accept=".pdf,.png,.jpg,.jpeg"
+              accept=".png,.jpg,.jpeg,.webp"
               className="hidden"
               onChange={(e) => e.target.files?.[0] && handleFileSelect(e.target.files[0])}
             />
@@ -288,7 +294,7 @@ export const OCRAnalyzerPage: React.FC = () => {
               <div className="p-12 text-center">
                 <UploadCloud className="w-12 h-12 text-[#0B4F3C]/50 mx-auto mb-3" />
                 <p className="text-sm font-bold text-[#171A18]">Drop your Naksha image here</p>
-                <p className="text-xs text-[#171A18]/50 mt-1">or click to browse — PNG, JPG, PDF supported</p>
+                <p className="text-xs text-[#171A18]/50 mt-1">or click to browse — PNG, JPG, WEBP supported</p>
               </div>
             )}
           </div>
@@ -296,22 +302,13 @@ export const OCRAnalyzerPage: React.FC = () => {
           {/* Actions */}
           <div className="flex flex-col sm:flex-row gap-3">
             <button
-              onClick={() => handleAnalyze(false)}
+              onClick={() => handleAnalyze()}
               disabled={!file || !selectedProjectId}
               className="flex-1 py-3 rounded-xl bg-[#0B4F3C] hover:bg-[#063B2D] text-white font-bold text-sm shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer border border-[#0B4F3C] disabled:opacity-40 disabled:cursor-not-allowed"
             >
               <ScanText className="w-4 h-4" />
               Analyze with AI
               <ChevronRight className="w-4 h-4" />
-            </button>
-
-            <button
-              onClick={() => handleAnalyze(true)}
-              disabled={!selectedProjectId}
-              className="px-5 py-3 rounded-xl bg-[#EAF3EF] hover:bg-[#D0E8DC] text-[#0B4F3C] font-bold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer border border-[#0B4F3C]/20 disabled:opacity-40"
-            >
-              <Sparkles className="w-4 h-4" />
-              Try Demo Naksha
             </button>
           </div>
         </div>

@@ -7,8 +7,16 @@ import Link from 'next/link'
 import { Property, PROPERTIES } from '@/data/properties'
 import { PropertyCard } from '@/components/real-estate/PropertyCard'
 import { getApiBaseUrl } from '@/utils/api'
-import { mapBackendProperty } from '@/utils/mapListing'
+import { mapBackendProperty, mapPropertyType } from '@/utils/mapListing'
 import { BulkBuyModal } from '@/components/real-estate/BulkBuyModal'
+import { scrollToSection } from '@/utils/scroll'
+import {
+  DEFAULT_CITY_NAMES,
+  findNearestCity,
+  matchCityName,
+  reverseGeocodeCityNames,
+  useConfiguredCities
+} from '@/utils/cities'
 import {
   Search,
   Building2,
@@ -30,7 +38,9 @@ import {
   Home,
   Layers,
   Phone,
-  Mic
+  Mic,
+  Navigation,
+  Loader2
 } from 'lucide-react'
 
 const PROPERTY_TYPE_OPTIONS = [
@@ -66,21 +76,29 @@ function PropertiesContent() {
     else initialType = typeParam
   }
 
-  const DEFAULT_MAJOR_INDIAN_CITIES = [
-    'Dholera', 'Noida', 'Bhopal', 'Narmadapuram', 'Ahmedabad', 'Delhi NCR',
-    'Gurgaon', 'Mumbai', 'Bangalore', 'Hyderabad', 'Pune', 'Indore',
-    'Jaipur', 'Lucknow', 'Surat', 'Kolkata', 'Chennai', 'Goa',
-    'Chandigarh', 'Ayodhya', 'Thane', 'Navi Mumbai', 'Nagpur', 'Ludhiana', 'Patna'
-  ]
+  // Admin-configured cities (admin panel → Cities & Locations) drive the city
+  // dropdown, suggestions and city cards; the built-in list is only a fallback.
+  const { cities: configuredCities, loaded: citiesLoaded } = useConfiguredCities()
+  const cityNames = React.useMemo(
+    () => (configuredCities.length > 0 ? configuredCities.map((c) => c.name) : DEFAULT_CITY_NAMES),
+    [configuredCities]
+  )
+  const cityNamesRef = React.useRef(cityNames)
+  cityNamesRef.current = cityNames
+  const cityImageByName = React.useMemo(() => {
+    const map: Record<string, string> = {}
+    configuredCities.forEach((c) => {
+      if (c.imageUrl) map[c.name.toLowerCase()] = c.imageUrl
+    })
+    return map
+  }, [configuredCities])
 
   let initialCity = searchParams.get('city') || 'All Cities'
   let initialLocation = searchParams.get('location') || ''
 
   // Auto-promote known cities from search query to the City Dropdown
   if (initialLocation && initialCity === 'All Cities') {
-    const exactMatch = DEFAULT_MAJOR_INDIAN_CITIES.find(
-      (c) => c.toLowerCase() === initialLocation.toLowerCase().trim()
-    )
+    const exactMatch = matchCityName(initialLocation, DEFAULT_CITY_NAMES)
     if (exactMatch) {
       initialCity = exactMatch
       initialLocation = ''
@@ -109,24 +127,20 @@ function PropertiesContent() {
   const [sortBy, setSortBy] = React.useState('FEATURED')
   const [viewMode, setViewMode] = React.useState<'grid' | 'list'>('grid')
 
-  const scrollToResults = () => {
-    if (typeof window === 'undefined') return
-    setTimeout(() => {
-      const el = document.getElementById('properties-grid')
-      if (el) {
-        el.scrollIntoView({ behavior: 'smooth', block: 'start' })
-      }
-    }, 150)
+  // Set when a search/filter asks for results; the fetch effect re-aligns the
+  // scroll once fresh results have rendered (layout above the grid can shift).
+  const pendingScrollRef = React.useRef(false)
+  const scrollToResults = (blur = false) => {
+    pendingScrollRef.current = true
+    scrollToSection('properties-grid', { blur })
   }
 
   React.useEffect(() => {
-    const isNearby = searchParams.get('nearby') === 'true'
-    let loc = searchParams.get('location') || (isNearby ? 'Nearby Locations' : '')
+    // 'nearby=true' has no textual location; a placeholder search term would match nothing
+    let loc = searchParams.get('location') || ''
     let city = searchParams.get('city') || 'All Cities'
     if (loc && city === 'All Cities') {
-      const exactMatch = DEFAULT_MAJOR_INDIAN_CITIES.find(
-        (c) => c.toLowerCase() === loc.toLowerCase().trim()
-      )
+      const exactMatch = matchCityName(loc, cityNamesRef.current)
       if (exactMatch) {
         city = exactMatch
         // Do not clear loc, let it stay in the input box so the user sees their search
@@ -165,6 +179,17 @@ function PropertiesContent() {
     }
   }, [searchParams])
 
+  // Admin cities arrive after the first render: promote a typed/linked search
+  // that exactly names a configured city into the city filter.
+  React.useEffect(() => {
+    if (!citiesLoaded || configuredCities.length === 0) return
+    setSelectedCity((current) => {
+      if (current !== 'All Cities') return current
+      return matchCityName(searchQuery, configuredCities.map((c) => c.name)) || current
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [citiesLoaded, configuredCities])
+
   const [allProperties, setAllProperties] = React.useState<Property[]>(PROPERTIES)
   const [dbCities, setDbCities] = React.useState<string[]>([])
   const [dbLocations, setDbLocations] = React.useState<string[]>([])
@@ -172,12 +197,100 @@ function PropertiesContent() {
   const [isLoading, setIsLoading] = React.useState(false)
   const [isBulkBuyOpen, setIsBulkBuyOpen] = React.useState(false)
   const [isListening, setIsListening] = React.useState(false)
+  const [isLocating, setIsLocating] = React.useState(false)
+  const [searchNotice, setSearchNotice] = React.useState<{ tone: 'info' | 'error'; text: string } | null>(null)
+  const [cityCounts, setCityCounts] = React.useState<{ total: number; byCity: Record<string, number> } | null>(null)
+
+  // Typed or spoken text: a city name selects that city, anything else is a keyword search.
+  const applySearchText = (text: string) => {
+    const cleaned = text.trim()
+    const city = matchCityName(cleaned, cityNamesRef.current)
+    if (city) {
+      setSelectedCity(city)
+      setSearchQuery('')
+    } else {
+      setSearchQuery(cleaned)
+    }
+    setShowLocationDropdown(false)
+    setSearchNotice(null)
+    scrollToResults(true)
+  }
+
+  const applyNearby = async (lat: number, lng: number) => {
+    setSearchNotice({ tone: 'info', text: 'Finding properties near you…' })
+    const nearest = findNearestCity(lat, lng, configuredCities)
+    if (nearest) {
+      setSelectedCity(nearest.city.name)
+      setSearchQuery('')
+      setSearchNotice({
+        tone: 'info',
+        text: nearest.km < 50
+          ? `Showing properties in ${nearest.city.name}, near your location.`
+          : `Showing ${nearest.city.name} — the nearest city we list (~${Math.round(nearest.km)} km away).`
+      })
+      scrollToResults()
+      return
+    }
+    // No configured city has coordinates — ask OpenStreetMap where the visitor is.
+    const names = await reverseGeocodeCityNames(lat, lng)
+    const match = names.map((n) => matchCityName(n, cityNamesRef.current)).find(Boolean)
+    if (match) {
+      setSelectedCity(match)
+      setSearchQuery('')
+      setSearchNotice({ tone: 'info', text: `Showing properties in ${match}, near your location.` })
+    } else if (names[0]) {
+      setSelectedCity('All Cities')
+      setSearchQuery(names[0])
+      setSearchNotice({ tone: 'info', text: `Showing properties matching “${names[0]}”, near your location.` })
+    } else {
+      setSearchNotice({ tone: 'error', text: 'Could not work out your city. Please type a city or locality instead.' })
+      return
+    }
+    scrollToResults()
+  }
+
+  const handleNearbyClick = () => {
+    if (typeof navigator === 'undefined' || !('geolocation' in navigator)) {
+      setSearchNotice({ tone: 'error', text: 'Location is not supported in this browser. Please type a city instead.' })
+      return
+    }
+    setIsLocating(true)
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        await applyNearby(position.coords.latitude, position.coords.longitude)
+        setIsLocating(false)
+      },
+      (error) => {
+        setIsLocating(false)
+        setSearchNotice({
+          tone: 'error',
+          text: error.code === error.PERMISSION_DENIED
+            ? 'Location permission was denied. Allow location access in your browser, or type a city instead.'
+            : 'Could not get your location. Please try again or type a city instead.'
+        })
+      },
+      { timeout: 15000, maximumAge: 5 * 60 * 1000 }
+    )
+  }
+
+  // "Nearby" from the home page search arrives as ?nearby=true&lat=..&lng=..
+  const handledNearbyRef = React.useRef('')
+  React.useEffect(() => {
+    if (!citiesLoaded || searchParams.get('nearby') !== 'true') return
+    const lat = Number(searchParams.get('lat'))
+    const lng = Number(searchParams.get('lng'))
+    const key = `${lat},${lng}`
+    if (!Number.isFinite(lat) || !Number.isFinite(lng) || handledNearbyRef.current === key) return
+    handledNearbyRef.current = key
+    applyNearby(lat, lng)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [citiesLoaded, searchParams])
 
   const handleVoiceSearch = () => {
     if (typeof window === 'undefined') return
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
     if (!SpeechRecognition) {
-      alert('Voice search is not supported in this browser.')
+      setSearchNotice({ tone: 'error', text: 'Voice search is not supported in this browser. Try Chrome, Edge or Safari.' })
       return
     }
 
@@ -189,21 +302,53 @@ function PropertiesContent() {
     recognition.onstart = () => setIsListening(true)
     
     recognition.onresult = (event: any) => {
-      const transcript = event.results[0][0].transcript
-      setSearchQuery(transcript)
-      setShowLocationDropdown(true)
+      const transcript = event.results?.[0]?.[0]?.transcript || ''
+      if (transcript.trim()) applySearchText(transcript)
     }
 
     recognition.onerror = (event: any) => {
-      console.error('Speech recognition error', event.error)
-      if (event.error !== 'no-speech') {
-        alert('Error with voice search. Please try again.')
+      setIsListening(false)
+      if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+        setSearchNotice({ tone: 'error', text: 'Microphone permission was denied. Allow microphone access to use voice search.' })
+      } else if (event.error === 'no-speech') {
+        setSearchNotice({ tone: 'error', text: 'Didn’t catch that — tap the mic and say a city or locality.' })
+      } else if (event.error !== 'aborted') {
+        setSearchNotice({ tone: 'error', text: 'Voice search failed. Please try again or type your search.' })
       }
     }
 
     recognition.onend = () => setIsListening(false)
 
-    recognition.start()
+    try {
+      setSearchNotice(null)
+      recognition.start()
+    } catch {
+      setIsListening(false)
+    }
+  }
+
+  // Unfiltered per-city counts for the city pills/cards. The main list below is
+  // fetched with the active filters, so it can't be used to count other cities.
+  React.useEffect(() => {
+    fetch(`${getApiBaseUrl()}/public/properties`)
+      .then((res) => (res.ok ? res.json() : null))
+      .catch(() => null)
+      .then((data) => {
+        const list: Property[] = Array.isArray(data) && data.length > 0 ? data.map(mapBackendProperty) : PROPERTIES
+        const byCity: Record<string, number> = {}
+        list.forEach((p) => {
+          const c = (p.location?.city || '').toLowerCase().trim()
+          if (c) byCity[c] = (byCity[c] || 0) + 1
+        })
+        setCityCounts({ total: list.length, byCity })
+      })
+  }, [])
+
+  const countForCity = (city: string) => {
+    if (!cityCounts) return 0
+    if (city === 'All Cities') return cityCounts.total
+    const target = city.toLowerCase()
+    return Object.entries(cityCounts.byCity).reduce((sum, [c, n]) => (c.includes(target) ? sum + n : sum), 0)
   }
 
   // Fetch unique location options dynamically from database API
@@ -226,14 +371,24 @@ function PropertiesContent() {
 
   // Dynamically computed list of unique cities (combining API + Indian cities + loaded properties)
   const availableCities = React.useMemo(() => {
-    const set = new Set<string>([...DEFAULT_MAJOR_INDIAN_CITIES, ...dbCities])
-    allProperties.forEach((p) => {
-      if (p.location?.city && p.location.city.trim()) {
-        set.add(p.location.city.trim())
-      }
-    })
-    return ['All Cities', ...Array.from(set).sort()]
-  }, [dbCities, allProperties])
+    let list: string[]
+    if (configuredCities.length > 0) {
+      list = configuredCities.map((c) => c.name) // keep the admin's display order
+    } else {
+      const set = new Set<string>([...DEFAULT_CITY_NAMES, ...dbCities])
+      allProperties.forEach((p) => {
+        if (p.location?.city && p.location.city.trim()) {
+          set.add(p.location.city.trim())
+        }
+      })
+      list = Array.from(set).sort()
+    }
+    // A city from a link/URL that isn't in the list must still show as selected.
+    if (selectedCity !== 'All Cities' && !list.some((c) => c.toLowerCase() === selectedCity.toLowerCase())) {
+      list = [...list, selectedCity]
+    }
+    return ['All Cities', ...list]
+  }, [configuredCities, dbCities, allProperties, selectedCity])
 
   // Autocomplete Location Suggestions matching user searchQuery
   const locationSuggestions = React.useMemo(() => {
@@ -241,7 +396,8 @@ function PropertiesContent() {
     const q = searchQuery.toLowerCase().trim()
     const pool = new Set<string>()
 
-    dbCities.forEach((c) => {
+    const suggestionCities = configuredCities.length > 0 ? configuredCities.map((c) => c.name) : dbCities
+    suggestionCities.forEach((c) => {
       if (c.toLowerCase().includes(q)) pool.add(`City: ${c}`)
     })
     dbLocations.forEach((loc) => {
@@ -253,7 +409,7 @@ function PropertiesContent() {
     })
 
     return Array.from(pool).slice(0, 8)
-  }, [searchQuery, dbCities, dbLocations, allProperties])
+  }, [searchQuery, configuredCities, dbCities, dbLocations, allProperties])
 
   // Fetch properties from backend API with location-wise & parameter query string
   React.useEffect(() => {
@@ -273,14 +429,28 @@ function PropertiesContent() {
         const res = await fetch(url).catch(() => null)
         if (res && res.ok && isSubscribed) {
           const data = await res.json().catch(() => [])
-          if (Array.isArray(data) && data.length > 0) {
+          // Keep demo listings only when the unfiltered DB is empty; a filtered empty result must clear stale cards
+          const hasActiveFilters = Array.from(queryParams.keys()).some((k) => k !== 'sort')
+          if (Array.isArray(data) && (data.length > 0 || hasActiveFilters)) {
             setAllProperties(data.map(mapBackendProperty))
+          } else if (Array.isArray(data)) {
+            setAllProperties(PROPERTIES)
           }
         }
       } catch (err) {
         console.error('Failed to load properties:', err)
       } finally {
-        if (isSubscribed) setIsLoading(false)
+        if (isSubscribed) {
+          setIsLoading(false)
+          if (pendingScrollRef.current) {
+            pendingScrollRef.current = false
+            // Re-align only if the new results pushed the grid out of place.
+            requestAnimationFrame(() => {
+              const top = document.getElementById('properties-grid')?.getBoundingClientRect().top
+              if (top !== undefined && (top < 0 || top > 220)) scrollToSection('properties-grid', { delay: 0 })
+            })
+          }
+        }
       }
     }
 
@@ -303,7 +473,9 @@ function PropertiesContent() {
 
       // 2. Property Type Filter
       if (selectedType !== 'ALL') {
-        if (prop.propertyType.toUpperCase() !== selectedType.toUpperCase()) return false
+        // selectedType is a backend enum (e.g. RESIDENTIAL_PLOT); prop.propertyType is the mapped display type
+        const selectedDisplayType = mapPropertyType(selectedType.toUpperCase())
+        if (prop.propertyType.toUpperCase() !== selectedType.toUpperCase() && prop.propertyType !== selectedDisplayType) return false
       }
 
       // 3. Listing Type Filter (Sale / Rent / Lease)
@@ -352,7 +524,7 @@ function PropertiesContent() {
     }).sort((a, b) => {
       if (sortBy === 'PRICE_LOW') return a.price - b.price
       if (sortBy === 'PRICE_HIGH') return b.price - a.price
-      if (sortBy === 'NEWEST') return b.id.localeCompare(a.id)
+      if (sortBy === 'NEWEST') return (new Date(b.createdAt).getTime() || 0) - (new Date(a.createdAt).getTime() || 0)
       // FEATURED Default
       return (b.isFeatured ? 1 : 0) - (a.isFeatured ? 1 : 0)
     })
@@ -366,6 +538,7 @@ function PropertiesContent() {
     setSelectedBudget('ALL')
     setOnlyVerified(false)
     setSortBy('FEATURED')
+    setSearchNotice(null)
 
     if (typeof window !== 'undefined') {
       window.history.replaceState(null, '', window.location.pathname)
@@ -378,7 +551,7 @@ function PropertiesContent() {
       <div className="bg-gradient-to-r from-[#051711] via-[#0A2E23] to-[#0B4F3C] text-white pt-10 pb-12 px-4 sm:px-6 lg:px-8 border-b border-emerald-500/20 shadow-xl relative overflow-hidden max-w-full">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(16,185,129,0.15),transparent_50%)]" />
 
-        <div className="max-w-[1440px] mx-auto relative z-10 space-y-6 max-w-full">
+        <div className="max-w-[1440px] mx-auto relative z-10 space-y-6">
           <div className="text-center max-w-3xl mx-auto space-y-2">
             <span className="px-3 py-1 bg-emerald-500/20 text-emerald-300 rounded-full text-xs font-extrabold uppercase tracking-widest border border-emerald-500/30 inline-flex items-center gap-1.5 shadow-sm">
               <Sparkles className="w-3.5 h-3.5 text-emerald-400" /> Smart Dynamic Real Estate Finder
@@ -407,7 +580,7 @@ function PropertiesContent() {
               </a>
             </div>
           </div>
-          <div className="bg-white rounded-3xl p-3 sm:p-4 shadow-2xl border border-emerald-500/20 max-w-5xl mx-auto text-slate-800 max-w-full overflow-hidden">
+          <div className="bg-white rounded-3xl p-3 sm:p-4 shadow-2xl border border-emerald-500/20 max-w-5xl mx-auto text-slate-800">
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2.5">
               <div className="relative">
                 <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -420,13 +593,18 @@ function PropertiesContent() {
                   }}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') {
+                      e.preventDefault()
+                      applySearchText(searchQuery)
+                    } else if (e.key === 'Escape') {
                       setShowLocationDropdown(false)
-                      scrollToResults()
                     }
                   }}
                   onFocus={() => setShowLocationDropdown(true)}
+                  onBlur={() => setTimeout(() => setShowLocationDropdown(false), 150)}
+                  enterKeyHint="search"
+                  aria-label="Search by city, locality, landmark or project"
                   placeholder="City, locality, landmark, project..."
-                  className="w-full pl-10 pr-7 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-semibold focus:outline-none focus:border-emerald-600 focus:bg-white text-slate-900"
+                  className="w-full pl-10 pr-24 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-semibold focus:outline-none focus:border-emerald-600 focus:bg-white text-slate-900"
                 />
                 <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center gap-1">
                   {searchQuery && (
@@ -437,13 +615,29 @@ function PropertiesContent() {
                         setShowLocationDropdown(false)
                       }}
                       className="text-slate-400 hover:text-slate-600 p-1"
+                      aria-label="Clear search"
                     >
                       <X className="w-3.5 h-3.5" />
                     </button>
                   )}
                   <button
                     type="button"
+                    onClick={handleNearbyClick}
+                    disabled={isLocating}
+                    className={`p-1.5 rounded-full transition-all cursor-pointer border ${
+                      isLocating
+                        ? 'text-emerald-700 bg-emerald-100 animate-pulse border-emerald-500'
+                        : 'text-emerald-600 bg-emerald-50 hover:bg-emerald-600 hover:text-white border-emerald-200'
+                    }`}
+                    title="Properties near me"
+                    aria-label="Search properties near my location"
+                  >
+                    {isLocating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Navigation className="w-3.5 h-3.5" />}
+                  </button>
+                  <button
+                    type="button"
                     onClick={handleVoiceSearch}
+                    aria-label="Voice search"
                     className={`p-1.5 rounded-full transition-all cursor-pointer border ${
                       isListening 
                         ? 'text-red-500 bg-red-100 animate-pulse border-red-500' 
@@ -460,10 +654,13 @@ function PropertiesContent() {
                   <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-2xl shadow-xl z-30 max-h-60 overflow-y-auto divide-y divide-slate-100">
                     {locationSuggestions.map((item, i) => {
                       const text = item.replace(/^(City|Locality|Area|Project):\s*/, '')
+                      const cityImage = item.startsWith('City:') ? cityImageByName[text.toLowerCase()] : undefined
                       return (
                         <button
                           key={i}
                           type="button"
+                          // mousedown fires before the input's blur closes the dropdown
+                          onMouseDown={(e) => e.preventDefault()}
                           onClick={() => {
                             if (item.startsWith('City:')) {
                               setSelectedCity(text)
@@ -472,13 +669,19 @@ function PropertiesContent() {
                               setSearchQuery(text)
                             }
                             setShowLocationDropdown(false)
-                            scrollToResults()
+                            setSearchNotice(null)
+                            scrollToResults(true)
                           }}
-                          className="w-full text-left px-4 py-2.5 hover:bg-emerald-50 text-xs flex items-center justify-between transition-colors cursor-pointer"
+                          className="w-full text-left px-4 py-2.5 hover:bg-emerald-50 text-xs flex items-center justify-between gap-2 transition-colors cursor-pointer"
                         >
-                          <span className="font-semibold text-slate-800 flex items-center gap-2">
-                            <MapPin className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                            {text}
+                          <span className="font-semibold text-slate-800 flex items-center gap-2 min-w-0">
+                            {cityImage ? (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img src={cityImage} alt="" className="w-7 h-7 rounded-lg object-cover shrink-0" />
+                            ) : (
+                              <MapPin className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                            )}
+                            <span className="truncate">{text}</span>
                           </span>
                           <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider bg-slate-100 px-2 py-0.5 rounded-full">
                             {item.split(':')[0]}
@@ -541,9 +744,9 @@ function PropertiesContent() {
 
             {/* Quick Action Filter Pills */}
             <div className="mt-3 pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2 text-xs">
-              <div className="flex items-center gap-2 overflow-x-auto">
-                <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Quick Filters:</span>
-                <label className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-xl text-xs font-bold cursor-pointer hover:bg-emerald-100 transition-colors">
+              <div className="flex items-center gap-2 overflow-x-auto scrollbar-none w-full sm:w-auto min-w-0 pb-0.5">
+                <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider shrink-0">Quick Filters:</span>
+                <label className="inline-flex items-center gap-1.5 px-3 py-1 shrink-0 whitespace-nowrap bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-xl text-xs font-bold cursor-pointer hover:bg-emerald-100 transition-colors">
                   <input
                     type="checkbox"
                     checked={onlyVerified}
@@ -564,7 +767,7 @@ function PropertiesContent() {
                       setSelectedListingType(lType)
                       scrollToResults()
                     }}
-                    className={`px-3 py-1 rounded-xl text-xs font-bold transition-all ${selectedListingType === lType
+                    className={`px-3 py-1 rounded-xl text-xs font-bold transition-all shrink-0 whitespace-nowrap ${selectedListingType === lType
                       ? 'bg-slate-900 text-white shadow-sm'
                       : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                       }`}
@@ -575,12 +778,15 @@ function PropertiesContent() {
               </div>
 
               <div className="flex items-center gap-2">
-                <span 
-                  className="text-xs font-bold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-xl border border-emerald-200 cursor-help transition-all hover:bg-emerald-100"
-                  title={`Showing ${filteredProperties.length} properties out of ${allProperties.length} total. \nFilters: City: ${selectedCity}, Type: ${selectedType}, Budget: ${selectedBudget}`}
+                <button
+                  type="button"
+                  onClick={() => scrollToResults()}
+                  className="inline-flex items-center gap-1 text-xs font-bold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-xl border border-emerald-200 cursor-pointer transition-all hover:bg-emerald-600 hover:text-white hover:border-emerald-600"
+                  title="Jump to results"
                 >
-                  {filteredProperties.length} Properties Found
-                </span>
+                  {filteredProperties.length} {filteredProperties.length === 1 ? 'Property' : 'Properties'} Found
+                  <ChevronDown className="w-3.5 h-3.5" />
+                </button>
                 {(searchQuery || selectedCity !== 'All Cities' || selectedType !== 'ALL' || selectedListingType !== 'ALL' || selectedBudget !== 'ALL' || onlyVerified || sortBy !== 'FEATURED') && (
                   <button
                     type="button"
@@ -592,6 +798,24 @@ function PropertiesContent() {
                 )}
               </div>
             </div>
+
+            {(searchNotice || isListening) && (
+              <div
+                role="status"
+                className={`mt-3 flex items-start justify-between gap-2 rounded-2xl px-3 py-2 text-xs font-semibold border ${
+                  searchNotice?.tone === 'error' && !isListening
+                    ? 'bg-red-50 text-red-700 border-red-200'
+                    : 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                }`}
+              >
+                <span>{isListening ? '🎙️ Listening… say a city, locality or project name.' : searchNotice?.text}</span>
+                {!isListening && (
+                  <button type="button" onClick={() => setSearchNotice(null)} aria-label="Dismiss" className="shrink-0 opacity-60 hover:opacity-100 cursor-pointer">
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -609,9 +833,7 @@ function PropertiesContent() {
           <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
             {availableCities.map((city) => {
               const isSelected = selectedCity === city
-              const count = city === 'All Cities'
-                ? allProperties.length
-                : allProperties.filter((p) => (p.location?.city || '').toLowerCase().includes(city.toLowerCase())).length
+              const count = countForCity(city)
 
               return (
                 <button
@@ -644,9 +866,11 @@ function PropertiesContent() {
 
         {/* Dynamic Location Corridor Cards */}
         {availableCities.filter(c => c !== 'All Cities').length > 0 && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {availableCities.filter(c => c !== 'All Cities').slice(0, 4).map((cityName, idx) => {
-              const propCount = allProperties.filter(p => (p.location?.city || '').toLowerCase().includes(cityName.toLowerCase())).length
+          // Swipeable row on phones (stacked cards pushed results ~650px down); grid from sm up
+          <div className="flex gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-none -mx-4 px-4 pb-1 sm:mx-0 sm:px-0 sm:pb-0 sm:grid sm:grid-cols-2 lg:grid-cols-4 sm:overflow-visible">
+            {(configuredCities.length > 0 ? cityNames.slice(0, 8) : availableCities.filter(c => c !== 'All Cities').slice(0, 4)).map((cityName, idx) => {
+              const propCount = countForCity(cityName)
+              const cityImage = cityImageByName[cityName.toLowerCase()]
               const gradients = [
                 'from-[#061913] via-[#0A2E23] to-[#0B4F3C]',
                 'from-[#171A18] via-[#2A3B34] to-[#0B4F3C]',
@@ -663,9 +887,26 @@ function PropertiesContent() {
                     setSearchQuery('')
                     scrollToResults()
                   }}
-                  className={`bg-gradient-to-br ${bgGrad} p-4 rounded-3xl text-white border border-white/10 shadow-lg hover:shadow-2xl hover:scale-[1.02] transition-all cursor-pointer group flex flex-col justify-between h-36`}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault()
+                      setSelectedCity(cityName)
+                      setSearchQuery('')
+                      scrollToResults()
+                    }
+                  }}
+                  className={`relative overflow-hidden bg-gradient-to-br ${bgGrad} p-4 rounded-3xl text-white border border-white/10 shadow-lg hover:shadow-2xl hover:scale-[1.02] transition-all cursor-pointer group flex flex-col justify-between h-36 w-[78%] shrink-0 snap-start sm:w-auto ${selectedCity === cityName ? 'ring-2 ring-amber-400' : ''}`}
                 >
-                  <div>
+                  {cityImage && (
+                    <>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={cityImage} alt="" className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/45 to-black/20" />
+                    </>
+                  )}
+                  <div className="relative">
                     <div className="flex items-center justify-between">
                       <span className="text-[10px] font-bold uppercase tracking-wider text-amber-300 bg-amber-400/20 px-2.5 py-0.5 rounded-full border border-amber-400/30">
                         {cityName}
@@ -676,7 +917,7 @@ function PropertiesContent() {
                     <p className="text-[11px] text-white/70 line-clamp-1">{propCount} Verified Properties Listed</p>
                   </div>
 
-                  <div className="text-[10px] text-emerald-300 font-bold flex items-center gap-1 border-t border-white/10 pt-2">
+                  <div className="relative text-[10px] text-emerald-300 font-bold flex items-center gap-1 border-t border-white/10 pt-2">
                     <CheckCircle2 className="w-3 h-3 text-emerald-400" /> NA Approved Townships · 0% Brokerage
                   </div>
                 </div>

@@ -62,6 +62,7 @@ const navSections: NavSection[] = [
       { name: 'Property Listings', path: '/properties', icon: Home, allowedRoles: ADMIN_DIRECTOR },
       { name: 'Bulk Deals Manager', path: '/bulk-deals-management', icon: Flame, allowedRoles: ADMIN_DIRECTOR_MANAGER, badge: 'HOT' },
       { name: 'Public Gallery Showcase', path: '/gallery-management', icon: ImageIcon, allowedRoles: ADMIN_DIRECTOR_MANAGER },
+      { name: 'Cities & Locations', path: '/cities', icon: Map, allowedRoles: ADMIN_DIRECTOR_MANAGER },
       { name: 'Plot Inventory & Canvas', path: '/plots', icon: MapPin, allowedRoles: ALL_ROLES },
       { name: 'Naksha AI OCR Tool', path: '/ocr-analyzer', icon: ScanText, allowedRoles: ADMIN_DIRECTOR, badge: 'AI' },
     ]

@@ -39,7 +39,7 @@ export function HomepageContactSection() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          fullName: formData.fullName,
+          name: formData.fullName,
           email: formData.email || `${formData.phone}@houseandsky.in`,
           phone: formData.phone,
           inquiryType: 'CUSTOMER_VIEWING',

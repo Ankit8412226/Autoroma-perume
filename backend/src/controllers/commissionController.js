@@ -46,7 +46,17 @@ exports.getCommissions = async (req, res, next) => {
 
 exports.getCommissionSummary = async (req, res, next) => {
   try {
+    // MANAGERs only see totals for themselves + their downline (same scope as
+    // the commission list); ADMIN/DIRECTOR see company-wide totals.
+    const scope = {};
+    if (req.user && !['ADMIN', 'DIRECTOR'].includes(req.user.role)) {
+      const loggedInEmp = await Employee.findOne({ userId: req.user._id });
+      const downlines = loggedInEmp ? await getDownlineEmployeeIds(loggedInEmp._id) : [];
+      scope.employeeId = { $in: loggedInEmp ? [loggedInEmp._id, ...downlines] : [] };
+    }
+
     const summary = await Commission.aggregate([
+      { $match: scope },
       {
         $group: {
           _id: "$status",
@@ -57,12 +67,12 @@ exports.getCommissionSummary = async (req, res, next) => {
     ]);
 
     const totalCommissionsPaid = await Commission.aggregate([
-      { $match: { status: 'PAID' } },
+      { $match: { ...scope, status: 'PAID' } },
       { $group: { _id: null, total: { $sum: "$commissionAmount" } } }
     ]);
 
     const totalCommissionsPending = await Commission.aggregate([
-      { $match: { status: { $in: ['CALCULATED', 'APPROVED'] } } },
+      { $match: { ...scope, status: { $in: ['CALCULATED', 'APPROVED'] } } },
       { $group: { _id: null, total: { $sum: "$commissionAmount" } } }
     ]);
 

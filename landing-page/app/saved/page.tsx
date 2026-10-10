@@ -2,7 +2,9 @@
 
 import * as React from 'react'
 import Link from 'next/link'
-import { PROPERTIES } from '@/data/properties'
+import { PROPERTIES, Property } from '@/data/properties'
+import { getApiBaseUrl } from '@/utils/api'
+import { mapBackendProperty } from '@/utils/mapListing'
 import { PropertyGrid } from '@/components/real-estate/PropertyGrid'
 import { useSavedStore } from '@/stores/saved.store'
 import { Bookmark, Trash2, ArrowRight, ShieldCheck, Building2 } from 'lucide-react'
@@ -16,10 +18,34 @@ export default function SavedPropertiesPage() {
     setMounted(true)
   }, [])
 
+  // Saved IDs may belong to live DB listings (Mongo _id), not only the static demo data
+  const [liveProperties, setLiveProperties] = React.useState<Property[]>([])
+
+  React.useEffect(() => {
+    if (!mounted || propertyIds.length === 0) return
+    let isSubscribed = true
+    const loadLive = async () => {
+      try {
+        const res = await fetch(`${getApiBaseUrl()}/public/properties`).catch(() => null)
+        if (res && res.ok && isSubscribed) {
+          const data = await res.json().catch(() => [])
+          if (Array.isArray(data)) setLiveProperties(data.map(mapBackendProperty))
+        }
+      } catch (e) {
+        console.error('Failed to load saved properties:', e)
+      }
+    }
+    loadLive()
+    return () => {
+      isSubscribed = false
+    }
+  }, [mounted, propertyIds.length])
+
   const savedProperties = React.useMemo(() => {
     if (!mounted) return []
-    return PROPERTIES.filter((p) => propertyIds.includes(p.id))
-  }, [mounted, propertyIds])
+    const pool = [...liveProperties, ...PROPERTIES.filter((p) => !liveProperties.some((l) => l.id === p.id))]
+    return pool.filter((p) => propertyIds.includes(p.id))
+  }, [mounted, propertyIds, liveProperties])
 
   return (
     <div className="min-h-screen bg-[#FAF9F6] py-12">

@@ -2,6 +2,7 @@ const Project = require('../models/Project');
 const ProjectSettings = require('../models/ProjectSettings');
 const Plot = require('../models/Plot');
 const PlotMap = require('../models/PlotMap');
+const Property = require('../models/Property');
 const { applyProjectMaps } = require('../utils/googleMaps');
 const { normalizeExtractedPlot, buildPricedPlot, DEFAULT_STATUS } = require('../utils/plotFromOcr');
 const { withFreshProjectMedia } = require('../utils/mediaHydrator');
@@ -145,7 +146,10 @@ exports.createProject = async (req, res, next) => {
 exports.updateProject = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const maps = applyProjectMaps(req.body);
+    // Only re-derive map fields when the caller actually sent them; otherwise a
+    // partial update would wipe the stored Google Maps URL / embed URL.
+    const touchesMaps = req.body.googleMapsUrl !== undefined || req.body.mapEmbedUrl !== undefined;
+    const maps = touchesMaps ? applyProjectMaps(req.body) : {};
     const project = await Project.findByIdAndUpdate(id, { ...req.body, ...maps }, { new: true });
     if (!project) return res.status(404).json({ message: 'Project not found' });
     res.json(project);
@@ -157,9 +161,12 @@ exports.updateProject = async (req, res, next) => {
 exports.deleteProject = async (req, res, next) => {
   try {
     const { id } = req.params;
-    await Project.findByIdAndDelete(id);
+    const project = await Project.findByIdAndDelete(id);
+    if (!project) return res.status(404).json({ message: 'Project not found' });
     await Plot.deleteMany({ projectId: id });
     await ProjectSettings.deleteMany({ projectId: id });
+    // Detach standalone listings so they don't keep a dangling project reference.
+    await Property.updateMany({ projectId: id }, { $set: { projectId: null } });
     res.json({ message: 'Project and associated plots deleted successfully' });
   } catch (error) {
     next(error);

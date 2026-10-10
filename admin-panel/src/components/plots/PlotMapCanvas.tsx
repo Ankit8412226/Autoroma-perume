@@ -28,6 +28,9 @@ function hasPinnedMarker(plot: Plot): boolean {
   if (rawX === null || rawX === undefined || rawY === null || rawY === undefined) return false;
   const x = Number(rawX);
   const y = Number(rawY);
+  // Legacy OCR data: un-located plots were saved as exactly (0,0) (null coerced to 0),
+  // which stacked every one of them, clipped, in the image's top-left corner.
+  if (x === 0 && y === 0) return false;
   return Number.isFinite(x) && Number.isFinite(y);
 }
 

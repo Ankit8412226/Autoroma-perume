@@ -178,7 +178,7 @@ exports.payoutSummaryReport = async (req, res, next) => {
 /** Plot inventory ledger — the client 15-column pricing format. */
 exports.plotLedgerReport = async (req, res, next) => {
   try {
-    const { projectId } = req.query;
+    const projectId = typeof req.query.projectId === 'string' ? req.query.projectId : undefined;
     const filter = projectId ? { projectId } : {};
     const plots = await Plot.find(filter).sort({ plotNo: 1 });
 

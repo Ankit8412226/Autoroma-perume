@@ -24,7 +24,7 @@ exports.getDashboardStats = async (req, res, next) => {
     };
 
     plotStatsArray.forEach(item => {
-      plotStats[item._id] = item.count;
+      if (item._id && plotStats[item._id] !== undefined) plotStats[item._id] = item.count;
       plotStats.total += item.count;
     });
 
@@ -38,13 +38,15 @@ exports.getDashboardStats = async (req, res, next) => {
     // Monthly Revenue (Current Month)
     const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
     const monthlyRevAgg = await Transaction.aggregate([
-      { $match: { status: 'COMPLETED', createdAt: { $gte: startOfMonth } } },
+      // Use transactionDate (the sale date) — same field as the revenue trend chart.
+      { $match: { status: 'COMPLETED', transactionDate: { $gte: startOfMonth } } },
       { $group: { _id: null, monthlyRevenue: { $sum: "$amount" } } }
     ]);
     const monthlyRevenue = monthlyRevAgg.length > 0 ? monthlyRevAgg[0].monthlyRevenue : 0;
 
     // Total Commissions
     const commAgg = await Commission.aggregate([
+      { $match: { status: { $ne: 'CANCELLED' } } },
       { $group: { _id: null, totalCommissions: { $sum: "$commissionAmount" } } }
     ]);
     const totalCommissions = commAgg.length > 0 ? commAgg[0].totalCommissions : 0;
@@ -101,6 +103,12 @@ exports.getDashboardStats = async (req, res, next) => {
       { $unwind: '$plot' },
       { $group: { _id: '$plot.projectId', revenue: { $sum: '$amount' }, sales: { $sum: 1 } } }
     ]);
+    // Live plot counts per project (stored totalPlots is not updated by CSV import / OCR).
+    const plotsPerProjectAgg = await Plot.aggregate([
+      { $group: { _id: '$projectId', count: { $sum: 1 } } }
+    ]);
+    const plotsPerProject = {};
+    plotsPerProjectAgg.forEach((r) => { plotsPerProject[String(r._id)] = r.count; });
     const projectRevMap = {};
     projectRevAgg.forEach((r) => { projectRevMap[String(r._id)] = r; });
 
@@ -134,7 +142,7 @@ exports.getDashboardStats = async (req, res, next) => {
         })),
         projectRevenue: projectRevenues.map(p => ({
           name: p.name,
-          plots: p.totalPlots,
+          plots: Math.max(p.totalPlots || 0, plotsPerProject[String(p._id)] || 0),
           soldPlots: projectRevMap[String(p._id)] ? projectRevMap[String(p._id)].sales : 0,
           revenue: projectRevMap[String(p._id)] ? projectRevMap[String(p._id)].revenue : 0
         }))

@@ -40,6 +40,12 @@ export const LoginPage: React.FC = () => {
       const response = await api.post('/auth/login', { email, password });
       const { token, user, employee } = response.data;
 
+      // Property owners / public users have their own portal on the website.
+      if (['PROPERTY_OWNER', 'USER'].includes(user.role)) {
+        setError('This panel is for staff and agents only. Property owners should log in on the House & Sky website.');
+        return;
+      }
+
       login(token, user, employee);
       const isAdmin = ['ADMIN', 'DIRECTOR'].includes(user.role);
       navigate(isAdmin ? '/dashboard' : '/mlm-tree');

@@ -1,8 +1,10 @@
 'use client'
 
 import * as React from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Search, MapPin, Navigation, Crosshair, ChevronDown, Mic } from 'lucide-react'
+import { Search, MapPin, Navigation, ChevronDown, Mic, Loader2, X } from 'lucide-react'
+import { DEFAULT_CITY_NAMES, matchCityName, useConfiguredCities } from '@/utils/cities'
 
 interface PropertySearchProps {
   initialLocation?: string
@@ -26,12 +28,29 @@ export function PropertySearch({
   const [propertyType, setPropertyType] = React.useState('All Residential')
   const [isLocating, setIsLocating] = React.useState(false)
   const [isListening, setIsListening] = React.useState(false)
+  const [notice, setNotice] = React.useState('')
+  const [showSuggestions, setShowSuggestions] = React.useState(false)
+  const { cities: configuredCities } = useConfiguredCities()
+
+  const cityNames = configuredCities.length > 0 ? configuredCities.map((c) => c.name) : DEFAULT_CITY_NAMES
+  const popularCities = cityNames.slice(0, 6)
+  const citySuggestions = React.useMemo(() => {
+    const q = searchQuery.toLowerCase().trim()
+    if (!q) return []
+    const list = configuredCities.length > 0
+      ? configuredCities.filter((c) => c.name.toLowerCase().includes(q)).slice(0, 6)
+      : DEFAULT_CITY_NAMES.filter((n) => n.toLowerCase().includes(q)).slice(0, 6).map((name) => ({ _id: name, name, state: '', imageUrl: '' }))
+    // Nothing to suggest once the text already is that city — and on phones the
+    // open list would cover the Search button.
+    if (list.length === 1 && list[0].name.toLowerCase() === q) return []
+    return list
+  }, [searchQuery, configuredCities])
 
   const handleVoiceSearch = () => {
     if (typeof window === 'undefined') return
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
     if (!SpeechRecognition) {
-      alert('Voice search is not supported in this browser.')
+      setNotice('Voice search is not supported in this browser. Try Chrome, Edge or Safari.')
       return
     }
 
@@ -43,29 +62,40 @@ export function PropertySearch({
     recognition.onstart = () => setIsListening(true)
     
     recognition.onresult = (event: any) => {
-      const transcript = event.results[0][0].transcript
+      const transcript = (event.results?.[0]?.[0]?.transcript || '').trim()
+      if (!transcript) return
       setSearchQuery(transcript)
       submitSearch(transcript)
     }
 
     recognition.onerror = (event: any) => {
-      console.error('Speech recognition error', event.error)
-      if (event.error !== 'no-speech') {
-        alert('Error with voice search. Please try again.')
+      setIsListening(false)
+      if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+        setNotice('Microphone permission was denied. Allow microphone access to use voice search.')
+      } else if (event.error === 'no-speech') {
+        setNotice('Didn’t catch that — tap the mic and say a city or locality.')
+      } else if (event.error !== 'aborted') {
+        setNotice('Voice search failed. Please try again or type your search.')
       }
     }
 
     recognition.onend = () => setIsListening(false)
 
-    recognition.start()
+    try {
+      setNotice('')
+      recognition.start()
+    } catch {
+      setIsListening(false)
+    }
   }
 
   const handleNearbyClick = () => {
     if (!('geolocation' in navigator)) {
-      alert('Geolocation is not supported in this browser.')
+      setNotice('Location is not supported in this browser. Please type a city instead.')
       return
     }
-    
+
+    setNotice('')
     setIsLocating(true)
     navigator.geolocation.getCurrentPosition(
       (position) => {
@@ -84,16 +114,23 @@ export function PropertySearch({
         router.push(`/properties?${params.toString()}#properties-grid`)
       },
       (error) => {
-        console.error('Geolocation error:', error)
         setIsLocating(false)
-        alert('Could not get your location. Please check your permissions.')
-      }
+        setNotice(error.code === error.PERMISSION_DENIED
+          ? 'Location permission was denied. Allow location access in your browser, or type a city instead.'
+          : 'Could not get your location. Please try again or type a city instead.')
+      },
+      { timeout: 15000, maximumAge: 5 * 60 * 1000 }
     )
   }
 
   const submitSearch = (query: string = searchQuery) => {
+    setShowSuggestions(false)
     const params = new URLSearchParams()
-    if (query) params.set('location', query)
+    const trimmed = query.trim()
+    // A spoken/typed city name goes to the city filter; anything else is a keyword search.
+    const city = matchCityName(trimmed, cityNames)
+    if (city) params.set('city', city)
+    else if (trimmed) params.set('location', trimmed)
     params.set('intent', activeTab.toLowerCase())
     if (propertyType !== 'All Residential') {
       params.set('type', propertyType)
@@ -139,12 +176,12 @@ export function PropertySearch({
           })}
         </div>
         <div className="hidden md:block pb-3">
-          <button type="button" className="text-sm font-semibold text-gray-700 hover:text-brand-charcoal flex items-center gap-1 cursor-pointer py-3 sm:py-0 min-h-[44px] sm:min-h-0">
+          <Link href="/list-your-property" className="text-sm font-semibold text-gray-700 hover:text-brand-charcoal flex items-center gap-1 cursor-pointer py-3 sm:py-0 min-h-[44px] sm:min-h-0">
             Post Property
             <span className="bg-emerald-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider ml-1">
               Free
             </span>
-          </button>
+          </Link>
         </div>
       </div>
 
@@ -171,15 +208,50 @@ export function PropertySearch({
           </div>
 
           {/* Search Input */}
-          <div className="flex-grow flex items-center gap-2 px-4 py-2 w-full">
+          <div className="relative flex-grow flex items-center gap-2 px-4 py-2 w-full">
             <Search className="w-4 h-4 text-gray-400 shrink-0" />
             <input
               type="text"
-              placeholder='Search "Hyderabad"'
+              placeholder={`Search "${cityNames[0] || 'Dholera'}"`}
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => {
+                setSearchQuery(e.target.value)
+                setShowSuggestions(true)
+              }}
+              onFocus={() => setShowSuggestions(true)}
+              onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
+              onKeyDown={(e) => {
+                if (e.key === 'Escape') setShowSuggestions(false)
+              }}
+              enterKeyHint="search"
+              aria-label="Search by city, locality or project"
               className="w-full bg-transparent text-sm text-brand-charcoal focus:outline-none font-medium placeholder-gray-400 min-h-[44px] sm:min-h-0"
             />
+            {showSuggestions && citySuggestions.length > 0 && (
+              <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-xl z-30 max-h-64 overflow-y-auto divide-y divide-gray-100">
+                {citySuggestions.map((city) => (
+                  <button
+                    key={city._id}
+                    type="button"
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => {
+                      setSearchQuery(city.name)
+                      submitSearch(city.name)
+                    }}
+                    className="w-full text-left px-4 py-2.5 hover:bg-brand-soft text-sm flex items-center gap-3 cursor-pointer"
+                  >
+                    {city.imageUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={city.imageUrl} alt="" className="w-8 h-8 rounded-lg object-cover shrink-0" />
+                    ) : (
+                      <MapPin className="w-4 h-4 text-brand-green shrink-0" />
+                    )}
+                    <span className="font-semibold text-brand-charcoal truncate">{city.name}</span>
+                    {city.state && <span className="text-xs text-gray-400 truncate">{city.state}</span>}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Action Icons & Button */}
@@ -193,6 +265,7 @@ export function PropertySearch({
                   : 'text-brand-green bg-brand-soft hover:bg-brand-green hover:text-white border-brand-green/30 shadow-sm'
               }`}
               title="Voice Search"
+              aria-label="Voice search"
             >
               <Mic className="w-4 h-4 sm:w-4 sm:h-4" />
             </button>
@@ -204,9 +277,11 @@ export function PropertySearch({
                   ? 'text-brand-green bg-brand-green/20 animate-pulse border-brand-green' 
                   : 'text-brand-green bg-brand-soft hover:bg-brand-green hover:text-white border-brand-green/30 shadow-sm'
               }`}
-              title="Detect Current Location"
+              title="Properties near me"
+              aria-label="Search properties near my location"
+              disabled={isLocating}
             >
-              <Navigation className="w-4 h-4 sm:w-4 sm:h-4" />
+              {isLocating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Navigation className="w-4 h-4 sm:w-4 sm:h-4" />}
             </button>
             <button
               type="submit"
@@ -217,18 +292,34 @@ export function PropertySearch({
           </div>
         </form>
 
-        {/* ── Recent Searches (Optional) ─────────────────────────────────── */}
-        <div className="hidden sm:flex items-center gap-4 px-2 mt-4 text-[11px] text-gray-500 font-medium">
-          <span>Recent searches:</span>
-          <button type="button" className="flex items-center gap-1 hover:text-brand-charcoal cursor-pointer">
-            <MapPin className="w-3 h-3" />
-            Buy in Delhi , Farm House
-          </button>
-          <span className="text-gray-300">|</span>
-          <button type="button" className="flex items-center gap-1 hover:text-brand-charcoal cursor-pointer">
-            <Search className="w-3 h-3" />
-            View all searches
-          </button>
+        {(notice || isListening) && (
+          <div role="status" className={`mt-3 mx-1 flex items-start justify-between gap-2 rounded-xl px-3 py-2 text-xs font-semibold border ${isListening ? 'bg-brand-soft text-brand-green border-brand-green/20' : 'bg-red-50 text-red-700 border-red-200'}`}>
+            <span>{isListening ? '🎙️ Listening… say a city, locality or project name.' : notice}</span>
+            {!isListening && (
+              <button type="button" onClick={() => setNotice('')} aria-label="Dismiss" className="shrink-0 opacity-60 hover:opacity-100 cursor-pointer">
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* ── Popular cities (from admin panel → Cities & Locations) ───────── */}
+        <div className="flex items-center gap-2 px-1 mt-3 sm:mt-4 text-[11px] text-gray-500 font-medium overflow-x-auto scrollbar-none">
+          <span className="shrink-0">Popular:</span>
+          {popularCities.map((city) => (
+            <button
+              key={city}
+              type="button"
+              onClick={() => {
+                setSearchQuery(city)
+                submitSearch(city)
+              }}
+              className="shrink-0 flex items-center gap-1 px-2.5 py-1 rounded-full bg-gray-100 hover:bg-brand-soft hover:text-brand-green cursor-pointer whitespace-nowrap"
+            >
+              <MapPin className="w-3 h-3" />
+              {city}
+            </button>
+          ))}
         </div>
       </div>
     </div>

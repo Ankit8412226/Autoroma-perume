@@ -190,6 +190,7 @@ async function evaluateAndUpgradeRank(employeeId) {
     break; // RANK_RULES is ordered highest -> lowest
   }
 
+  const previousRank = employee.currentRank;
   const currentRule = RANK_RULES.find((r) => r.rank === employee.currentRank);
   const currentOrder = currentRule ? currentRule.rankOrder : -1;
 
@@ -209,6 +210,9 @@ async function evaluateAndUpgradeRank(employeeId) {
   return {
     employeeId: employee._id,
     currentRank: employee.currentRank,
+    previousRank,
+    upgraded: employee.currentRank !== previousRank,
+    newRank: employee.currentRank,
     qualified: isRankQualified(employee.currentRank, metrics),
     commissionRate,
     metrics
@@ -228,7 +232,9 @@ async function getMLMTree(rootEmployeeId = null) {
 
   // If no valid root found by ID, try finding by employeeCode or top level CEO (parentId: null)
   if (!root) {
-    root = await Employee.findOne({ parentId: null }).populate('userId', 'fullName email phone avatar');
+    // Oldest top-level member = company root. Without a sort Mongo may return
+    // any parentless member (e.g. an unsponsored public applicant).
+    root = await Employee.findOne({ parentId: null }).sort({ createdAt: 1 }).populate('userId', 'fullName email phone avatar');
   }
 
   // Final fallback to any employee

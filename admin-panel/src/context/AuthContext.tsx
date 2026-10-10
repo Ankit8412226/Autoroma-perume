@@ -31,6 +31,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.setItem('hippo_user', JSON.stringify(newUser));
     if (newEmployee) {
       localStorage.setItem('hippo_employee', JSON.stringify(newEmployee));
+    } else {
+      // Don't leak a previous session's employee profile into this one.
+      localStorage.removeItem('hippo_employee');
     }
   };
 

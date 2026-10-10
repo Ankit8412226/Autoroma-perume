@@ -23,6 +23,7 @@ const BulkBuyInquiry = require('../models/BulkBuyInquiry');
 const uploadController = require('../controllers/uploadController');
 const propertyController = require('../controllers/propertyController');
 const galleryController = require('../controllers/galleryController');
+const cityController = require('../controllers/cityController');
 const settingController = require('../controllers/settingController');
 
 const { protect, authorize } = require('../middleware/auth');
@@ -61,6 +62,7 @@ router.post('/public/properties/:id/buy-inquiry', inquiryLimiter, validate({
   phone: { required: true, type: 'string', minLength: 5, maxLength: 20 }
 }), propertyController.createBuyInquiry);
 router.get('/public/gallery', galleryController.getPublicGallery);
+router.get('/public/cities', cityController.getPublicCities);
 router.get('/public/bulk-deals', bulkDealController.getPublicBulkDeals);
 router.get('/public/bulk-deals/locations', bulkDealController.getPublicBulkDealLocations);
 router.get('/public/bulk-deals/:slug', bulkDealController.getPublicBulkDealBySlug);
@@ -80,6 +82,12 @@ router.get('/admin/gallery', protect, authorize('ADMIN', 'DIRECTOR', 'MANAGER'),
 router.post('/admin/gallery', protect, authorize('ADMIN', 'DIRECTOR', 'MANAGER'), galleryController.createGalleryItem);
 router.put('/admin/gallery/:id', protect, authorize('ADMIN', 'DIRECTOR', 'MANAGER'), galleryController.updateGalleryItem);
 router.delete('/admin/gallery/:id', protect, authorize('ADMIN', 'DIRECTOR'), galleryController.deleteGalleryItem);
+
+// --- City Management (website city dropdown / cards / nearby search) ---
+router.get('/admin/cities', protect, authorize('ADMIN', 'DIRECTOR', 'MANAGER'), cityController.getAdminCities);
+router.post('/admin/cities', protect, authorize('ADMIN', 'DIRECTOR', 'MANAGER'), cityController.createCity);
+router.put('/admin/cities/:id', protect, authorize('ADMIN', 'DIRECTOR', 'MANAGER'), cityController.updateCity);
+router.delete('/admin/cities/:id', protect, authorize('ADMIN', 'DIRECTOR', 'MANAGER'), cityController.deleteCity);
 
 // --- DEDICATED BULK DEALS MANAGEMENT ROUTES (Admin) ---
 router.get('/admin/bulk-deals', protect, authorize('ADMIN', 'DIRECTOR', 'MANAGER'), bulkDealController.getAdminBulkDeals);
@@ -105,30 +113,35 @@ router.post('/public/bulk-buy', inquiryLimiter, validate({
 router.post('/public/agent-application', inquiryLimiter, validate({
   fullName: { required: true, type: 'string', minLength: 2, maxLength: 80 },
   email: { required: true, type: 'email' },
+  password: { required: true, type: 'string', minLength: 6, maxLength: 128 },
   phone: { required: true, type: 'string', minLength: 5, maxLength: 20 }
 }), inquiryController.createPublicAgentApplication);
 
 // --- Auth Routes ---
-router.post('/auth/register', authLimiter, validate({
+router.post('/auth/register', protect, authorize('ADMIN'), validate({
   fullName: { required: true, type: 'string', minLength: 2, maxLength: 80 },
   email: { required: true, type: 'email' },
   password: { required: true, type: 'string', minLength: 6, maxLength: 128 },
   phone: { type: 'string', maxLength: 20 }
 }), authController.register);
 router.post('/auth/login', authLimiter, validate({
-  email: { required: true, type: 'email' },
+  email: { required: true, type: 'string', maxLength: 254 },
   password: { required: true, type: 'string' }
 }), authController.login);
 router.post('/auth/verify-email', authLimiter, authController.verifyEmail);
 router.get('/auth/verify-email', authLimiter, authController.verifyEmail);
 router.post('/auth/resend-verification', authLimiter, validate({
-  email: { required: true, type: 'email' }
+  email: { required: true, type: 'string', maxLength: 254 }
 }), authController.resendVerificationEmail);
 router.post('/auth/forgot-password', authLimiter, validate({
-  email: { required: true, type: 'email' }
+  email: { required: true, type: 'string', maxLength: 254 }
 }), authController.forgotPassword);
 router.post('/auth/reset-password', authLimiter, authController.resetPassword);
 router.get('/auth/me', protect, authController.getMe);
+router.post('/auth/change-password', protect, authLimiter, validate({
+  currentPassword: { required: true, type: 'string' },
+  newPassword: { required: true, type: 'string', minLength: 6, maxLength: 128 }
+}), authController.changePassword);
 
 router.post('/auth/register-public-agent', authLimiter, validate({
   fullName: { required: true, type: 'string', minLength: 2, maxLength: 80 },

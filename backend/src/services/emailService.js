@@ -30,9 +30,29 @@ transporter.verify((error, success) => {
   }
 });
 
+const toOrigin = (url) => {
+  try {
+    return new URL(url).origin;
+  } catch (e) {
+    return null;
+  }
+};
+
+// Only trusted front-end origins may be used to build emailed links. The
+// Origin/Referer header is client-controlled, so trusting it blindly would let
+// an attacker request a reset for a victim and receive the token on their own host.
+const TRUSTED_ORIGINS = new Set(
+  [DEFAULT_ADMIN_URL, DEFAULT_LANDING_URL, ...(process.env.CORS_ORIGINS || '').split(',')]
+    .map((o) => toOrigin(o.trim()))
+    .filter(Boolean)
+);
+
 const getBaseUrl = (clientOrigin, role) => {
-  if (clientOrigin && !clientOrigin.includes('localhost') && !clientOrigin.includes('127.0.0.1')) {
-    return clientOrigin.replace(/\/$/, '');
+  // clientOrigin may be a Referer (full URL incl. path, e.g. /owner-login?x=1);
+  // reduce it to scheme://host so links don't become /owner-login/verify-email.
+  const origin = clientOrigin ? toOrigin(clientOrigin) : null;
+  if (origin && TRUSTED_ORIGINS.has(origin) && !origin.includes('localhost') && !origin.includes('127.0.0.1')) {
+    return origin;
   }
   if (role === 'PROPERTY_OWNER' || role === 'USER') {
     return DEFAULT_LANDING_URL.replace(/\/$/, '');

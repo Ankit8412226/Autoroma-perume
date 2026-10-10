@@ -61,18 +61,35 @@ exports.approveMapOverlay = async (req, res, next) => {
     const project = await Project.findById(plotMap.projectId);
     if (!project) return res.status(404).json({ message: 'Project not found' });
 
-    const rawPlots = Array.isArray(updatedVectorOverlayData) && updatedVectorOverlayData.length
-      ? updatedVectorOverlayData
-      : plotMap.vectorOverlayData;
+    const reviewed = Array.isArray(updatedVectorOverlayData) && updatedVectorOverlayData.length > 0;
+    const rawPlots = reviewed ? updatedVectorOverlayData : (plotMap.vectorOverlayData || []);
 
+    // Rows were already de-duplicated by the OCR pipeline; merging again by position
+    // would drop plots the reviewer explicitly kept (and collapse un-pinned plots).
     const normalizedPlots = finalizeExtractedPlots(
       rawPlots
         .map((plot, index) => normalizeExtractedPlot(plot, index))
-        .filter(Boolean)
+        .filter(Boolean),
+      { merge: false }
     );
 
     if (normalizedPlots.length === 0) {
       return res.status(422).json({ message: 'No readable plots to approve. Re-upload a clearer naksha.' });
+    }
+
+    if (reviewed) {
+      const seen = new Set();
+      const duplicates = new Set();
+      normalizedPlots.forEach((plot) => {
+        const key = String(plot.plotNo).toUpperCase();
+        if (seen.has(key)) duplicates.add(plot.plotNo);
+        seen.add(key);
+      });
+      if (duplicates.size) {
+        return res.status(422).json({
+          message: `Duplicate plot numbers: ${Array.from(duplicates).join(', ')}. Give each plot a unique number before saving.`
+        });
+      }
     }
 
     plotMap.status = 'APPROVED';
@@ -177,7 +194,12 @@ exports.getLatestMapByProject = async (req, res, next) => {
       imageS3Key: plotMap.imageS3Key,
       extractedPlots: plotMap.vectorOverlayData || [],
       projectMeta: plotMap.extractedProjectMeta || {},
-      status: plotMap.status
+      confidenceScore: plotMap.confidenceScore || 0,
+      requiresHumanReview: true,
+      usedAI: true,
+      isSample: false,
+      status: plotMap.status,
+      createdAt: plotMap.createdAt
     });
   } catch (error) {
     next(error);

@@ -7,7 +7,13 @@ const TYPE_MAP: Record<string, Property['propertyType']> = {
   COMMERCIAL: 'Commercial',
   SHOWROOM: 'Commercial',
   VILLA: 'Villa',
-  APARTMENT: 'Apartment'
+  APARTMENT: 'Apartment',
+  STUDIO_APARTMENT: 'Apartment'
+}
+
+/** Maps a backend propertyType enum (e.g. RESIDENTIAL_PLOT) to the display type used by Property. */
+export function mapPropertyType(rawType?: string): Property['propertyType'] {
+  return (rawType && TYPE_MAP[rawType]) || 'Estate'
 }
 
 function formatInr(amount: number): string {
@@ -68,7 +74,7 @@ export function mapBackendProperty(raw: any): Property {
     formattedPrice: formatPriceDisplay(raw.priceRange, price),
     pricePerSqFt: Number(raw.pricePerSqft) || 0,
     formattedPricePerSqFt: raw.pricePerSqft ? `₹${Number(raw.pricePerSqft).toLocaleString('en-IN')} / sq ft` : '',
-    propertyType: TYPE_MAP[raw.propertyType] || 'Estate',
+    propertyType: mapPropertyType(raw.propertyType),
     listingType: raw.listingType === 'RENT' ? 'Rent' : raw.listingType === 'LEASE' ? 'Lease' : 'Buy',
     location: {
       city: raw.city || '',
@@ -84,7 +90,7 @@ export function mapBackendProperty(raw: any): Property {
       yearBuilt: 2026
     },
     amenities: (raw.amenities || []).map((name: string) => ({ icon: 'Star', name })),
-    features: raw.features || raw.highlights || [],
+    features: (Array.isArray(raw.features) && raw.features.length > 0) ? raw.features : (raw.highlights || []),
     images: {
       hero,
       gallery: galleryUrls.length > 0 ? galleryUrls : [hero]

@@ -1,7 +1,7 @@
 import * as React from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Location } from '@/data/locations'
+import { Location, LOCATIONS } from '@/data/locations'
 import { ArrowUpRight, TrendingUp } from 'lucide-react'
 
 interface LocationCardProps {
@@ -10,9 +10,14 @@ interface LocationCardProps {
 }
 
 export function LocationCard({ location, className = '' }: LocationCardProps) {
+  // Only statically generated location slugs have a detail page; DB-derived hubs link to the filtered property directory
+  const hasDetailPage = LOCATIONS.some((l) => l.slug === location.slug)
+  const href = hasDetailPage
+    ? `/locations/${location.slug}`
+    : `/properties?location=${encodeURIComponent(location.name || location.slug)}`
   return (
     <Link
-      href={`/locations/${location.slug}`}
+      href={href}
       className={`group relative bg-bg-surface border border-white/15 overflow-hidden block hover:border-white/35 transition-all duration-500 shadow-lg ${className}`}
     >
       <div className="relative aspect-[16/10] w-full overflow-hidden">

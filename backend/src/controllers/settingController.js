@@ -126,16 +126,17 @@ exports.getAllSettings = async (req, res, next) => {
  */
 exports.updateAllSettings = async (req, res, next) => {
   try {
-    const updates = req.body; // { KEY: { value?, jsonValue?, isActive? } }
+    const updates = req.body && typeof req.body === 'object' ? req.body : {}; // { KEY: { value?, jsonValue?, isActive? } }
     const results = {};
 
     for (const [key, payload] of Object.entries(updates)) {
+      if (!payload || typeof payload !== 'object') continue;
       let setting = await SystemSetting.findOne({ key });
       if (!setting) {
         const def = DEFAULTS[key] || { value: '', jsonValue: null };
         setting = new SystemSetting({ key, value: def.value, jsonValue: def.jsonValue });
       }
-      if (payload.value !== undefined) setting.value = payload.value;
+      if (payload.value !== undefined) setting.value = String(payload.value ?? '');
       if (payload.jsonValue !== undefined) setting.jsonValue = payload.jsonValue;
       if (payload.isActive !== undefined) setting.isActive = payload.isActive;
       await setting.save();
@@ -154,7 +155,9 @@ exports.updateAnnouncement = async (req, res, next) => {
     let setting = await SystemSetting.findOne({ key: 'ANNOUNCEMENT_TICKER' });
     if (!setting) setting = new SystemSetting({ key: 'ANNOUNCEMENT_TICKER' });
     if (value !== undefined) setting.value = value;
-    setting.jsonValue = { ...(setting.jsonValue || {}), isActive: isActive !== false };
+    // Keep the current active flag when the caller only updates the text
+    const currentActive = setting.jsonValue?.isActive !== false;
+    setting.jsonValue = { ...(setting.jsonValue || {}), isActive: isActive === undefined ? currentActive : isActive !== false };
     await setting.save();
     res.json({ message: 'Announcement updated', announcement: setting.value, isActive: setting.jsonValue?.isActive });
   } catch (error) {

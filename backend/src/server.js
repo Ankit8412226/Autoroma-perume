@@ -10,6 +10,10 @@ const errorHandler = require('./middleware/errorHandler');
 
 const app = express();
 
+// Behind a reverse proxy (Vercel/Nginx) req.ip is the proxy's address unless we
+// trust X-Forwarded-For — otherwise every client shares one rate-limit bucket.
+app.set('trust proxy', 1);
+
 // Connect MongoDB Database
 connectDB();
 

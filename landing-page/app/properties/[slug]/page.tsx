@@ -23,7 +23,7 @@ export default function PropertyDetailPage() {
     const load = async () => {
       try {
         const baseUrl = getApiBaseUrl()
-        const res = await fetch(`${baseUrl}/public/properties/${slug}`).catch(() => null)
+        const res = await fetch(`${baseUrl}/public/properties/${encodeURIComponent(slug)}`).catch(() => null)
         if (res && res.ok) {
           const data = await res.json()
           setPayload(data)

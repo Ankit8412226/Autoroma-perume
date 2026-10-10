@@ -81,13 +81,14 @@ export default function ProjectDetailsPage() {
     try {
       const baseUrl = getApiBaseUrl()
       const plotInfo = selectedPlot ? ` | Plot: ${selectedPlot.plotNo} (Block ${selectedPlot.block})` : ''
-      await fetch(`${baseUrl}/public/inquiries`, {
+      const res = await fetch(`${baseUrl}/public/inquiries`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: formData.name,
           phone: formData.phone,
-          email: formData.email,
+          // Backend requires an email; the sidebar form marks it optional
+          email: formData.email.trim() || `${formData.phone.trim()}@project.inquiry`,
           inquiryType: 'PROJECT_INQUIRY',
           projectId: projectData?.project?._id,
           plotNo: selectedPlot?.plotNo || '',
@@ -95,6 +96,7 @@ export default function ProjectDetailsPage() {
           source: 'project-detail'
         })
       })
+      if (!res.ok) throw new Error('Inquiry submission failed')
       setFormStatus('success')
       setFormData({ name: '', phone: '', email: '', message: '' })
       setTimeout(() => { setFormStatus('idle'); setSelectedPlot(null) }, 4000)

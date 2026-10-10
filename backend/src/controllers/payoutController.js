@@ -68,11 +68,24 @@ exports.requestPayout = async (req, res, next) => {
       accountHolderName: approvedKyc.accountHolderName
     };
 
+    // Commissions already reserved by an open (not yet completed) payout must
+    // not be requested again, otherwise the same commission is paid twice.
+    const openPayouts = await Payout.find({
+      employeeId,
+      status: { $in: ['PENDING', 'PROCESSING'] }
+    }).select('commissionIds');
+    if (openPayouts.some((p) => !p.commissionIds || p.commissionIds.length === 0)) {
+      // Legacy open payout settles ALL outstanding commissions on approval.
+      return res.status(400).json({ message: 'A payout request is already pending for this agent' });
+    }
+    const reservedIds = openPayouts.flatMap((p) => p.commissionIds);
+
     // Settle exactly the employee's outstanding (unpaid) commissions. The payout
     // amount is derived from those records, never trusted from the request body.
     const outstanding = await Commission.find({
       employeeId,
-      status: { $in: ['CALCULATED', 'APPROVED'] }
+      status: { $in: ['CALCULATED', 'APPROVED'] },
+      _id: { $nin: reservedIds }
     }).select('_id commissionAmount');
 
     if (outstanding.length === 0) {
@@ -131,7 +144,7 @@ exports.approvePayout = async (req, res, next) => {
         { _id: { $in: payout.commissionIds }, status: { $in: ['CALCULATED', 'APPROVED'] } },
         { status: 'PAID' }
       );
-    } else {
+    } else if (payout.employeeId) {
       await Commission.updateMany(
         { employeeId: payout.employeeId._id, status: { $in: ['CALCULATED', 'APPROVED'] } },
         { status: 'PAID' }
@@ -141,18 +154,23 @@ exports.approvePayout = async (req, res, next) => {
     // Send multi-channel notification (Email + WhatsApp + In-App)
     if (payout.employeeId && payout.employeeId.userId) {
       const msg = `Congratulations! Your payout of ₹${payout.amount.toLocaleString()} (Ref: ${payout.referenceNo}) has been approved and processed.`;
-      await sendNotification({
-        userId: payout.employeeId.userId,
-        title: 'Payout Disbursement Successful',
-        message: msg,
-        channel: 'WHATSAPP'
-      });
-      await sendNotification({
-        userId: payout.employeeId.userId,
-        title: 'Payout Disbursement Successful',
-        message: msg,
-        channel: 'IN_APP'
-      });
+      try {
+        await sendNotification({
+          userId: payout.employeeId.userId,
+          title: 'Payout Disbursement Successful',
+          message: msg,
+          channel: 'WHATSAPP'
+        });
+        await sendNotification({
+          userId: payout.employeeId.userId,
+          title: 'Payout Disbursement Successful',
+          message: msg,
+          channel: 'IN_APP'
+        });
+      } catch (notifyErr) {
+        // Payout is already completed — a notification failure must not 500.
+        console.error('[Payout] notification failed:', notifyErr.message);
+      }
     }
 
     res.json({ message: 'Payout approved and completed', payout });

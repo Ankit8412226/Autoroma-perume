@@ -26,6 +26,7 @@ import { InviteAgentsPage } from './pages/InviteAgentsPage';
 import { AgentKycPage } from './pages/AgentKycPage';
 import { KycReviewPage } from './pages/KycReviewPage';
 import { GalleryPage } from './pages/GalleryPage';
+import { CitiesPage } from './pages/CitiesPage';
 import { BulkDealsPage } from './pages/BulkDealsPage';
 import { BulkDealRequestsPage } from './pages/BulkDealRequestsPage';
 
@@ -79,6 +80,7 @@ export const App: React.FC = () => {
             <Route path="/bulk-deals-management" element={<ProtectedRoute roles={STAFF_ROLES}><BulkDealsPage /></ProtectedRoute>} />
             <Route path="/bulk-deal-requests" element={<ProtectedRoute roles={STAFF_ROLES}><BulkDealRequestsPage /></ProtectedRoute>} />
             <Route path="/gallery-management" element={<ProtectedRoute roles={STAFF_ROLES}><GalleryPage /></ProtectedRoute>} />
+            <Route path="/cities" element={<ProtectedRoute roles={STAFF_ROLES}><CitiesPage /></ProtectedRoute>} />
             <Route path="/plots" element={<ProtectedRoute><PlotManagementPage /></ProtectedRoute>} />
 
             <Route path="/plot-maps" element={<Navigate to="/plots" replace />} />

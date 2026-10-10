@@ -1,4 +1,15 @@
 const GalleryItem = require('../models/GalleryItem');
+const { getPresignedUrl } = require('../services/s3Service');
+
+// Uploaded images are stored with a pre-signed URL that expires (7 days);
+// re-sign from the stored S3 key on every read so the gallery doesn't break.
+async function hydrateItems(items) {
+  return Promise.all(items.map(async (item) => {
+    if (!item.imageS3Key) return item;
+    const freshUrl = await getPresignedUrl(item.imageS3Key);
+    return freshUrl ? { ...item, imageUrl: freshUrl } : item;
+  }));
+}
 
 // Public route: Get only published gallery items uploaded via Gallery Management
 exports.getPublicGallery = async (req, res, next) => {
@@ -7,7 +18,7 @@ exports.getPublicGallery = async (req, res, next) => {
       .sort({ order: 1, createdAt: -1 })
       .lean();
 
-    res.json(items);
+    res.json(await hydrateItems(items));
   } catch (error) {
     next(error);
   }
@@ -20,7 +31,7 @@ exports.getAdminGallery = async (req, res, next) => {
       .sort({ order: 1, createdAt: -1 })
       .lean();
 
-    res.json(items);
+    res.json(await hydrateItems(items));
   } catch (error) {
     next(error);
   }
@@ -37,7 +48,7 @@ exports.createGalleryItem = async (req, res, next) => {
 
     const payload = {
       title: String(title).trim(),
-      category: category || 'PROJECT_SHOWCASE',
+      category: GalleryItem.GALLERY_CATEGORIES.includes(category) ? category : 'PROJECT_SHOWCASE',
       imageUrl: String(imageUrl).trim(),
       imageS3Key: imageS3Key ? String(imageS3Key).trim() : '',
       caption: caption ? String(caption).trim() : '',
@@ -64,11 +75,11 @@ exports.updateGalleryItem = async (req, res, next) => {
 
     const updates = {
       title: title !== undefined ? String(title).trim() : existing.title,
-      category: category || existing.category,
+      category: GalleryItem.GALLERY_CATEGORIES.includes(category) ? category : existing.category,
       imageUrl: imageUrl !== undefined ? String(imageUrl).trim() : existing.imageUrl,
       imageS3Key: imageS3Key !== undefined ? String(imageS3Key).trim() : existing.imageS3Key,
       caption: caption !== undefined ? String(caption).trim() : existing.caption,
-      order: order !== undefined ? Number(order) : existing.order,
+      order: order !== undefined ? (Number(order) || 0) : existing.order,
       isPublished: isPublished !== undefined ? Boolean(isPublished) : existing.isPublished
     };
 

@@ -57,7 +57,24 @@ const userSchema = new mongoose.Schema({
   resetPasswordExpires: {
     type: Date,
     default: null
+  },
+  // Bumped on every password change/reset. JWTs carry the version they were
+  // issued with, so bumping it logs out every existing session.
+  tokenVersion: {
+    type: Number,
+    default: 0
   }
 }, { timestamps: true });
+
+// Never serialise secrets (password hash, verification/reset tokens) into API
+// responses, even when a controller returns a full User document.
+const stripSecrets = (doc, ret) => {
+  delete ret.password;
+  delete ret.verificationToken;
+  delete ret.resetPasswordToken;
+  return ret;
+};
+userSchema.set('toJSON', { transform: stripSecrets });
+userSchema.set('toObject', { transform: stripSecrets });
 
 module.exports = mongoose.model('User', userSchema);
